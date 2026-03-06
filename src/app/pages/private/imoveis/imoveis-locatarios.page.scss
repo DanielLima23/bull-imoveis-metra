@@ -1,0 +1,38 @@
+.status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.22rem 0.56rem;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.08);
+  color: #334155;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.status--active {
+  background: rgba(21, 128, 61, 0.14);
+  color: #166534;
+}
+
+.status--ended {
+  background: rgba(37, 99, 235, 0.14);
+  color: #1d4ed8;
+}
+
+.status--canceled {
+  background: rgba(220, 38, 38, 0.12);
+  color: #b91c1c;
+}
+
+.btn-row {
+  padding: 0.42rem 0.64rem;
+  font-size: 0.8rem;
+}
+
+.empty-row {
+  padding: 0.9rem;
+  color: var(--muted);
+  text-align: center;
+  font-weight: 600;
+}

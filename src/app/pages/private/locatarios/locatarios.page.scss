@@ -1,0 +1,17 @@
+.search {
+  max-width: 440px;
+}
+
+.status {
+  padding: 0.22rem 0.56rem;
+  border-radius: 999px;
+  background: rgba(21, 128, 61, 0.12);
+  color: #186437;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.status.off {
+  background: rgba(220, 38, 38, 0.12);
+  color: #b42323;
+}

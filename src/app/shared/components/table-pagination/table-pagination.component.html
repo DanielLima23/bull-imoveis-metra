@@ -1,0 +1,34 @@
+﻿<footer class="table-pagination" role="navigation" aria-label="Paginação">
+  <span class="table-pagination__summary">
+    @if (totalItems() === 0) {
+      Nenhum registro encontrado
+    } @else {
+      Mostrando {{ fromItem() }} a {{ toItem() }} de {{ totalItems() }} registros
+    }
+  </span>
+
+  <div class="table-pagination__controls">
+    <label class="table-pagination__size">
+      <span>Itens por página</span>
+      <app-async-search-select
+        class="table-pagination__size-select"
+        [value]="selectedPageSize()"
+        [staticOptions]="pageSizeSelectOptions()"
+        [allowClear]="false"
+        [searchable]="false"
+        [compact]="true"
+        [useFloatingPanel]="true"
+        [disabled]="loading()"
+        (valueChange)="changePageSize($event)"
+      />
+    </label>
+
+    <div class="table-pagination__nav">
+      <button class="btn btn-secondary" type="button" (click)="previous()" [disabled]="loading() || !canGoPrevious()">Anterior</button>
+      <span>Página {{ page() }} de {{ totalPages() || 1 }}</span>
+      <button class="btn btn-secondary" type="button" (click)="next()" [disabled]="loading() || !canGoNext()">Próxima</button>
+    </div>
+  </div>
+</footer>
+
+

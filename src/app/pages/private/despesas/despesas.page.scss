@@ -1,0 +1,52 @@
+.types-panel {
+  margin-bottom: 0.95rem;
+}
+
+.types-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.72rem;
+  margin-bottom: 0.68rem;
+}
+
+.types-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.46rem;
+  margin-bottom: 0.7rem;
+}
+
+.types-chips span {
+  border: 1px solid rgba(17, 118, 238, 0.18);
+  border-radius: 999px;
+  padding: 0.24rem 0.58rem;
+  font-size: 0.76rem;
+  background: rgba(17, 118, 238, 0.06);
+  color: #1d3e6f;
+}
+
+.type-form {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.56rem;
+  align-items: end;
+}
+
+.type-form .field--full {
+  grid-column: 1 / -1;
+}
+
+.type-form .btn {
+  justify-self: end;
+}
+
+.search {
+  max-width: 440px;
+}
+
+@media (max-width: 900px) {
+  .type-form {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,56 @@
+.stats .card-panel {
+  position: relative;
+  overflow: hidden;
+}
+
+.stats .card-panel::after {
+  content: '';
+  position: absolute;
+  width: 88px;
+  height: 88px;
+  right: -34px;
+  top: -34px;
+  border-radius: 999px;
+  background: radial-gradient(circle, rgba(17, 118, 238, 0.2), transparent 65%);
+  pointer-events: none;
+}
+
+.stats h3 {
+  margin: 0 0 0.35rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.stats p {
+  margin: 0;
+  font-size: clamp(1.1rem, 2vw, 1.3rem);
+  font-weight: 800;
+}
+
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.95rem;
+  margin-top: 0.95rem;
+}
+
+.stat-card {
+  min-height: 98px;
+}
+
+.table {
+  min-width: 0;
+}
+
+h2 {
+  font-size: 1.05rem;
+  margin-bottom: 0.65rem;
+}
+
+@media (max-width: 1024px) {
+  .two-col {
+    grid-template-columns: 1fr;
+  }
+}

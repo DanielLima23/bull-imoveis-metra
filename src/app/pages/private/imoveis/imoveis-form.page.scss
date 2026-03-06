@@ -1,0 +1,110 @@
+.zip-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.55rem;
+}
+
+.cep-feedback {
+  grid-column: 1 / -1;
+  margin: -0.1rem 0 0.26rem;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.52rem 0.62rem;
+  font-size: 0.84rem;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 0.44rem;
+}
+
+.cep-feedback.loading {
+  border-color: rgba(17, 118, 238, 0.35);
+  color: var(--brand-2);
+}
+
+.cep-feedback.success {
+  border-color: rgba(17, 118, 238, 0.42);
+  background: rgba(17, 118, 238, 0.06);
+  color: #114892;
+}
+
+.cep-feedback.error {
+  border-color: rgba(220, 38, 38, 0.45);
+  background: rgba(220, 38, 38, 0.06);
+  color: #a42020;
+}
+
+.auto-legend {
+  grid-column: 1 / -1;
+  margin: -0.2rem 0 0.1rem;
+  font-size: 0.76rem;
+  color: #5f6f86;
+  border-left: 3px solid #8aa2c3;
+  padding-left: 0.45rem;
+}
+
+.auto-filled:disabled {
+  font-weight: 600;
+}
+
+.input.ng-invalid.ng-touched:not(:disabled),
+.select.ng-invalid.ng-touched:not(:disabled),
+.textarea.ng-invalid.ng-touched:not(:disabled) {
+  border-color: #ca4040;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15);
+  background: #fff7f7;
+}
+
+.invalid-submit .input.ng-invalid.ng-touched:not(:disabled),
+.invalid-submit .select.ng-invalid.ng-touched:not(:disabled),
+.invalid-submit .textarea.ng-invalid.ng-touched:not(:disabled) {
+  animation: field-shake 280ms ease-in-out;
+}
+
+.spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(17, 118, 238, 0.2);
+  border-top-color: var(--brand);
+  border-radius: 999px;
+  animation: spin 0.8s linear infinite;
+}
+
+.uf {
+  text-transform: uppercase;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes field-shake {
+  0% {
+    transform: translateX(0);
+  }
+
+  25% {
+    transform: translateX(-4px);
+  }
+
+  50% {
+    transform: translateX(4px);
+  }
+
+  75% {
+    transform: translateX(-2px);
+  }
+
+  100% {
+    transform: translateX(0);
+  }
+}
+
+@media (max-width: 760px) {
+  .zip-row {
+    grid-column: 1 / -1;
+    grid-template-columns: 1fr;
+  }
+}

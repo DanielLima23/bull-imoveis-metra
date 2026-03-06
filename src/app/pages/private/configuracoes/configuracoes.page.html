@@ -1,0 +1,103 @@
+<app-page-header title="Configuracoes" subtitle="Escolha temas prontos para o sistema" [breadcrumbs]="[{ label: 'Dashboard', route: '/app/dashboard' }, { label: 'Configuracoes' }]" />
+
+<section class="card-panel settings-shell">
+  @if (loading()) {
+    <div class="settings-loading" aria-hidden="true">
+      <div class="skeleton-row"></div>
+      <div class="skeleton-row"></div>
+      <div class="skeleton-row"></div>
+    </div>
+  } @else {
+    <form class="settings-form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <article class="settings-section">
+        <header class="section-head">
+          <h2>Identidade</h2>
+          <p>Nome da marca exibido no login e na area administrativa.</p>
+        </header>
+
+        <div class="grid-form">
+          <div class="field field--full">
+            <label class="field__label" for="brandName">Nome da marca</label>
+            <input id="brandName" class="input" formControlName="brandName" maxlength="120" placeholder="Ex.: Imoveis Hub" />
+            @if (form.controls.brandName.touched && form.controls.brandName.invalid) {
+              <small class="field-error">Informe o nome da marca.</small>
+            }
+          </div>
+
+          <div class="field">
+            <label class="field__label" for="brandShortName">Sigla</label>
+            <input id="brandShortName" class="input" formControlName="brandShortName" maxlength="8" placeholder="Ex.: IH" />
+            @if (form.controls.brandShortName.touched && form.controls.brandShortName.invalid) {
+              <small class="field-error">Informe uma sigla de ate 8 caracteres.</small>
+            }
+          </div>
+        </div>
+      </article>
+
+      <article class="settings-section">
+        <header class="section-head">
+          <h2>Temas prontos</h2>
+          <p>Selecione um tema moderno. O sistema aplica automaticamente sidenav, fundo, textos e componentes.</p>
+        </header>
+
+        <div class="preset-grid">
+          @for (preset of themePresets; track preset.key) {
+            <button type="button" class="preset-card" [class.active]="form.controls.themePreset.value === preset.key" (click)="selectPreset(preset.key)">
+              <div class="preset-card__head">
+                <strong>{{ preset.label }}</strong>
+                <span class="preset-mode" [class.preset-mode--dark]="preset.mode === 'DARK'">{{ preset.mode === 'DARK' ? 'Dark' : 'Light' }}</span>
+              </div>
+              <p>{{ preset.description }}</p>
+              <div class="preset-swatches">
+                <span [style.background]="preset.swatches[0]"></span>
+                <span [style.background]="preset.swatches[1]"></span>
+                <span [style.background]="preset.swatches[2]"></span>
+              </div>
+            </button>
+          }
+        </div>
+
+        <div class="preview-card">
+          <div class="preview-top" [style.background]="'linear-gradient(120deg, ' + selectedPreset().swatches[0] + ', ' + selectedPreset().swatches[2] + ')'">
+            <span class="preview-mark">{{ form.controls.brandShortName.value || 'IH' }}</span>
+            <strong>{{ form.controls.brandName.value || 'Imoveis Hub' }}</strong>
+          </div>
+          <div class="preview-body">
+            <span>Tema ativo: <strong>{{ selectedPreset().label }}</strong></span>
+            <span>Modo: <strong>{{ selectedPreset().mode === 'DARK' ? 'Dark' : 'Light' }}</strong></span>
+          </div>
+        </div>
+      </article>
+
+      <article class="settings-section">
+        <header class="section-head">
+          <h2>Experiencia</h2>
+          <p>Ative ou reduza animacoes da interface.</p>
+        </header>
+
+        <label class="toggle-row" for="enableAnimations">
+          <span class="toggle-text">
+            <strong>Animacoes da interface</strong>
+            <small>Quando desativado, transicoes e efeitos ficam minimizados.</small>
+          </span>
+          <span class="toggle">
+            <input id="enableAnimations" type="checkbox" formControlName="enableAnimations" />
+            <span class="toggle__track"></span>
+          </span>
+        </label>
+      </article>
+
+      @if (!canEdit()) {
+        <div class="permission-note">
+          Seu perfil possui acesso de consulta. Apenas administradores podem salvar alteracoes.
+        </div>
+      }
+
+      <footer class="actions">
+        <button type="button" class="btn btn-secondary" (click)="restoreSaved()" [disabled]="loading() || saving()">Reverter</button>
+        <button type="button" class="btn btn-secondary" (click)="applyDefaults()" [disabled]="loading() || saving()">Restaurar padrao</button>
+        <button type="submit" class="btn btn-primary" [disabled]="saving() || loading() || !canEdit()">{{ saving() ? 'Salvando...' : 'Salvar tema' }}</button>
+      </footer>
+    </form>
+  }
+</section>

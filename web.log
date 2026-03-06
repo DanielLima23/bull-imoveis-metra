@@ -1,0 +1,65 @@
+
+> imoveis-web@0.0.0 start
+> ng serve --host localhost --port 4200
+
+[33m>[39m Building...
+[32m√[39m Building...
+[1mInitial chunk files[22m[2m | [22m[1mNames[22m                [2m | [22m[1mRaw size[22m
+[32mmain.js[39m            [2m | [22m[2mmain[22m                 [2m | [22m[36m19.48 kB[39m[2m | [22m
+[32mchunk-I7THGRXX.js[39m  [2m | [22m[2m-[22m                    [2m | [22m[36m15.59 kB[39m[2m | [22m
+[32mstyles.css[39m         [2m | [22m[2mstyles[22m               [2m | [22m[36m10.25 kB[39m[2m | [22m
+[32mchunk-RRNQX2JJ.js[39m  [2m | [22m[2m-[22m                    [2m | [22m [36m4.84 kB[39m[2m | [22m
+[32mchunk-UOHU66HC.js[39m  [2m | [22m[2m-[22m                    [2m | [22m [36m2.56 kB[39m[2m | [22m
+[32mchunk-HMMGAT45.js[39m  [2m | [22m[2m-[22m                    [2m | [22m [36m2.47 kB[39m[2m | [22m
+[32mchunk-NWYLCSO4.js[39m  [2m | [22m[2m-[22m                    [2m | [22m [36m1.07 kB[39m[2m | [22m
+
+[1m [22m                  [2m | [22m[1mInitial total[22m        [2m | [22m[1m56.25 kB[22m
+
+[1mLazy chunk files[22m   [2m | [22m[1mNames[22m                [2m | [22m[1mRaw size[22m
+[32mchunk-P3CKTKIV.js[39m  [2m | [22m[2mimoveis-page[22m         [2m | [22m[36m49.74 kB[39m[2m | [22m
+[32mchunk-SZTFXE54.js[39m  [2m | [22m[2m-[22m                    [2m | [22m[36m47.94 kB[39m[2m | [22m
+[32mchunk-BZVJ6US6.js[39m  [2m | [22m[2mprivate-routes[22m       [2m | [22m[36m38.39 kB[39m[2m | [22m
+[32mchunk-4V6B7A43.js[39m  [2m | [22m[2mconfiguracoes-page[22m   [2m | [22m[36m34.53 kB[39m[2m | [22m
+[32mchunk-EW46ZNAK.js[39m  [2m | [22m[2mimoveis-form-page[22m    [2m | [22m[36m29.14 kB[39m[2m | [22m
+[32mchunk-BWUKU5E2.js[39m  [2m | [22m[2mdespesas-page[22m        [2m | [22m[36m27.11 kB[39m[2m | [22m
+[32mchunk-5JJMPTIS.js[39m  [2m | [22m[2mlocacoes-form-page[22m   [2m | [22m[36m22.98 kB[39m[2m | [22m
+[32mchunk-VJ6LOALP.js[39m  [2m | [22m[2mlocatarios-page[22m      [2m | [22m[36m20.09 kB[39m[2m | [22m
+[32mchunk-J3HQS2VK.js[39m  [2m | [22m[2mdespesas-form-page[22m   [2m | [22m[36m19.37 kB[39m[2m | [22m
+[32mchunk-RD2LOQ4U.js[39m  [2m | [22m[2mlocacoes-page[22m        [2m | [22m[36m19.22 kB[39m[2m | [22m
+[32mchunk-LSFIQO74.js[39m  [2m | [22m[2mpendencias-page[22m      [2m | [22m[36m18.66 kB[39m[2m | [22m
+[32mchunk-NWSFTQXR.js[39m  [2m | [22m[2mmanutencoes-page[22m     [2m | [22m[36m17.87 kB[39m[2m | [22m
+[32mchunk-PXCWCP3W.js[39m  [2m | [22m[2mmanutencoes-form-page[22m[2m | [22m[36m17.78 kB[39m[2m | [22m
+[32mchunk-FIORZEUO.js[39m  [2m | [22m[2mdashboard-page[22m       [2m | [22m[36m17.78 kB[39m[2m | [22m
+[32mchunk-CJBY5D2R.js[39m  [2m | [22m[2mvisitas-page[22m         [2m | [22m[36m17.65 kB[39m[2m | [22m
+[2m...and 24 more lazy chunks files. Use "--verbose" to show all the files.[22m
+
+Application bundle generation complete. [4.266 seconds] - 2026-03-06T15:15:31.716Z
+
+Watch mode enabled. Watching for file changes...
+NOTE: Raw file sizes do not reflect development server per-request transformations.
+  [32m➜[39m  [1mLocal[22m:   [36mhttp://localhost:[1m4200[22m/[39m
+[2m[32m  ➜[39m[22m[2m  press [22m[1mh + enter[22m[2m to show help[22m
+[33m>[39m Changes detected. Rebuilding...
+[32m√[39m Changes detected. Rebuilding...
+[1mInitial chunk files[22m[2m | [22m[1mNames[22m         [2m | [22m[1mRaw size[22m
+[32mmain.js[39m            [2m | [22m[2mmain[22m          [2m | [22m[36m19.48 kB[39m[2m | [22m
+
+[1mLazy chunk files[22m   [2m | [22m[1mNames[22m         [2m | [22m[1mRaw size[22m
+[32mchunk-Z7NIU4DK.js[39m  [2m | [22m[2mimoveis-page[22m  [2m | [22m[36m50.70 kB[39m[2m | [22m
+[32mchunk-AVG7TUTV.js[39m  [2m | [22m[2mprivate-routes[22m[2m | [22m[36m38.39 kB[39m[2m | [22m
+
+Application bundle generation complete. [1.394 seconds] - 2026-03-06T15:19:15.067Z
+
+Component update sent to client(s).
+[33m>[39m Changes detected. Rebuilding...
+[32m√[39m Changes detected. Rebuilding...
+[1mInitial chunk files[22m[2m | [22m[1mNames[22m         [2m | [22m[1mRaw size[22m
+[32mmain.js[39m            [2m | [22m[2mmain[22m          [2m | [22m[36m19.48 kB[39m[2m | [22m
+
+[1mLazy chunk files[22m   [2m | [22m[1mNames[22m         [2m | [22m[1mRaw size[22m
+[32mchunk-CSOECA5D.js[39m  [2m | [22m[2mimoveis-page[22m  [2m | [22m[36m54.10 kB[39m[2m | [22m
+[32mchunk-2535XMBW.js[39m  [2m | [22m[2mprivate-routes[22m[2m | [22m[36m38.39 kB[39m[2m | [22m
+
+Application bundle generation complete. [0.376 seconds] - 2026-03-06T15:19:29.301Z
+
+Component update sent to client(s).

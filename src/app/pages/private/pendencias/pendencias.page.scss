@@ -1,0 +1,27 @@
+.search {
+  max-width: 430px;
+}
+
+.badge {
+  border-radius: 999px;
+  padding: 0.2rem 0.52rem;
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.badge--attention {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.badge--urgent {
+  background: #fde68a;
+  color: #a0430b;
+}
+
+.badge--critical {
+  background: #fecaca;
+  color: #b91c1c;
+}

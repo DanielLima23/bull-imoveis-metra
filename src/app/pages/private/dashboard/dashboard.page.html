@@ -1,0 +1,84 @@
+﻿<app-page-header
+  title="Dashboard"
+  subtitle="Visão financeira e operacional dos imóveis"
+  [breadcrumbs]="[{ label: 'Dashboard' }]"
+/>
+
+@if (isLoading()) {
+  <section class="cards-grid">
+    @for (i of [1,2,3,4,5,6]; track i) {
+      <article class="card-panel stat-card">
+        <div class="skeleton-row"></div>
+      </article>
+    }
+  </section>
+}
+
+@if (data(); as dashboard) {
+  <section class="cards-grid stats">
+    <article class="card-panel"><h3>Recebido</h3><p>{{ dashboard.overview.receivedAmount | brlCurrency }}</p></article>
+    <article class="card-panel"><h3>Previsto</h3><p>{{ dashboard.overview.expectedAmount | brlCurrency }}</p></article>
+    <article class="card-panel"><h3>Pendente</h3><p>{{ dashboard.overview.pendingAmount | brlCurrency }}</p></article>
+    <article class="card-panel"><h3>Atrasado</h3><p>{{ dashboard.overview.overdueAmount | brlCurrency }}</p></article>
+    <article class="card-panel"><h3>Imóveis parados</h3><p>{{ dashboard.overview.vacantPropertiesCount }}</p></article>
+    <article class="card-panel"><h3>Perda por vacância</h3><p>{{ dashboard.overview.vacancyLossAmount | brlCurrency }}</p></article>
+  </section>
+
+  <section class="grid two-col">
+    <article class="card-panel">
+      <h2>Contas atrasadas</h2>
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Imóvel</th>
+              <th>Conta</th>
+              <th>Venc.</th>
+              <th>Valor</th>
+              <th>Dias</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of dashboard.overdueExpenses; track row.expenseId) {
+              <tr>
+                <td>{{ row.propertyTitle }}</td>
+                <td>{{ row.expenseTypeName }}</td>
+                <td>{{ row.dueDate | dateOnlyBr }}</td>
+                <td>{{ row.amount | brlCurrency }}</td>
+                <td>{{ row.overdueDays }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </article>
+
+    <article class="card-panel">
+      <h2>Pendências urgentes</h2>
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Imóvel</th>
+              <th>Título</th>
+              <th>Severidade</th>
+              <th>SLA</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of dashboard.pendencyAlerts; track row.pendencyId) {
+              <tr>
+                <td>{{ row.propertyTitle }}</td>
+                <td>{{ row.title }}</td>
+                <td>{{ row.severity }}</td>
+                <td>{{ row.elapsedDays }}/{{ row.slaDays }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </article>
+  </section>
+}
+
+

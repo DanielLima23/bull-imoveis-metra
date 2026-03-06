@@ -1,0 +1,103 @@
+﻿<app-page-header
+  [title]="isEdit() ? 'Editar Despesa' : 'Nova Despesa'"
+  subtitle="Tela única de criação e atualização de conta do imóvel"
+  [breadcrumbs]="[{ label: 'Dashboard', route: '/app/dashboard' }, { label: 'Contas', route: '/app/despesas' }, { label: isEdit() ? 'Editar' : 'Novo' }]"
+/>
+
+<section class="card-panel">
+  <form class="grid-form" [formGroup]="form" (ngSubmit)="submit()">
+    <div class="field">
+      <label class="field__label">Imóvel</label>
+      <app-async-search-select
+        formControlName="propertyId"
+        placeholder="Selecione"
+        searchPlaceholder="Buscar imóvel..."
+        [pageSize]="15"
+        [fetchPage]="propertySelectFetchPage"
+        [fetchById]="propertySelectFetchById"
+      />
+    </div>
+
+    <div class="field">
+      <label class="field__label">Tipo de despesa</label>
+      <app-async-search-select
+        formControlName="expenseTypeId"
+        placeholder="Selecione"
+        [staticOptions]="expenseTypeOptions()"
+        [searchable]="false"
+        [allowClear]="false"
+      />
+    </div>
+
+    <div class="field">
+      <label class="field__label">Descrição</label>
+      <input class="input" formControlName="description" />
+    </div>
+
+    <div class="field">
+      <label class="field__label">Frequência</label>
+      <app-async-search-select
+        formControlName="frequency"
+        [staticOptions]="frequencyOptions"
+        [searchable]="false"
+        [allowClear]="false"
+      />
+    </div>
+
+    <div class="field">
+      <label class="field__label">Vencimento</label>
+      <input class="input" type="text" inputmode="numeric" formControlName="dueDate" placeholder="dd/mm/yyyy" appDateBrInput />
+    </div>
+
+    <div class="field">
+      <label class="field__label">Valor total</label>
+      <input class="input" type="text" inputmode="decimal" formControlName="totalAmount" appBrlCurrencyInput />
+    </div>
+
+    <div class="field">
+      <label class="field__label">Parcelas</label>
+      <input class="input" type="number" formControlName="installmentsCount" />
+    </div>
+
+    <div class="field field--full">
+      <label class="field__label">Recorrencia</label>
+      <label class="checkbox-inline">
+        <input type="checkbox" formControlName="isRecurring" />
+        Conta recorrente
+      </label>
+    </div>
+
+    @if (isYearly()) {
+      <div class="field">
+        <label class="field__label">Mes anual (1-12)</label>
+        <input class="input" type="number" min="1" max="12" formControlName="yearlyMonth" />
+      </div>
+    }
+
+    @if (isEdit()) {
+      <div class="field">
+        <label class="field__label">Status</label>
+        <app-async-search-select
+          formControlName="status"
+          [staticOptions]="expenseStatusOptions"
+          [searchable]="false"
+          [allowClear]="false"
+        />
+      </div>
+    }
+
+    <div class="field field--full">
+      <label class="field__label">Observações</label>
+      <textarea class="textarea" rows="4" formControlName="notes"></textarea>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-secondary" type="button" (click)="back()">Cancelar</button>
+      <button class="btn btn-primary" type="submit" [disabled]="submitting()">
+        @if (submitting()) { Salvando... } @else { Salvar cadastro }
+      </button>
+    </div>
+  </form>
+</section>
+
+

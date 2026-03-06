@@ -1,0 +1,81 @@
+﻿<app-page-header
+  title="Pendências e Urgências"
+  subtitle="Fila operacional por prioridade e vencimento"
+  [breadcrumbs]="[{ label: 'Dashboard', route: '/app/dashboard' }, { label: 'Pendências' }]"
+  actionLabel="Adicionar novo"
+  actionRoute="/app/pendencias/new"
+/>
+
+<section class="card-panel">
+  <div class="list-toolbar">
+    <h2>Listagem</h2>
+    <div class="toolbar-field">
+      <label class="toolbar-label">Buscar</label>
+      <input class="input search" [value]="search()" (input)="search.set(($any($event.target)).value)" placeholder="Imóvel, título, tipo, status ou severidade" />
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Imóvel</th>
+          <th>Título</th>
+          <th>Tipo</th>
+          <th>Severidade</th>
+          <th>Vencimento</th>
+          <th>Status</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (isLoading()) {
+          @for (i of [1,2,3,4,5,6]; track i) {
+            <tr>
+              <td colspan="7"><div class="skeleton-row"></div></td>
+            </tr>
+          }
+        } @else {
+          @for (item of filtered(); track item.id) {
+            <tr>
+              <td>{{ item.propertyTitle }}</td>
+              <td>{{ item.title }}</td>
+              <td>{{ item.pendencyTypeName }}</td>
+              <td>
+                <span class="badge" [class]="'badge badge--' + item.severity.toLowerCase()">{{ item.severity }}</span>
+              </td>
+              <td>{{ item.dueAtUtc | date: 'dd/MM/yyyy HH:mm' }}</td>
+              <td>{{ item.status }}</td>
+              <td class="actions-col">
+                <button class="btn btn-secondary" type="button" (click)="toggleRowMenu($event, item.id)">...</button>
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <app-table-pagination
+    [page]="page()"
+    [pageSize]="pageSize()"
+    [totalItems]="totalItems()"
+    [totalPages]="totalPages()"
+    [loading]="isLoading()"
+    (pageChange)="onPageChange($event)"
+    (pageSizeChange)="onPageSizeChange($event)"
+  />
+</section>
+
+@if (activeMenuItem(); as item) {
+  <button class="menu-overlay" type="button" (click)="closeRowMenu()" aria-label="Fechar menu de ações"></button>
+  <div class="menu-popover menu-popover--floating" [style.left.px]="menuPosition().x" [style.top.px]="menuPosition().y">
+    <a [routerLink]="['/app/pendencias', item.id, 'edit']" (click)="closeRowMenu()">Editar cadastro</a>
+    @if (item.status === 'OPEN') {
+      <button type="button" (click)="resolve(item)">Marcar como resolvida</button>
+    }
+  </div>
+}
+
+
+

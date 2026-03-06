@@ -1,0 +1,66 @@
+﻿<app-page-header
+  [title]="isEdit() ? 'Editar Visita' : 'Nova Visita'"
+  subtitle="Tela única de criação e atualização de visitas"
+  [breadcrumbs]="[{ label: 'Dashboard', route: '/app/dashboard' }, { label: 'Visitas', route: '/app/visitas' }, { label: isEdit() ? 'Editar' : 'Novo' }]"
+/>
+
+<section class="card-panel">
+  <form class="grid-form" [formGroup]="form" (ngSubmit)="submit()">
+    <div class="field">
+      <label class="field__label">Imóvel</label>
+      <app-async-search-select
+        formControlName="propertyId"
+        placeholder="Selecione"
+        searchPlaceholder="Buscar imóvel..."
+        [pageSize]="15"
+        [fetchPage]="propertySelectFetchPage"
+        [fetchById]="propertySelectFetchById"
+      />
+    </div>
+
+    <div class="field">
+      <label class="field__label">Data agendada</label>
+      <input class="input" type="text" inputmode="numeric" formControlName="scheduledAtUtc" placeholder="dd/mm/yyyy hh:mm" appDateTimeBrInput />
+    </div>
+
+    <div class="field">
+      <label class="field__label">Nome do contato</label>
+      <input class="input" formControlName="contactName" />
+    </div>
+
+    <div class="field">
+      <label class="field__label">Telefone</label>
+      <input class="input" formControlName="contactPhone" inputmode="tel" appPhoneBrInput />
+    </div>
+
+    <div class="field">
+      <label class="field__label">Responsável</label>
+      <input class="input" formControlName="responsibleName" />
+    </div>
+
+    @if (isEdit()) {
+      <div class="field">
+        <label class="field__label">Status</label>
+        <app-async-search-select
+          formControlName="status"
+          [staticOptions]="visitStatusOptions"
+          [searchable]="false"
+          [allowClear]="false"
+        />
+      </div>
+    }
+
+    <div class="field field--full">
+      <label class="field__label">Observações</label>
+      <textarea class="textarea" rows="4" formControlName="notes"></textarea>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-secondary" type="button" (click)="back()">Cancelar</button>
+      <button class="btn btn-primary" type="submit" [disabled]="submitting()">
+        @if (submitting()) { Salvando... } @else { Salvar cadastro }
+      </button>
+    </div>
+  </form>
+</section>
+

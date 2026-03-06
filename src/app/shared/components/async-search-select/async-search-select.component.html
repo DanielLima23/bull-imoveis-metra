@@ -1,0 +1,83 @@
+<div
+  class="async-select"
+  [class.async-select--open]="isOpen()"
+  [class.async-select--disabled]="isDisabled()"
+  [class.async-select--compact]="compact()"
+>
+  <button class="async-select__trigger" type="button" [disabled]="isDisabled()" (click)="togglePanel()">
+    <span class="async-select__value" [class.async-select__value--placeholder]="!selectedOption()">
+      {{ selectedOption()?.label || placeholder() }}
+    </span>
+    <span class="async-select__chevron" aria-hidden="true"></span>
+  </button>
+
+  @if (isOpen()) {
+    <div
+      class="async-select__panel"
+      [class.async-select__panel--floating]="useFloatingPanel()"
+      [style.top.px]="useFloatingPanel() ? panelPosition().top : null"
+      [style.left.px]="useFloatingPanel() ? panelPosition().left : null"
+      [style.width.px]="useFloatingPanel() ? panelPosition().width : null"
+      [style.z-index]="useFloatingPanel() ? floatingZIndex() : null"
+    >
+      @if (searchable()) {
+        <div class="async-select__search">
+          <input class="input async-select__search-input" type="text" [formControl]="searchControl" [placeholder]="searchPlaceholder()" />
+        </div>
+      }
+
+      <div class="async-select__list" [class.async-select__list--no-search]="!searchable()" (scroll)="onListScroll($event)">
+        @if (showSearchHint()) {
+          <div class="async-select__state">Digite ao menos {{ minSearchLength() }} caracteres para buscar.</div>
+        } @else if (isLoadingInitial()) {
+          @for (i of [1,2,3,4,5,6]; track i) {
+            <div class="async-select__skeleton"></div>
+          }
+        } @else if (initialError()) {
+          <div class="async-select__state async-select__state--error">
+            <span>{{ initialError() }}</span>
+            <button class="btn btn-secondary async-select__retry" type="button" (click)="retryInitialLoad()">Tentar novamente</button>
+          </div>
+        } @else {
+          @if (allowClear() && selectedValue()) {
+            <button class="async-select__option async-select__option--clear" type="button" (click)="clearSelection()">
+              {{ clearLabel() }}
+            </button>
+          }
+
+          @if (options().length === 0) {
+            <div class="async-select__state">{{ noResultsText() }}</div>
+          } @else {
+            @for (option of options(); track trackByOption($index, option)) {
+              <button
+                class="async-select__option"
+                type="button"
+                [class.async-select__option--selected]="option.id === selectedValue()"
+                (click)="selectOption(option)"
+              >
+                <span class="async-select__option-label">{{ option.label }}</span>
+                @if (option.subtitle) {
+                  <span class="async-select__option-subtitle">{{ option.subtitle }}</span>
+                }
+              </button>
+            }
+          }
+
+          @if (loadMoreError()) {
+            <div class="async-select__state async-select__state--error">
+              <span>{{ loadMoreError() }}</span>
+              <button class="btn btn-secondary async-select__retry" type="button" (click)="retryLoadMore()">Tentar novamente</button>
+            </div>
+          }
+
+          @if (isLoadingMore()) {
+            <div class="async-select__loading-more">
+              <span class="async-select__spinner" aria-hidden="true"></span>
+              <span>{{ loadingText() }}</span>
+            </div>
+          }
+        }
+      </div>
+    </div>
+  }
+</div>

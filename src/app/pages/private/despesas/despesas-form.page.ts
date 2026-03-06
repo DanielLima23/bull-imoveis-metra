@@ -1,0 +1,190 @@
+﻿import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
+import { catchError, map, of } from 'rxjs';
+import {
+  AsyncSearchSelectComponent,
+  AsyncSelectFetchById,
+  AsyncSelectFetchPage
+} from '../../../shared/components/async-search-select/async-search-select.component';
+import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
+import { ExpenseTypeDto, PagedResult, PropertyDto } from '../../../core/models/domain.model';
+import { ExpenseApiService } from '../../../core/services/expense-api.service';
+import { PropertyApiService } from '../../../core/services/property-api.service';
+import { BrlCurrencyInputDirective } from '../../../shared/directives/brl-currency-input.directive';
+import { DateBrInputDirective } from '../../../shared/directives/date-br-input.directive';
+import { SelectOption } from '../../../shared/models/select-option.model';
+import { ToastService } from '../../../shared/services/toast.service';
+import { toPropertySelectOption } from '../../../shared/utils/select-option.util';
+
+@Component({
+  selector: 'app-despesas-form-page',
+  standalone: true,
+  imports: [ReactiveFormsModule, PageHeaderComponent, BrlCurrencyInputDirective, DateBrInputDirective, AsyncSearchSelectComponent],
+  templateUrl: './despesas-form.page.html',
+  styleUrl: './despesas-form.page.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush
+})
+export class DespesasFormPage implements OnInit {
+  private readonly fb = inject(FormBuilder);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly expenseApi = inject(ExpenseApiService);
+  private readonly propertyApi = inject(PropertyApiService);
+  private readonly toast = inject(ToastService);
+
+  readonly id = signal<string | null>(null);
+  readonly isEdit = computed(() => !!this.id());
+  readonly submitting = signal(false);
+  readonly types = signal<ExpenseTypeDto[]>([]);
+  readonly expenseTypeOptions = computed<SelectOption[]>(() =>
+    this.types().map((item) => ({
+      id: item.id,
+      label: item.name
+    }))
+  );
+  readonly frequencyOptions: SelectOption[] = [
+    { id: 'ONE_TIME', label: 'Eventual' },
+    { id: 'MONTHLY', label: 'Mensal' },
+    { id: 'YEARLY', label: 'Anual' }
+  ];
+  readonly expenseStatusOptions: SelectOption[] = [
+    { id: 'PENDING', label: 'Pendente' },
+    { id: 'PAID', label: 'Paga' },
+    { id: 'CANCELED', label: 'Cancelada' }
+  ];
+
+  readonly propertySelectFetchPage: AsyncSelectFetchPage = (query) =>
+    this.propertyApi
+      .list(query.search, '', query.page, query.pageSize, { silent: true })
+      .pipe(map((result) => this.mapOptionsResult(result)));
+
+  readonly propertySelectFetchById: AsyncSelectFetchById = (id) =>
+    this.propertyApi.getById(id, { silent: true }).pipe(
+      map((item) => toPropertySelectOption(item)),
+      catchError(() => of(null))
+    );
+
+  readonly form = this.fb.nonNullable.group({
+    propertyId: ['', Validators.required],
+    expenseTypeId: ['', Validators.required],
+    description: ['', Validators.required],
+    frequency: ['MONTHLY', Validators.required],
+    dueDate: [new Date().toISOString().slice(0, 10), Validators.required],
+    totalAmount: [0, [Validators.required, Validators.min(1)]],
+    installmentsCount: [1, [Validators.required, Validators.min(1)]],
+    isRecurring: [true],
+    yearlyMonth: [1],
+    status: ['PENDING', Validators.required],
+    notes: ['']
+  });
+
+  readonly isYearly = computed(() => this.form.controls.frequency.value === 'YEARLY');
+
+  ngOnInit(): void {
+    this.expenseApi.listTypes().subscribe({ next: (types) => this.types.set(types) });
+
+    const id = this.route.snapshot.paramMap.get('id');
+    this.id.set(id);
+
+    if (!id) {
+      return;
+    }
+
+    this.expenseApi.getById(id).subscribe({
+      next: (item) => {
+        this.form.patchValue({
+          propertyId: item.propertyId,
+          expenseTypeId: item.expenseTypeId,
+          description: item.description,
+          frequency: item.frequency,
+          dueDate: item.dueDate,
+          totalAmount: item.totalAmount,
+          installmentsCount: item.installmentsCount,
+          isRecurring: item.isRecurring,
+          yearlyMonth: item.yearlyMonth ?? 1,
+          status: item.status,
+          notes: item.notes ?? ''
+        });
+
+        this.form.controls.propertyId.disable();
+        this.form.controls.expenseTypeId.disable();
+      },
+      error: () => this.toast.error('Falha ao carregar despesa para edição.')
+    });
+  }
+
+  submit(): void {
+    if (this.form.invalid || this.submitting()) {
+      this.form.markAllAsTouched();
+      return;
+    }
+
+    this.submitting.set(true);
+    const id = this.id();
+    const payload = this.form.getRawValue();
+
+    if (!id) {
+      this.expenseApi
+        .create({
+          propertyId: payload.propertyId,
+          expenseTypeId: payload.expenseTypeId,
+          description: payload.description,
+          frequency: payload.frequency,
+          dueDate: payload.dueDate,
+          totalAmount: payload.totalAmount,
+          installmentsCount: payload.installmentsCount,
+          isRecurring: payload.isRecurring,
+          yearlyMonth: payload.frequency === 'YEARLY' ? payload.yearlyMonth : undefined,
+          notes: payload.notes || undefined
+        })
+        .subscribe({
+          next: () => this.handleSuccess('Despesa criada com sucesso.'),
+          error: () => this.handleError('Falha ao criar despesa.')
+        });
+      return;
+    }
+
+    this.expenseApi
+      .update(id, {
+        propertyId: payload.propertyId,
+        expenseTypeId: payload.expenseTypeId,
+        description: payload.description,
+        frequency: payload.frequency,
+        dueDate: payload.dueDate,
+        totalAmount: payload.totalAmount,
+        installmentsCount: payload.installmentsCount,
+        isRecurring: payload.isRecurring,
+        yearlyMonth: payload.frequency === 'YEARLY' ? payload.yearlyMonth : undefined,
+        status: payload.status,
+        notes: payload.notes || undefined
+      })
+      .subscribe({
+        next: () => this.handleSuccess('Despesa atualizada com sucesso.'),
+        error: () => this.handleError('Falha ao atualizar despesa.')
+      });
+  }
+
+  back(): void {
+    void this.router.navigate(['/app/despesas']);
+  }
+
+  private handleSuccess(message: string): void {
+    this.submitting.set(false);
+    this.toast.success(message);
+    void this.router.navigate(['/app/despesas']);
+  }
+
+  private handleError(message: string): void {
+    this.submitting.set(false);
+    this.toast.error(message);
+  }
+
+  private mapOptionsResult(result: PagedResult<PropertyDto>): PagedResult<SelectOption> {
+    return {
+      ...result,
+      items: result.items.map((item) => toPropertySelectOption(item))
+    };
+  }
+}
+

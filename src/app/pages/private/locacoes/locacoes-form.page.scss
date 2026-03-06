@@ -1,0 +1,49 @@
+.contract-info {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.82rem;
+  margin-bottom: 0.82rem;
+  padding: 0.82rem;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-md);
+  background: #f8fbff;
+}
+
+.contract-info span {
+  display: block;
+  font-size: 0.76rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--muted);
+  margin-bottom: 0.2rem;
+}
+
+.tenant-field {
+  display: flex;
+  align-items: center;
+  gap: 0.56rem;
+}
+
+.tenant-field app-async-search-select {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.tenant-field__button {
+  padding-inline: 0.72rem;
+  white-space: nowrap;
+}
+
+@media (max-width: 760px) {
+  .contract-info {
+    grid-template-columns: 1fr;
+  }
+
+  .tenant-field {
+    flex-wrap: wrap;
+  }
+
+  .tenant-field__button {
+    width: 100%;
+  }
+}

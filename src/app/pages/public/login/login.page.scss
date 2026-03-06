@@ -1,0 +1,28 @@
+.login-form {
+  display: grid;
+  gap: 0.95rem;
+}
+
+.field {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.field span {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #4f5f7a;
+}
+
+.btn {
+  margin-top: 0.25rem;
+}
+
+.hint {
+  margin-top: 0.1rem;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.4;
+  border-left: 3px solid rgba(17, 118, 238, 0.32);
+  padding-left: 0.5rem;
+}

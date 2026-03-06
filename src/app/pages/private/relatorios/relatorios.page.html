@@ -1,0 +1,22 @@
+﻿<app-page-header title="Relatórios" subtitle="Exportação CSV personalizada" [breadcrumbs]="[{ label: 'Dashboard', route: '/app/dashboard' }, { label: 'Relatórios' }]" />
+
+<section class="card-panel">
+  <h2>Filtros</h2>
+  <form [formGroup]="form" class="filters">
+    <label class="field">
+      <span class="field__label">Mes</span>
+      <input class="input" type="number" min="1" max="12" formControlName="month" />
+    </label>
+    <label class="field">
+      <span class="field__label">Ano</span>
+      <input class="input" type="number" min="2000" max="2100" formControlName="year" />
+    </label>
+  </form>
+
+  <div class="actions">
+    <button class="btn btn-primary" type="button" (click)="downloadFinancial()">Financeiro (CSV)</button>
+    <button class="btn btn-secondary" type="button" (click)="downloadVacancy()">Vacancia (CSV)</button>
+    <button class="btn btn-secondary" type="button" (click)="downloadPendencies()">Pendências (CSV)</button>
+  </div>
+</section>
+

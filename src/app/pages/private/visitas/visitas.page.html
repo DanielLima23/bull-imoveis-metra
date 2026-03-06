@@ -1,0 +1,76 @@
+﻿<app-page-header
+  title="Visitas"
+  subtitle="Acompanhamento de visitas e monitoramento do imóvel"
+  [breadcrumbs]="[{ label: 'Dashboard', route: '/app/dashboard' }, { label: 'Visitas' }]"
+  actionLabel="Adicionar novo"
+  actionRoute="/app/visitas/new"
+/>
+
+<section class="card-panel">
+  <div class="list-toolbar">
+    <h2>Listagem</h2>
+    <div class="toolbar-field">
+      <label class="toolbar-label">Buscar</label>
+      <input class="input search" [value]="search()" (input)="search.set(($any($event.target)).value)" placeholder="Imóvel, contato, responsável ou status" />
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Imóvel</th>
+          <th>Contato</th>
+          <th>Data agendada</th>
+          <th>Responsável</th>
+          <th>Status</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (isLoading()) {
+          @for (i of [1,2,3,4,5,6]; track i) {
+            <tr>
+              <td colspan="6"><div class="skeleton-row"></div></td>
+            </tr>
+          }
+        } @else {
+          @for (item of filtered(); track item.id) {
+            <tr>
+              <td>{{ item.propertyTitle }}</td>
+              <td>{{ item.contactName }}</td>
+              <td>{{ item.scheduledAtUtc | date: 'dd/MM/yyyy HH:mm' }}</td>
+              <td>{{ item.responsibleName ?? '-' }}</td>
+              <td>{{ item.status }}</td>
+              <td class="actions-col">
+                <button class="btn btn-secondary" type="button" (click)="toggleRowMenu($event, item.id)">...</button>
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <app-table-pagination
+    [page]="page()"
+    [pageSize]="pageSize()"
+    [totalItems]="totalItems()"
+    [totalPages]="totalPages()"
+    [loading]="isLoading()"
+    (pageChange)="onPageChange($event)"
+    (pageSizeChange)="onPageSizeChange($event)"
+  />
+</section>
+
+@if (activeMenuItem(); as item) {
+  <button class="menu-overlay" type="button" (click)="closeRowMenu()" aria-label="Fechar menu de ações"></button>
+  <div class="menu-popover menu-popover--floating" [style.left.px]="menuPosition().x" [style.top.px]="menuPosition().y">
+    <a [routerLink]="['/app/visitas', item.id, 'edit']" (click)="closeRowMenu()">Editar cadastro</a>
+    <button type="button" (click)="updateStatus(item, 'DONE')">Marcar como realizada</button>
+    <button type="button" (click)="updateStatus(item, 'CANCELED')">Marcar como cancelada</button>
+    <button type="button" (click)="updateStatus(item, 'NO_SHOW')">Marcar como no-show</button>
+  </div>
+}
+
+

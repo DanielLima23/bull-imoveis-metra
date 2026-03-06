@@ -1,0 +1,49 @@
+﻿<app-page-header
+  [title]="isEdit() ? 'Editar Locatário' : 'Novo Locatário'"
+  subtitle="Tela única de criação e atualização de cadastro"
+  [breadcrumbs]="[{ label: 'Dashboard', route: '/app/dashboard' }, { label: 'Locatários', route: '/app/locatarios' }, { label: isEdit() ? 'Editar' : 'Novo' }]"
+/>
+
+<section class="card-panel">
+  <form class="grid-form" [formGroup]="form" (ngSubmit)="submit()">
+    <div class="field">
+      <label class="field__label">Nome completo</label>
+      <input class="input" formControlName="name" />
+    </div>
+
+    <div class="field">
+      <label class="field__label">CPF ou CNPJ</label>
+      <input class="input" formControlName="documentNumber" inputmode="numeric" appCpfCnpjInput />
+    </div>
+
+    <div class="field">
+      <label class="field__label">Email</label>
+      <input class="input" formControlName="email" />
+    </div>
+
+    <div class="field">
+      <label class="field__label">Telefone</label>
+      <input class="input" formControlName="phone" inputmode="tel" appPhoneBrInput />
+    </div>
+
+    @if (isEdit()) {
+      <div class="field field--full">
+        <label class="field__label">Situação</label>
+        <label class="checkbox-inline">
+          <input type="checkbox" formControlName="isActive" />
+          Locatário ativo
+        </label>
+      </div>
+    }
+
+    <div class="actions">
+      <button class="btn btn-secondary" type="button" (click)="back()">Cancelar</button>
+      <button class="btn btn-primary" type="submit" [disabled]="submitting()">
+        @if (submitting()) { Salvando... } @else { Salvar cadastro }
+      </button>
+    </div>
+  </form>
+</section>
+
+
+
