@@ -1,7 +1,7 @@
-﻿<app-page-header
-  [title]="isEdit() ? 'Editar Despesa' : 'Nova Despesa'"
+<app-page-header
+  [title]="headerTitle()"
   subtitle="Tela única de criação e atualização de conta do imóvel"
-  [breadcrumbs]="[{ label: 'Painel', route: '/app/dashboard' }, { label: 'Contas', route: '/app/despesas' }, { label: isEdit() ? 'Editar' : 'Novo' }]"
+  [breadcrumbs]="breadcrumbs()"
 />
 
 <section class="card-panel">
@@ -60,7 +60,7 @@
     </div>
 
     <div class="field field--full">
-      <label class="field__label">Recorrencia</label>
+      <label class="field__label">Recorrência</label>
       <label class="checkbox-inline">
         <input type="checkbox" formControlName="isRecurring" />
         Conta recorrente
@@ -69,7 +69,7 @@
 
     @if (isYearly()) {
       <div class="field">
-        <label class="field__label">Mes anual (1-12)</label>
+        <label class="field__label">Mês anual (1-12)</label>
         <input class="input" type="number" min="1" max="12" formControlName="yearlyMonth" placeholder="Informe o mês" />
       </div>
     }
@@ -99,5 +99,3 @@
     </div>
   </form>
 </section>
-
-

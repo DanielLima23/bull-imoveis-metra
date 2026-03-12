@@ -1,7 +1,7 @@
-﻿<app-page-header
-  [title]="isEdit() ? 'Editar Pendência' : 'Nova Pendência'"
+<app-page-header
+  [title]="headerTitle()"
   subtitle="Tela única de criação e atualização de pendências"
-  [breadcrumbs]="[{ label: 'Painel', route: '/app/dashboard' }, { label: 'Pendências', route: '/app/pendencias' }, { label: isEdit() ? 'Editar' : 'Novo' }]"
+  [breadcrumbs]="breadcrumbs()"
 />
 
 <section class="card-panel">
@@ -52,6 +52,3 @@
     </div>
   </form>
 </section>
-
-
-

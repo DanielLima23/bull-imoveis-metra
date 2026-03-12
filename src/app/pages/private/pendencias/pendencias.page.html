@@ -1,54 +1,57 @@
 <app-page-header
-  title="Pendências"
-  subtitle="Listagem, resolução e manutenção dos tipos de pendência"
-  [breadcrumbs]="[{ label: 'Painel', route: '/app/dashboard' }, { label: 'Pendências' }]"
+  [title]="headerTitle()"
+  [subtitle]="headerSubtitle()"
+  [breadcrumbs]="breadcrumbs()"
   actionLabel="Adicionar novo"
   actionRoute="/app/pendencias/new"
+  [actionQueryParams]="actionQueryParams()"
 />
 
-<section class="card-panel types-panel">
-  <div class="types-head">
-    <h2>Tipos de pendência</h2>
-    <button class="btn btn-secondary" type="button" (click)="toggleTypeForm()">
-      @if (showTypeForm()) { Fechar } @else { Novo tipo }
-    </button>
-  </div>
-
-  <div class="types-list">
-    @for (type of types(); track type.id) {
-      <button type="button" class="type-chip" (click)="editType(type)">
-        {{ type.code ? type.code + ' / ' : '' }}{{ type.name }} · SLA {{ type.defaultSlaDays }}d
+@if (showManagementPanels()) {
+  <section class="card-panel types-panel">
+    <div class="types-head">
+      <h2>Tipos de pendência</h2>
+      <button class="btn btn-secondary" type="button" (click)="toggleTypeForm()">
+        @if (showTypeForm()) { Fechar } @else { Novo tipo }
       </button>
-    }
-  </div>
+    </div>
 
-  @if (showTypeForm()) {
-    <form class="type-form" [formGroup]="typeForm" (ngSubmit)="saveType()">
-      <div class="field">
-        <label class="field__label">Código</label>
-        <input class="input" formControlName="code" placeholder="Ex.: DOC, VIST, CHAVE" />
-      </div>
-      <div class="field">
-        <label class="field__label">Nome</label>
-        <input class="input" formControlName="name" placeholder="Informe o nome do tipo" />
-      </div>
-      <div class="field">
-        <label class="field__label">SLA padrão (dias)</label>
-        <input class="input" type="number" formControlName="defaultSlaDays" placeholder="Informe o prazo" />
-      </div>
-      <div class="field field--full">
-        <label class="field__label">Descrição</label>
-        <textarea class="textarea" rows="3" formControlName="description" placeholder="Descreva quando este tipo deve ser usado"></textarea>
-      </div>
-      <div class="actions">
-        @if (editingTypeId()) {
-          <button class="btn btn-secondary" type="button" (click)="cancelTypeEdit()">Cancelar</button>
-        }
-        <button class="btn btn-primary" type="submit">{{ editingTypeId() ? 'Atualizar tipo' : 'Salvar tipo' }}</button>
-      </div>
-    </form>
-  }
-</section>
+    <div class="types-list">
+      @for (type of types(); track type.id) {
+        <button type="button" class="type-chip" (click)="editType(type)">
+          {{ type.code ? type.code + ' / ' : '' }}{{ type.name }} · SLA {{ type.defaultSlaDays }}d
+        </button>
+      }
+    </div>
+
+    @if (showTypeForm()) {
+      <form class="type-form" [formGroup]="typeForm" (ngSubmit)="saveType()">
+        <div class="field">
+          <label class="field__label">Código</label>
+          <input class="input" formControlName="code" placeholder="Ex.: DOC, VIST, CHAVE" />
+        </div>
+        <div class="field">
+          <label class="field__label">Nome</label>
+          <input class="input" formControlName="name" placeholder="Informe o nome do tipo" />
+        </div>
+        <div class="field">
+          <label class="field__label">SLA padrão (dias)</label>
+          <input class="input" type="number" formControlName="defaultSlaDays" placeholder="Informe o prazo" />
+        </div>
+        <div class="field field--full">
+          <label class="field__label">Descrição</label>
+          <textarea class="textarea" rows="3" formControlName="description" placeholder="Descreva quando este tipo deve ser usado"></textarea>
+        </div>
+        <div class="actions">
+          @if (editingTypeId()) {
+            <button class="btn btn-secondary" type="button" (click)="cancelTypeEdit()">Cancelar</button>
+          }
+          <button class="btn btn-primary" type="submit">{{ editingTypeId() ? 'Atualizar tipo' : 'Salvar tipo' }}</button>
+        </div>
+      </form>
+    }
+  </section>
+}
 
 <section class="card-panel">
   <div class="list-toolbar list-toolbar--stack">
@@ -56,7 +59,7 @@
     <div class="filters">
       <label class="toolbar-field">
         <span class="toolbar-label">Buscar</span>
-        <input class="input search" [value]="search()" (input)="search.set(($any($event.target)).value)" placeholder="Digite o imóvel, título, tipo ou status" />
+        <input class="input search" [value]="search()" (input)="search.set(($any($event.target)).value)" placeholder="Digite o título, tipo ou status" />
       </label>
 
       <label class="toolbar-field toolbar-field--compact">
@@ -76,7 +79,9 @@
     <table class="table">
       <thead>
         <tr>
-          <th>Imóvel</th>
+          @if (!isPropertyScoped()) {
+            <th>Imóvel</th>
+          }
           <th>Tipo</th>
           <th>Título</th>
           <th>Vencimento</th>
@@ -88,12 +93,14 @@
       <tbody>
         @if (isLoading()) {
           @for (i of [1,2,3,4,5]; track i) {
-            <tr><td colspan="7"><div class="skeleton-row"></div></td></tr>
+            <tr><td [attr.colspan]="listColumnCount()"><div class="skeleton-row"></div></td></tr>
           }
         } @else {
           @for (item of filtered(); track item.id) {
             <tr>
-              <td>{{ item.propertyTitle }}</td>
+              @if (!isPropertyScoped()) {
+                <td>{{ item.propertyTitle }}</td>
+              }
               <td>{{ item.pendencyTypeName }}</td>
               <td>{{ item.title }}</td>
               <td>{{ item.dueAtUtc | date:'dd/MM/yyyy HH:mm' }}</td>
@@ -102,6 +109,10 @@
               <td class="actions-col">
                 <button class="btn btn-secondary" type="button" (click)="toggleRowMenu($event, item.id)">...</button>
               </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td [attr.colspan]="listColumnCount()">Nenhuma pendência encontrada.</td>
             </tr>
           }
         }
@@ -123,7 +134,7 @@
 @if (activeMenuItem(); as item) {
   <button class="menu-overlay" type="button" (click)="closeRowMenu()" aria-label="Fechar menu de ações"></button>
   <div class="menu-popover menu-popover--floating" [style.left.px]="menuPosition().x" [style.top.px]="menuPosition().y">
-    <a [routerLink]="['/app/pendencias', item.id, 'edit']" (click)="closeRowMenu()">Editar cadastro</a>
+    <a [routerLink]="['/app/pendencias', item.id, 'edit']" [queryParams]="getFormQueryParams(item.propertyId)" (click)="closeRowMenu()">Editar cadastro</a>
     @if (item.status !== 'RESOLVED') {
       <button type="button" (click)="resolve(item)">Resolver pendência</button>
     }

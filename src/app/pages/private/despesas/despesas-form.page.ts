@@ -12,7 +12,7 @@ import { ExpenseApiService } from '../../../core/services/expense-api.service';
 import { PropertyApiService } from '../../../core/services/property-api.service';
 import { BrlCurrencyInputDirective } from '../../../shared/directives/brl-currency-input.directive';
 import { DateBrInputDirective } from '../../../shared/directives/date-br-input.directive';
-import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
+import { HeaderBreadcrumb, PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { SelectOption } from '../../../shared/models/select-option.model';
 import { ToastService } from '../../../shared/services/toast.service';
 import { getDomainOptions } from '../../../shared/utils/domain-label.util';
@@ -35,7 +35,35 @@ export class DespesasFormPage implements OnInit {
   private readonly toast = inject(ToastService);
 
   readonly id = signal<string | null>(null);
+  readonly propertyContextId = signal(this.route.snapshot.queryParamMap.get('propertyId'));
+  readonly context = signal(this.route.snapshot.queryParamMap.get('context') ?? '');
+  readonly scopedProperty = signal<PropertyDto | null>(null);
   readonly isEdit = computed(() => !!this.id());
+  readonly isPropertyScoped = computed(() => this.context() === 'property-expenses' && !!this.propertyContextId());
+  readonly headerTitle = computed(() => {
+    if (this.isEdit()) {
+      return this.isPropertyScoped() ? 'Editar conta do imóvel' : 'Editar Conta';
+    }
+
+    return this.isPropertyScoped() ? 'Nova conta do imóvel' : 'Nova Conta';
+  });
+  readonly breadcrumbs = computed<HeaderBreadcrumb[]>(() => {
+    if (this.isPropertyScoped()) {
+      return [
+        { label: 'Painel', route: '/app/dashboard' },
+        { label: 'Imóveis', route: '/app/imoveis' },
+        { label: this.scopedProperty()?.title ?? 'Imóvel', route: this.getPropertyReturnRoute() ?? undefined },
+        { label: 'Contas', route: this.getPropertyReturnRoute() ?? undefined },
+        { label: this.isEdit() ? 'Editar' : 'Novo' }
+      ];
+    }
+
+    return [
+      { label: 'Painel', route: '/app/dashboard' },
+      { label: 'Contas', route: '/app/despesas' },
+      { label: this.isEdit() ? 'Editar' : 'Novo' }
+    ];
+  });
   readonly submitting = signal(false);
   readonly types = signal<ExpenseTypeDto[]>([]);
   readonly expenseTypeOptions = computed<SelectOption[]>(() => this.types().map((item) => ({ id: item.id, label: item.name })));
@@ -72,10 +100,15 @@ export class DespesasFormPage implements OnInit {
   ngOnInit(): void {
     this.expenseApi.listTypes().subscribe({ next: (types) => this.types.set(types) });
 
+    if (this.propertyContextId()) {
+      this.loadScopedProperty(this.propertyContextId()!);
+    }
+
     const id = this.route.snapshot.paramMap.get('id');
     this.id.set(id);
 
     if (!id) {
+      this.prefillScopedProperty();
       return;
     }
 
@@ -152,18 +185,50 @@ export class DespesasFormPage implements OnInit {
   }
 
   back(): void {
-    void this.router.navigate(['/app/despesas']);
+    void this.navigateAfterSubmit();
   }
 
   private handleSuccess(message: string): void {
     this.submitting.set(false);
     this.toast.success(message);
-    void this.router.navigate(['/app/despesas']);
+    void this.navigateAfterSubmit();
   }
 
   private handleError(message: string): void {
     this.submitting.set(false);
     this.toast.error(message);
+  }
+
+  private prefillScopedProperty(): void {
+    const propertyId = this.propertyContextId();
+    if (!this.isPropertyScoped() || !propertyId) {
+      return;
+    }
+
+    this.form.patchValue({ propertyId });
+    this.form.controls.propertyId.disable();
+  }
+
+  private async navigateAfterSubmit(): Promise<void> {
+    const propertyId = this.propertyContextId() ?? this.form.getRawValue().propertyId;
+    if (this.isPropertyScoped() && propertyId) {
+      await this.router.navigate(['/app/imoveis', propertyId, 'contas']);
+      return;
+    }
+
+    await this.router.navigate(['/app/despesas']);
+  }
+
+  private getPropertyReturnRoute(): string | null {
+    const propertyId = this.propertyContextId();
+    return propertyId ? `/app/imoveis/${propertyId}/contas` : null;
+  }
+
+  private loadScopedProperty(propertyId: string): void {
+    this.propertyApi.getById(propertyId, { silent: true }).subscribe({
+      next: (property) => this.scopedProperty.set(property),
+      error: () => undefined
+    });
   }
 
   private mapOptionsResult(result: PagedResult<PropertyDto>): PagedResult<SelectOption> {

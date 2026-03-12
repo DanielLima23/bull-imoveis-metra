@@ -1,8 +1,9 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
-import { ExpenseDto, ExpenseTypeDto } from '../../../core/models/domain.model';
+import { ActivatedRoute, Params, RouterLink } from '@angular/router';
+import { ExpenseDto, ExpenseTypeDto, PropertyDto } from '../../../core/models/domain.model';
 import { ExpenseApiService } from '../../../core/services/expense-api.service';
+import { PropertyApiService } from '../../../core/services/property-api.service';
 import { AsyncSearchSelectComponent } from '../../../shared/components/async-search-select/async-search-select.component';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { TablePaginationComponent } from '../../../shared/components/table-pagination/table-pagination.component';
@@ -34,9 +35,13 @@ import { getFloatingMenuPosition } from '../../../shared/utils/floating-menu.uti
 })
 export class DespesasPage implements OnInit {
   private readonly fb = inject(FormBuilder);
+  private readonly route = inject(ActivatedRoute);
+  private readonly propertyApi = inject(PropertyApiService);
   private readonly expenseApi = inject(ExpenseApiService);
   private readonly toast = inject(ToastService);
 
+  readonly propertyId = signal(this.route.snapshot.paramMap.get('id') ?? '');
+  readonly scopedProperty = signal<PropertyDto | null>(null);
   readonly isLoading = signal(false);
   readonly items = signal<ExpenseDto[]>([]);
   readonly overdueItems = signal<ExpenseDto[]>([]);
@@ -54,10 +59,33 @@ export class DespesasPage implements OnInit {
   readonly editingTypeId = signal<string | null>(null);
   readonly payingExpense = signal<ExpenseDto | null>(null);
 
-  readonly typeOptions = computed(() =>
-    [{ id: '', label: 'Todos' }, ...this.types().map((item) => ({ id: item.id, label: item.name }))]
+  readonly isPropertyScoped = computed(() => !!this.propertyId());
+  readonly headerTitle = computed(() => (this.isPropertyScoped() ? 'Contas do imóvel' : 'Contas e Despesas'));
+  readonly headerSubtitle = computed(() => {
+    const property = this.scopedProperty();
+    if (property) {
+      return `Listagem de contas vinculadas a ${property.title}`;
+    }
+
+    return this.isPropertyScoped()
+      ? 'Listagem de contas vinculadas ao imóvel selecionado'
+      : 'Financeiro dos imóveis com tipos reutilizáveis, atrasadas e baixa manual';
+  });
+  readonly breadcrumbs = computed(() => {
+    const items = [{ label: 'Painel', route: '/app/dashboard' }, { label: 'Imóveis', route: '/app/imoveis' }];
+    if (!this.isPropertyScoped()) {
+      return [...items, { label: 'Contas' }];
+    }
+
+    return [...items, { label: this.scopedProperty()?.title ?? 'Imóvel' }, { label: 'Contas' }];
+  });
+  readonly actionQueryParams = computed<Params | null>(() =>
+    this.isPropertyScoped() ? { propertyId: this.propertyId(), context: 'property-expenses' } : null
   );
+  readonly typeOptions = computed(() => [{ id: '', label: 'Todos' }, ...this.types().map((item) => ({ id: item.id, label: item.name }))]);
   readonly statusOptions = getDomainOptions('expenseStatus', { includeEmptyOption: true, emptyLabel: 'Todos' });
+  readonly listColumnCount = computed(() => (this.isPropertyScoped() ? 6 : 7));
+  readonly showManagementPanels = computed(() => !this.isPropertyScoped());
 
   readonly typeForm = this.fb.nonNullable.group({
     name: ['', Validators.required],
@@ -88,6 +116,10 @@ export class DespesasPage implements OnInit {
   readonly activeMenuItem = computed(() => this.items().find((item) => item.id === this.activeMenuId()) ?? null);
 
   ngOnInit(): void {
+    if (this.isPropertyScoped()) {
+      this.loadScopedProperty();
+    }
+
     this.loadTypes();
     this.loadExpenses();
     this.loadOverdue();
@@ -97,6 +129,7 @@ export class DespesasPage implements OnInit {
     this.isLoading.set(true);
     this.expenseApi
       .list({
+        propertyId: this.propertyId() || undefined,
         expenseTypeId: this.typeFilter() || undefined,
         status: this.statusFilter() || undefined,
         page: this.page(),
@@ -121,7 +154,10 @@ export class DespesasPage implements OnInit {
 
   loadOverdue(): void {
     this.expenseApi.listOverdue().subscribe({
-      next: (items) => this.overdueItems.set(items),
+      next: (items) => {
+        const propertyId = this.propertyId();
+        this.overdueItems.set(propertyId ? items.filter((item) => item.propertyId === propertyId) : items);
+      },
       error: () => undefined
     });
   }
@@ -252,6 +288,17 @@ export class DespesasPage implements OnInit {
         this.loadOverdue();
       },
       error: () => this.toast.error('Falha ao registrar pagamento.')
+    });
+  }
+
+  getFormQueryParams(propertyId: string): Params | null {
+    return this.isPropertyScoped() ? { propertyId, context: 'property-expenses' } : null;
+  }
+
+  private loadScopedProperty(): void {
+    this.propertyApi.getById(this.propertyId(), { silent: true }).subscribe({
+      next: (property) => this.scopedProperty.set(property),
+      error: () => undefined
     });
   }
 }

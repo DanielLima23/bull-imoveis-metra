@@ -35,6 +35,7 @@ export interface PropertyDto {
   occupancyStatus?: string | null;
   assetState?: string | null;
   status: string;
+  motivoOciosidade?: string | null;
   idleReason?: string | null;
   proprietary?: string | null;
   administrator?: string | null;

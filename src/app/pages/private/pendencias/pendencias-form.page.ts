@@ -7,11 +7,11 @@ import {
   AsyncSelectFetchById,
   AsyncSelectFetchPage
 } from '../../../shared/components/async-search-select/async-search-select.component';
-import { PendencyTypeDto, PagedResult, PropertyDto } from '../../../core/models/domain.model';
+import { HeaderBreadcrumb, PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
+import { PagedResult, PendencyTypeDto, PropertyDto } from '../../../core/models/domain.model';
 import { PendencyApiService } from '../../../core/services/pendency-api.service';
 import { PropertyApiService } from '../../../core/services/property-api.service';
 import { DateTimeBrInputDirective } from '../../../shared/directives/date-time-br-input.directive';
-import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { SelectOption } from '../../../shared/models/select-option.model';
 import { ToastService } from '../../../shared/services/toast.service';
 import { toPropertySelectOption } from '../../../shared/utils/select-option.util';
@@ -33,7 +33,35 @@ export class PendenciasFormPage implements OnInit {
   private readonly toast = inject(ToastService);
 
   readonly id = signal<string | null>(null);
+  readonly propertyContextId = signal(this.route.snapshot.queryParamMap.get('propertyId'));
+  readonly context = signal(this.route.snapshot.queryParamMap.get('context') ?? '');
+  readonly scopedProperty = signal<PropertyDto | null>(null);
   readonly isEdit = computed(() => !!this.id());
+  readonly isPropertyScoped = computed(() => this.context() === 'property-pendencies' && !!this.propertyContextId());
+  readonly headerTitle = computed(() => {
+    if (this.isEdit()) {
+      return this.isPropertyScoped() ? 'Editar pendência do imóvel' : 'Editar Pendência';
+    }
+
+    return this.isPropertyScoped() ? 'Nova pendência do imóvel' : 'Nova Pendência';
+  });
+  readonly breadcrumbs = computed<HeaderBreadcrumb[]>(() => {
+    if (this.isPropertyScoped()) {
+      return [
+        { label: 'Painel', route: '/app/dashboard' },
+        { label: 'Imóveis', route: '/app/imoveis' },
+        { label: this.scopedProperty()?.title ?? 'Imóvel', route: this.getPropertyReturnRoute() ?? undefined },
+        { label: 'Pendências', route: this.getPropertyReturnRoute() ?? undefined },
+        { label: this.isEdit() ? 'Editar' : 'Novo' }
+      ];
+    }
+
+    return [
+      { label: 'Painel', route: '/app/dashboard' },
+      { label: 'Pendências', route: '/app/pendencias' },
+      { label: this.isEdit() ? 'Editar' : 'Novo' }
+    ];
+  });
   readonly submitting = signal(false);
   readonly types = signal<PendencyTypeDto[]>([]);
   readonly pendencyTypeOptions = computed<SelectOption[]>(() =>
@@ -65,10 +93,15 @@ export class PendenciasFormPage implements OnInit {
   ngOnInit(): void {
     this.api.listTypes().subscribe({ next: (types) => this.types.set(types) });
 
+    if (this.propertyContextId()) {
+      this.loadScopedProperty(this.propertyContextId()!);
+    }
+
     const id = this.route.snapshot.paramMap.get('id');
     this.id.set(id);
 
     if (!id) {
+      this.prefillScopedProperty();
       return;
     }
 
@@ -128,18 +161,50 @@ export class PendenciasFormPage implements OnInit {
   }
 
   back(): void {
-    void this.router.navigate(['/app/pendencias']);
+    void this.navigateAfterSubmit();
   }
 
   private handleSuccess(message: string): void {
     this.submitting.set(false);
     this.toast.success(message);
-    void this.router.navigate(['/app/pendencias']);
+    void this.navigateAfterSubmit();
   }
 
   private handleError(message: string): void {
     this.submitting.set(false);
     this.toast.error(message);
+  }
+
+  private prefillScopedProperty(): void {
+    const propertyId = this.propertyContextId();
+    if (!this.isPropertyScoped() || !propertyId) {
+      return;
+    }
+
+    this.form.patchValue({ propertyId });
+    this.form.controls.propertyId.disable();
+  }
+
+  private async navigateAfterSubmit(): Promise<void> {
+    const propertyId = this.propertyContextId() ?? this.form.getRawValue().propertyId;
+    if (this.isPropertyScoped() && propertyId) {
+      await this.router.navigate(['/app/imoveis', propertyId, 'pendencias']);
+      return;
+    }
+
+    await this.router.navigate(['/app/pendencias']);
+  }
+
+  private getPropertyReturnRoute(): string | null {
+    const propertyId = this.propertyContextId();
+    return propertyId ? `/app/imoveis/${propertyId}/pendencias` : null;
+  }
+
+  private loadScopedProperty(propertyId: string): void {
+    this.propertyApi.getById(propertyId, { silent: true }).subscribe({
+      next: (property) => this.scopedProperty.set(property),
+      error: () => undefined
+    });
   }
 
   private mapOptionsResult(result: PagedResult<PropertyDto>): PagedResult<SelectOption> {

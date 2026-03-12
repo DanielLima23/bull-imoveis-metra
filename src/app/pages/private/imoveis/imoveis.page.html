@@ -1,6 +1,6 @@
 <app-page-header
   title="Imóveis"
-  subtitle="Listagem central com filtros, vínculo rápido e acesso ao hub do imóvel"
+  subtitle="Listagem central com filtros e acesso rápido aos fluxos do imóvel"
   [breadcrumbs]="[{ label: 'Painel', route: '/app/dashboard' }, { label: 'Imóveis' }]"
   actionLabel="Adicionar novo"
   actionRoute="/app/imoveis/new"
@@ -83,7 +83,25 @@
                 </div>
               </td>
               <td class="actions-col">
-                <button class="btn btn-secondary" type="button" (click)="toggleRowMenu($event, item.id)">...</button>
+                <div class="property-actions">
+                  <button
+                    class="icon-action icon-action--view"
+                    type="button"
+                    aria-label="Ver imóvel"
+                    title="Ver imóvel"
+                    data-tooltip="Ver imóvel"
+                    (click)="openPropertyDetail(item.id)"
+                  >
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M3 12s3.5-5.5 9-5.5S21 12 21 12s-3.5 5.5-9 5.5S3 12 3 12Z" />
+                      <circle cx="12" cy="12" r="2.5" />
+                    </svg>
+                  </button>
+
+                  <button class="btn btn-secondary action-menu-trigger" type="button" aria-label="Mais ações" (click)="toggleRowMenu($event, item.id)">
+                    ...
+                  </button>
+                </div>
               </td>
             </tr>
           }
@@ -142,112 +160,89 @@
   </section>
 }
 
-@if (selectedProperty(); as selected) {
-  @if (quickModal()) {
-    <div class="quick-modal-backdrop" (click)="closeQuickModal()">
-      <section class="quick-modal card-panel" (click)="$event.stopPropagation()">
-        <header>
-          <h3>
-            @switch (quickModal()) {
-              @case ('rent') { Atualizar valor de referência locativa }
-              @case ('expense') { Nova conta para o imóvel }
-              @case ('pendency') { Nova pendência do imóvel }
-            }
-          </h3>
-          <p>{{ selected.title }}</p>
-        </header>
+@if (rentModalProperty(); as selected) {
+  <div class="quick-modal-backdrop" (click)="closeRentModal()">
+    <section class="quick-modal card-panel" (click)="$event.stopPropagation()">
+      <header>
+        <h3>Atualizar valor de referência locativa</h3>
+        <p>{{ selected.title }}</p>
+      </header>
 
-        @if (quickModal() === 'expense') {
-          <form class="grid-form" [formGroup]="expenseQuickForm" (ngSubmit)="submitQuickExpense()">
-            <div class="field">
-              <label class="field__label">Tipo</label>
-              <app-async-search-select formControlName="expenseTypeId" [staticOptions]="expenseTypeOptions()" [searchable]="false" [allowClear]="false" />
-            </div>
-            <div class="field">
-              <label class="field__label">Descrição</label>
-              <input class="input" formControlName="description" placeholder="Descreva a conta" />
-            </div>
-            <div class="field">
-              <label class="field__label">Frequência</label>
-              <app-async-search-select formControlName="frequency" [staticOptions]="frequencyOptions" [searchable]="false" [allowClear]="false" />
-            </div>
-            <div class="field">
-              <label class="field__label">Vencimento</label>
-              <input class="input" formControlName="dueDate" appDateBrInput placeholder="dd/mm/aaaa" />
-            </div>
-            <div class="field">
-              <label class="field__label">Valor</label>
-              <input class="input" formControlName="totalAmount" appBrlCurrencyInput placeholder="R$ 0,00" />
-            </div>
-            <div class="field">
-              <label class="field__label">Parcelas</label>
-              <input class="input" type="number" formControlName="installmentsCount" placeholder="Informe a quantidade" />
-            </div>
-            <div class="field field--full">
-              <label class="field__label">Observações</label>
-              <textarea class="textarea" rows="3" formControlName="notes" placeholder="Adicione observações, se necessário"></textarea>
-            </div>
-            <div class="modal-actions">
-              <button class="btn btn-secondary" type="button" (click)="closeQuickModal()">Cancelar</button>
-              <button class="btn btn-primary" type="submit">Salvar</button>
-            </div>
-          </form>
-        }
+      <form class="grid-form" [formGroup]="rentReferenceForm" (ngSubmit)="submitRentReference()">
+        <div class="field">
+          <label class="field__label">Valor de referência</label>
+          <input class="input" formControlName="amount" appBrlCurrencyInput placeholder="R$ 0,00" />
+        </div>
 
-        @if (quickModal() === 'pendency') {
-          <form class="grid-form" [formGroup]="pendencyQuickForm" (ngSubmit)="submitQuickPendency()">
-            <div class="field">
-              <label class="field__label">Tipo</label>
-              <app-async-search-select formControlName="pendencyTypeId" [staticOptions]="pendencyTypeOptions()" [searchable]="false" [allowClear]="false" />
-            </div>
-            <div class="field">
-              <label class="field__label">Título</label>
-              <input class="input" formControlName="title" placeholder="Informe o título da pendência" />
-            </div>
-            <div class="field field--full">
-              <label class="field__label">Descrição</label>
-              <textarea class="textarea" rows="3" formControlName="description" placeholder="Descreva a pendência"></textarea>
-            </div>
-            <div class="field">
-              <label class="field__label">Vencimento</label>
-              <input class="input" formControlName="dueAtUtc" appDateTimeBrInput placeholder="dd/mm/aaaa hh:mm" />
-            </div>
-            <div class="modal-actions">
-              <button class="btn btn-secondary" type="button" (click)="closeQuickModal()">Cancelar</button>
-              <button class="btn btn-primary" type="submit">Salvar</button>
-            </div>
-          </form>
-        }
+        <div class="field">
+          <label class="field__label">Vigência</label>
+          <input class="input" formControlName="effectiveFrom" appDateBrInput placeholder="dd/mm/aaaa" />
+        </div>
 
-        @if (quickModal() === 'rent') {
-          <form class="grid-form" [formGroup]="rentQuickForm" (ngSubmit)="submitQuickRentReference()">
-            <div class="field">
-              <label class="field__label">Valor de referência</label>
-              <input class="input" formControlName="amount" appBrlCurrencyInput placeholder="R$ 0,00" />
-            </div>
-            <div class="field">
-              <label class="field__label">Vigência</label>
-              <input class="input" formControlName="effectiveFrom" appDateBrInput placeholder="dd/mm/aaaa" />
-            </div>
-            <div class="modal-actions">
-              <button class="btn btn-secondary" type="button" (click)="closeQuickModal()">Cancelar</button>
-              <button class="btn btn-primary" type="submit">Salvar</button>
-            </div>
-          </form>
-        }
-      </section>
-    </div>
-  }
+        <div class="modal-actions">
+          <button class="btn btn-secondary" type="button" (click)="closeRentModal()">Cancelar</button>
+          <button class="btn btn-primary" type="submit">Salvar</button>
+        </div>
+      </form>
+    </section>
+  </div>
 }
 
 @if (activeMenuItem(); as item) {
   <button class="menu-overlay" type="button" (click)="closeRowMenu()" aria-label="Fechar menu de ações"></button>
   <div class="menu-popover menu-popover--floating menu-popover--rich" [style.left.px]="menuPosition().x" [style.top.px]="menuPosition().y">
-    <button class="menu-action" type="button" (click)="openPropertyDetail(item.id)">Abrir hub do imóvel</button>
-    <button class="menu-action" type="button" (click)="openPropertyLeases(item.id)">Locações</button>
-    <button class="menu-action" type="button" (click)="openQuickModal('rent', item)">Atualizar referência</button>
-    <button class="menu-action" type="button" (click)="openQuickModal('expense', item)">Nova conta</button>
-    <button class="menu-action" type="button" (click)="openQuickModal('pendency', item)">Nova pendência</button>
-    <a class="menu-action menu-action--link" [routerLink]="['/app/imoveis', item.id, 'edit']" (click)="closeRowMenu()">Editar cadastro</a>
+    <button class="menu-action" type="button" (click)="openPropertyLeases(item.id)">
+      <span class="menu-action__icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24">
+          <rect x="3" y="5" width="18" height="14" rx="2" />
+          <path d="M3 10h18" />
+          <path d="M7 15h5" />
+        </svg>
+      </span>
+      <span>Locações</span>
+    </button>
+
+    <button class="menu-action" type="button" (click)="openRentModal(item)">
+      <span class="menu-action__icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24">
+          <path d="M12 3v18" />
+          <path d="M7.5 7.5h7a3.5 3.5 0 1 1 0 7h-5a3.5 3.5 0 1 0 0 7h7" />
+        </svg>
+      </span>
+      <span>Atualizar referência</span>
+    </button>
+
+    <button class="menu-action" type="button" (click)="openPropertyExpenses(item.id)">
+      <span class="menu-action__icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24">
+          <path d="M4 7h16" />
+          <path d="M6 3h12v18H6z" />
+          <path d="M9 12h6" />
+          <path d="M9 16h4" />
+        </svg>
+      </span>
+      <span>Contas</span>
+    </button>
+
+    <button class="menu-action" type="button" (click)="openPropertyPendencies(item.id)">
+      <span class="menu-action__icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="9" />
+          <path d="M12 7v5" />
+          <circle cx="12" cy="16.6" r="0.65" />
+        </svg>
+      </span>
+      <span>Pendências</span>
+    </button>
+
+    <a class="menu-action menu-action--link" [routerLink]="['/app/imoveis', item.id, 'edit']" (click)="closeRowMenu()">
+      <span class="menu-action__icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24">
+          <path d="m14 3 7 7-4 4-7-7z" />
+          <path d="M3 21h6l8-8-6-6-8 8z" />
+        </svg>
+      </span>
+      <span>Editar cadastro</span>
+    </a>
   </div>
 }

@@ -1,22 +1,19 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subscription } from 'rxjs';
-import { ExpenseTypeDto, PendencyTypeDto, PropertyDto } from '../../../core/models/domain.model';
-import { ExpenseApiService } from '../../../core/services/expense-api.service';
-import { PendencyApiService } from '../../../core/services/pendency-api.service';
+import { PropertyDto } from '../../../core/models/domain.model';
 import { PropertyApiService } from '../../../core/services/property-api.service';
 import { AsyncSearchSelectComponent } from '../../../shared/components/async-search-select/async-search-select.component';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { TablePaginationComponent } from '../../../shared/components/table-pagination/table-pagination.component';
 import { BrlCurrencyInputDirective } from '../../../shared/directives/brl-currency-input.directive';
 import { DateBrInputDirective } from '../../../shared/directives/date-br-input.directive';
-import { DateTimeBrInputDirective } from '../../../shared/directives/date-time-br-input.directive';
 import { SelectOption } from '../../../shared/models/select-option.model';
 import { DomainLabelPipe } from '../../../shared/pipes/domain-label.pipe';
 import { ToastService } from '../../../shared/services/toast.service';
-import { getDomainLabel, getDomainOptions } from '../../../shared/utils/domain-label.util';
+import { getDomainLabel } from '../../../shared/utils/domain-label.util';
 import { getFloatingMenuPosition } from '../../../shared/utils/floating-menu.util';
 import {
   getPropertyIdleReasonOptions,
@@ -37,7 +34,6 @@ import {
     RouterLink,
     BrlCurrencyInputDirective,
     DateBrInputDirective,
-    DateTimeBrInputDirective,
     AsyncSearchSelectComponent,
     DomainLabelPipe
   ],
@@ -47,8 +43,6 @@ import {
 })
 export class ImoveisPage implements OnInit, OnDestroy {
   private readonly propertyApi = inject(PropertyApiService);
-  private readonly expenseApi = inject(ExpenseApiService);
-  private readonly pendencyApi = inject(PendencyApiService);
   private readonly toast = inject(ToastService);
   private readonly fb = inject(FormBuilder);
   private readonly router = inject(Router);
@@ -68,23 +62,13 @@ export class ImoveisPage implements OnInit, OnDestroy {
 
   readonly activeMenuId = signal<string | null>(null);
   readonly menuPosition = signal({ x: 0, y: 0 });
-  readonly quickModal = signal<'expense' | 'pendency' | 'rent' | null>(null);
-  readonly selectedProperty = signal<PropertyDto | null>(null);
+  readonly rentModalProperty = signal<PropertyDto | null>(null);
   readonly statusEditorPropertyId = signal<string | null>(null);
   readonly statusEditorPosition = signal({ x: 0, y: 0 });
 
   readonly activeMenuItem = computed(() => this.items().find((item) => item.id === this.activeMenuId()) ?? null);
   readonly editingStatusProperty = computed(() => this.items().find((item) => item.id === this.statusEditorPropertyId()) ?? null);
 
-  readonly expenseTypes = signal<ExpenseTypeDto[]>([]);
-  readonly pendencyTypes = signal<PendencyTypeDto[]>([]);
-  readonly expenseTypeOptions = computed<SelectOption[]>(() => this.expenseTypes().map((item) => ({ id: item.id, label: item.name })));
-  readonly pendencyTypeOptions = computed<SelectOption[]>(() =>
-    this.pendencyTypes().map((item) => ({
-      id: item.id,
-      label: `${item.code ? `${item.code} · ` : ''}${item.name}`
-    }))
-  );
   readonly propertyStatusFilterOptions = getPropertyStatusOptions(true, 'Todos');
   readonly propertyStatusEditOptions = getPropertyStatusOptions();
   readonly propertyIdleReasonOptions = getPropertyIdleReasonOptions(true);
@@ -95,28 +79,8 @@ export class ImoveisPage implements OnInit, OnDestroy {
     { id: 'Comercial', label: 'Comercial' },
     { id: 'Terreno', label: 'Terreno' }
   ];
-  readonly frequencyOptions = getDomainOptions('expenseFrequency');
 
-  readonly expenseQuickForm = this.fb.nonNullable.group({
-    expenseTypeId: ['', Validators.required],
-    description: ['', Validators.required],
-    frequency: ['MONTHLY', Validators.required],
-    dueDate: [new Date().toISOString().slice(0, 10), Validators.required],
-    totalAmount: [0, [Validators.required, Validators.min(1)]],
-    installmentsCount: [1, [Validators.required, Validators.min(1)]],
-    isRecurring: [true],
-    yearlyMonth: [1],
-    notes: ['']
-  });
-
-  readonly pendencyQuickForm = this.fb.nonNullable.group({
-    pendencyTypeId: ['', Validators.required],
-    title: ['', Validators.required],
-    description: [''],
-    dueAtUtc: [new Date().toISOString().slice(0, 16), Validators.required]
-  });
-
-  readonly rentQuickForm = this.fb.nonNullable.group({
+  readonly rentReferenceForm = this.fb.nonNullable.group({
     amount: [0, [Validators.required, Validators.min(1)]],
     effectiveFrom: [new Date().toISOString().slice(0, 10), Validators.required]
   });
@@ -128,8 +92,6 @@ export class ImoveisPage implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.load();
-    this.expenseApi.listTypes().subscribe({ next: (items) => this.expenseTypes.set(items) });
-    this.pendencyApi.listTypes().subscribe({ next: (items) => this.pendencyTypes.set(items) });
     this.watchStatusEditor();
   }
 
@@ -229,7 +191,8 @@ export class ImoveisPage implements OnInit, OnDestroy {
     }
 
     this.closeStatusEditor();
-    this.menuPosition.set(getFloatingMenuPosition(trigger, 248, 272));
+    this.closeRentModal();
+    this.menuPosition.set(getFloatingMenuPosition(trigger, 264, 260));
     this.activeMenuId.set(propertyId);
   }
 
@@ -238,49 +201,36 @@ export class ImoveisPage implements OnInit, OnDestroy {
   }
 
   openPropertyDetail(propertyId: string): void {
-    this.closeRowMenu();
+    this.closeTransientPanels();
     void this.router.navigate(['/app/imoveis', propertyId]);
   }
 
   openPropertyLeases(propertyId: string): void {
-    this.closeRowMenu();
+    this.closeTransientPanels();
     void this.router.navigate(['/app/imoveis', propertyId], { queryParams: { tab: 'locacoes' } });
   }
 
-  openQuickModal(type: 'expense' | 'pendency' | 'rent', property: PropertyDto): void {
-    this.selectedProperty.set(property);
-    this.quickModal.set(type);
-    this.closeRowMenu();
-    this.closeStatusEditor();
+  openPropertyExpenses(propertyId: string): void {
+    this.closeTransientPanels();
+    void this.router.navigate(['/app/imoveis', propertyId, 'contas']);
+  }
 
-    this.expenseQuickForm.reset({
-      expenseTypeId: '',
-      description: '',
-      frequency: 'MONTHLY',
-      dueDate: new Date().toISOString().slice(0, 10),
-      totalAmount: 0,
-      installmentsCount: 1,
-      isRecurring: true,
-      yearlyMonth: 1,
-      notes: ''
-    });
+  openPropertyPendencies(propertyId: string): void {
+    this.closeTransientPanels();
+    void this.router.navigate(['/app/imoveis', propertyId, 'pendencias']);
+  }
 
-    this.pendencyQuickForm.reset({
-      pendencyTypeId: '',
-      title: '',
-      description: '',
-      dueAtUtc: new Date().toISOString().slice(0, 16)
-    });
-
-    this.rentQuickForm.reset({
+  openRentModal(property: PropertyDto): void {
+    this.closeTransientPanels();
+    this.rentReferenceForm.reset({
       amount: property.currentBaseRent ?? 0,
       effectiveFrom: new Date().toISOString().slice(0, 10)
     });
+    this.rentModalProperty.set(property);
   }
 
-  closeQuickModal(): void {
-    this.quickModal.set(null);
-    this.selectedProperty.set(null);
+  closeRentModal(): void {
+    this.rentModalProperty.set(null);
   }
 
   openStatusEditor(event: MouseEvent, property: PropertyDto): void {
@@ -303,6 +253,7 @@ export class ImoveisPage implements OnInit, OnDestroy {
     });
     this.syncIdleReasonValidator(status);
     this.closeRowMenu();
+    this.closeRentModal();
 
     this.statusEditorPosition.set(getFloatingMenuPosition(trigger, 320, requiresPropertyIdleReason(status) ? 268 : 212));
     this.statusEditorPropertyId.set(property.id);
@@ -336,72 +287,17 @@ export class ImoveisPage implements OnInit, OnDestroy {
     });
   }
 
-  submitQuickExpense(): void {
-    const property = this.selectedProperty();
-    if (!property || this.expenseQuickForm.invalid) {
-      this.expenseQuickForm.markAllAsTouched();
+  submitRentReference(): void {
+    const property = this.rentModalProperty();
+    if (!property || this.rentReferenceForm.invalid) {
+      this.rentReferenceForm.markAllAsTouched();
       return;
     }
 
-    const payload = this.expenseQuickForm.getRawValue();
-    this.expenseApi
-      .create({
-        propertyId: property.id,
-        expenseTypeId: payload.expenseTypeId,
-        description: payload.description,
-        frequency: payload.frequency,
-        dueDate: payload.dueDate,
-        totalAmount: payload.totalAmount,
-        installmentsCount: payload.installmentsCount,
-        isRecurring: payload.isRecurring,
-        yearlyMonth: payload.yearlyMonth,
-        notes: payload.notes || undefined
-      })
-      .subscribe({
-        next: () => {
-          this.toast.success('Conta vinculada ao imóvel.');
-          this.closeQuickModal();
-        },
-        error: () => this.toast.error('Falha ao criar conta.')
-      });
-  }
-
-  submitQuickPendency(): void {
-    const property = this.selectedProperty();
-    if (!property || this.pendencyQuickForm.invalid) {
-      this.pendencyQuickForm.markAllAsTouched();
-      return;
-    }
-
-    const payload = this.pendencyQuickForm.getRawValue();
-    this.pendencyApi
-      .create({
-        propertyId: property.id,
-        pendencyTypeId: payload.pendencyTypeId,
-        title: payload.title,
-        description: payload.description || undefined,
-        dueAtUtc: payload.dueAtUtc
-      })
-      .subscribe({
-        next: () => {
-          this.toast.success('Pendência vinculada ao imóvel.');
-          this.closeQuickModal();
-        },
-        error: () => this.toast.error('Falha ao criar pendência.')
-      });
-  }
-
-  submitQuickRentReference(): void {
-    const property = this.selectedProperty();
-    if (!property || this.rentQuickForm.invalid) {
-      this.rentQuickForm.markAllAsTouched();
-      return;
-    }
-
-    this.propertyApi.addRentReference(property.id, this.rentQuickForm.getRawValue()).subscribe({
+    this.propertyApi.addRentReference(property.id, this.rentReferenceForm.getRawValue()).subscribe({
       next: () => {
         this.toast.success('Valor de referência atualizado.');
-        this.closeQuickModal();
+        this.closeRentModal();
         this.load(false);
       },
       error: () => this.toast.error('Falha ao atualizar valor de referência.')
@@ -459,5 +355,11 @@ export class ImoveisPage implements OnInit, OnDestroy {
     }
 
     idleReasonControl.updateValueAndValidity({ emitEvent: false });
+  }
+
+  private closeTransientPanels(): void {
+    this.closeRowMenu();
+    this.closeStatusEditor();
+    this.closeRentModal();
   }
 }

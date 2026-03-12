@@ -1,9 +1,10 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
-import { PendencyDto, PendencyTypeDto } from '../../../core/models/domain.model';
+import { ActivatedRoute, Params, RouterLink } from '@angular/router';
+import { PendencyDto, PendencyTypeDto, PropertyDto } from '../../../core/models/domain.model';
 import { PendencyApiService } from '../../../core/services/pendency-api.service';
+import { PropertyApiService } from '../../../core/services/property-api.service';
 import { AsyncSearchSelectComponent } from '../../../shared/components/async-search-select/async-search-select.component';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { TablePaginationComponent } from '../../../shared/components/table-pagination/table-pagination.component';
@@ -21,10 +22,14 @@ import { getFloatingMenuPosition } from '../../../shared/utils/floating-menu.uti
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class PendenciasPage implements OnInit {
+  private readonly route = inject(ActivatedRoute);
+  private readonly propertyApi = inject(PropertyApiService);
   private readonly api = inject(PendencyApiService);
   private readonly toast = inject(ToastService);
   private readonly fb = inject(FormBuilder);
 
+  readonly propertyId = signal(this.route.snapshot.paramMap.get('id') ?? '');
+  readonly scopedProperty = signal<PropertyDto | null>(null);
   readonly isLoading = signal(false);
   readonly items = signal<PendencyDto[]>([]);
   readonly types = signal<PendencyTypeDto[]>([]);
@@ -39,7 +44,30 @@ export class PendenciasPage implements OnInit {
   readonly showTypeForm = signal(false);
   readonly editingTypeId = signal<string | null>(null);
 
+  readonly isPropertyScoped = computed(() => !!this.propertyId());
+  readonly headerTitle = computed(() => (this.isPropertyScoped() ? 'Pendências do imóvel' : 'Pendências'));
+  readonly headerSubtitle = computed(() => {
+    const property = this.scopedProperty();
+    if (property) {
+      return `Listagem de pendências vinculadas a ${property.title}`;
+    }
+
+    return this.isPropertyScoped() ? 'Listagem de pendências vinculadas ao imóvel selecionado' : 'Listagem, resolução e manutenção dos tipos de pendência';
+  });
+  readonly breadcrumbs = computed(() => {
+    const items = [{ label: 'Painel', route: '/app/dashboard' }, { label: 'Imóveis', route: '/app/imoveis' }];
+    if (!this.isPropertyScoped()) {
+      return [...items, { label: 'Pendências' }];
+    }
+
+    return [...items, { label: this.scopedProperty()?.title ?? 'Imóvel' }, { label: 'Pendências' }];
+  });
+  readonly actionQueryParams = computed<Params | null>(() =>
+    this.isPropertyScoped() ? { propertyId: this.propertyId(), context: 'property-pendencies' } : null
+  );
   readonly statusOptions = getDomainOptions('pendencyStatus', { includeEmptyOption: true, emptyLabel: 'Todos' });
+  readonly listColumnCount = computed(() => (this.isPropertyScoped() ? 6 : 7));
+  readonly showManagementPanels = computed(() => !this.isPropertyScoped());
 
   readonly typeForm = this.fb.nonNullable.group({
     code: ['', Validators.required],
@@ -70,6 +98,10 @@ export class PendenciasPage implements OnInit {
   readonly activeMenuItem = computed(() => this.items().find((item) => item.id === this.activeMenuId()) ?? null);
 
   ngOnInit(): void {
+    if (this.isPropertyScoped()) {
+      this.loadScopedProperty();
+    }
+
     this.loadTypes();
     this.load();
   }
@@ -78,6 +110,7 @@ export class PendenciasPage implements OnInit {
     this.isLoading.set(true);
     this.api
       .list({
+        propertyId: this.propertyId() || undefined,
         status: this.status() || undefined,
         page: this.page(),
         pageSize: this.pageSize()
@@ -202,6 +235,17 @@ export class PendenciasPage implements OnInit {
         this.loadTypes();
       },
       error: () => this.toast.error('Falha ao salvar tipo de pendência.')
+    });
+  }
+
+  getFormQueryParams(propertyId: string): Params | null {
+    return this.isPropertyScoped() ? { propertyId, context: 'property-pendencies' } : null;
+  }
+
+  private loadScopedProperty(): void {
+    this.propertyApi.getById(this.propertyId(), { silent: true }).subscribe({
+      next: (property) => this.scopedProperty.set(property),
+      error: () => undefined
     });
   }
 }

@@ -1,5 +1,5 @@
-﻿import { ChangeDetectionStrategy, Component, input } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { Params, RouterLink } from '@angular/router';
 
 export interface HeaderBreadcrumb {
   label: string;
@@ -20,4 +20,5 @@ export class PageHeaderComponent {
   readonly breadcrumbs = input<HeaderBreadcrumb[]>([]);
   readonly actionLabel = input<string>('');
   readonly actionRoute = input<string>('');
+  readonly actionQueryParams = input<Params | null>(null);
 }

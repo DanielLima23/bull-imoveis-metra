@@ -1,4 +1,4 @@
-﻿<header class="page-header">
+<header class="page-header">
   <div class="page-header__meta">
     @if (breadcrumbs().length > 0) {
       <nav aria-label="Breadcrumb" class="breadcrumb">
@@ -19,6 +19,8 @@
   </div>
 
   @if (actionLabel() && actionRoute()) {
-    <a class="btn btn-primary page-header__action" [routerLink]="actionRoute()">{{ actionLabel() }}</a>
+    <a class="btn btn-primary page-header__action" [routerLink]="actionRoute()" [queryParams]="actionQueryParams()">
+      {{ actionLabel() }}
+    </a>
   }
 </header>

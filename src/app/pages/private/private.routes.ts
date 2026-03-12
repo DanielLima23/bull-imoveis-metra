@@ -18,6 +18,13 @@ export const PRIVATE_ROUTES: Routes = [
 
       { path: 'imoveis', canActivate: [roleGuard], data: rolesData, loadComponent: () => import('./imoveis/imoveis.page').then((m) => m.ImoveisPage) },
       { path: 'imoveis/new', canActivate: [roleGuard], data: rolesData, loadComponent: () => import('./imoveis/imoveis-form.page').then((m) => m.ImoveisFormPage) },
+      { path: 'imoveis/:id/contas', canActivate: [roleGuard], data: rolesData, loadComponent: () => import('./despesas/despesas.page').then((m) => m.DespesasPage) },
+      {
+        path: 'imoveis/:id/pendencias',
+        canActivate: [roleGuard],
+        data: rolesData,
+        loadComponent: () => import('./pendencias/pendencias.page').then((m) => m.PendenciasPage)
+      },
       { path: 'imoveis/:id', canActivate: [roleGuard], data: rolesData, loadComponent: () => import('./imoveis/imoveis-detail.page').then((m) => m.ImoveisDetailPage) },
       { path: 'imoveis/:id/edit', canActivate: [roleGuard], data: rolesData, loadComponent: () => import('./imoveis/imoveis-form.page').then((m) => m.ImoveisFormPage) },
       { path: 'imoveis/:id/locatarios', canActivate: [roleGuard], data: rolesData, loadComponent: () => import('./imoveis/imoveis-locatarios.page').then((m) => m.ImoveisLocatariosPage) },
