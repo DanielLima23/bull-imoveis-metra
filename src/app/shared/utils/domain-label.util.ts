@@ -20,18 +20,18 @@ type DomainLabelMap = Record<DomainLabelKey, Record<string, string>>;
 
 const DOMAIN_LABELS: DomainLabelMap = {
   propertyStatus: {
-    AVAILABLE: 'Dispon\u00edvel',
+    AVAILABLE: 'Disponível',
     LEASED: 'Alugado',
     INACTIVE: 'Inativo',
-    FOR_SALE: '\u00c0 venda',
+    FOR_SALE: 'À venda',
     DEMANDS: 'Demandas',
     IDLE: 'Ocioso',
     UNAVAILABLE: 'Demandas'
   },
   propertyIdleReason: {
     RENOVATION: 'Reforma',
-    TERMINATION: 'Rescis\u00e3o',
-    LEGAL_PENDING: 'Pend\u00eancia jur\u00eddica'
+    TERMINATION: 'Rescisão',
+    LEGAL_PENDING: 'Pendência jurídica'
   },
   occupancyStatus: {
     VACANT: 'Desocupado',
@@ -40,10 +40,10 @@ const DOMAIN_LABELS: DomainLabelMap = {
     PARTIALLY_OCCUPIED: 'Parcialmente ocupado'
   },
   assetState: {
-    READY: 'Pronto para loca\u00e7\u00e3o',
-    PREPARATION: 'Em prepara\u00e7\u00e3o',
-    UNDER_MAINTENANCE: 'Em manuten\u00e7\u00e3o',
-    MAINTENANCE: 'Em manuten\u00e7\u00e3o',
+    READY: 'Pronto para locação',
+    PREPARATION: 'Em preparação',
+    UNDER_MAINTENANCE: 'Em manutenção',
+    MAINTENANCE: 'Em manutenção',
     BLOCKED: 'Bloqueado'
   },
   propertyType: {
@@ -51,7 +51,7 @@ const DOMAIN_LABELS: DomainLabelMap = {
     APARTAMENTO: 'Apartamento',
     COMERCIAL: 'Comercial',
     TERRENO: 'Terreno',
-    GALPAO: 'Galp\u00e3o',
+    GALPAO: 'Galpão',
     SALA: 'Sala',
     SOBRADO: 'Sobrado'
   },
@@ -80,31 +80,49 @@ const DOMAIN_LABELS: DomainLabelMap = {
   },
   pendencySeverity: {
     LOW: 'Baixa',
-    MEDIUM: 'M\u00e9dia',
+    MEDIUM: 'Média',
     HIGH: 'Alta',
-    CRITICAL: 'Cr\u00edtica'
+    CRITICAL: 'Crítica'
   },
   visitStatus: {
     SCHEDULED: 'Agendada',
     DONE: 'Realizada',
     CANCELED: 'Cancelada',
-    NO_SHOW: 'N\u00e3o compareceu'
+    NO_SHOW: 'Não compareceu'
   },
   maintenanceStatus: {
     OPEN: 'Aberta',
     IN_PROGRESS: 'Em andamento',
-    DONE: 'Conclu\u00edda',
+    DONE: 'Concluída',
     CANCELED: 'Cancelada'
   },
   maintenancePriority: {
     LOW: 'Baixa',
-    MEDIUM: 'M\u00e9dia',
+    MEDIUM: 'Média',
     HIGH: 'Alta',
     URGENT: 'Urgente'
   },
   partyKind: {
-    PERSON: 'Pessoa f\u00edsica',
-    COMPANY: 'Pessoa jur\u00eddica'
+    PROPRIETARIO: 'Proprietário',
+    ADMINISTRADOR: 'Administrador',
+    FIADOR: 'Fiador',
+    ADVOGADO: 'Advogado',
+    CORRETOR: 'Corretor',
+    SINDICO: 'Síndico',
+    REPRESENTANTE_LEGAL: 'Representante legal',
+    PRESTADOR_DE_SERVICO: 'Prestador de serviço',
+    PERSON: 'Pessoa física',
+    COMPANY: 'Pessoa jurídica',
+    OUTRO: 'Outro'
+  }
+};
+
+const DOMAIN_ALIASES: Partial<Record<DomainLabelKey, Record<string, string>>> = {
+  partyKind: {
+    PESSOA_FISICA: 'PERSON',
+    PESSOA_JURIDICA: 'COMPANY',
+    PF: 'PERSON',
+    PJ: 'COMPANY'
   }
 };
 
@@ -119,7 +137,8 @@ export function getDomainLabel(domain: DomainLabelKey, value?: string | null, em
   }
 
   const normalized = normalizeDomainValue(value);
-  return DOMAIN_LABELS[domain][normalized] ?? humanizeDomainValue(value);
+  const resolvedKey = DOMAIN_ALIASES[domain]?.[normalized] ?? normalized;
+  return DOMAIN_LABELS[domain][resolvedKey] ?? humanizeDomainValue(value);
 }
 
 export function getDomainOptions(domain: DomainLabelKey, config: DomainOptionsConfig = {}): SelectOption[] {
@@ -133,7 +152,13 @@ export function getDomainOptions(domain: DomainLabelKey, config: DomainOptionsCo
 }
 
 function normalizeDomainValue(value: string): string {
-  return value.trim().replace(/\s+/g, '_').replace(/-/g, '_').toUpperCase();
+  return value
+    .trim()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, '_')
+    .replace(/-/g, '_')
+    .toUpperCase();
 }
 
 function humanizeDomainValue(value: string): string {
