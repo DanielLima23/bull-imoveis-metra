@@ -18,6 +18,7 @@ import { CpfCnpjInputDirective } from '../../../shared/directives/cpf-cnpj-input
 import { PhoneBrInputDirective } from '../../../shared/directives/phone-br-input.directive';
 import { SelectOption } from '../../../shared/models/select-option.model';
 import { ToastService } from '../../../shared/services/toast.service';
+import { getDomainOptions } from '../../../shared/utils/domain-label.util';
 import { normalizeDocument, normalizePhone } from '../../../shared/utils/format.util';
 import { toPropertySelectOption, toTenantSelectOption } from '../../../shared/utils/select-option.util';
 
@@ -51,12 +52,7 @@ export class LocacoesFormPage implements OnInit {
   readonly submitting = signal(false);
   readonly returnTo = signal<string | null>(null);
   readonly selectedLease = signal<LeaseDto | null>(null);
-  readonly leaseStatusOptions: SelectOption[] = [
-    { id: 'DRAFT', label: 'Rascunho' },
-    { id: 'ACTIVE', label: 'Ativa' },
-    { id: 'ENDED', label: 'Encerrada' },
-    { id: 'CANCELED', label: 'Cancelada' }
-  ];
+  readonly leaseStatusOptions: SelectOption[] = getDomainOptions('leaseStatus');
 
   readonly propertySelectFetchPage: AsyncSelectFetchPage = (query) =>
     this.propertyApi

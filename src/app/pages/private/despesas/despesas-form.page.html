@@ -1,7 +1,7 @@
 ﻿<app-page-header
   [title]="isEdit() ? 'Editar Despesa' : 'Nova Despesa'"
   subtitle="Tela única de criação e atualização de conta do imóvel"
-  [breadcrumbs]="[{ label: 'Dashboard', route: '/app/dashboard' }, { label: 'Contas', route: '/app/despesas' }, { label: isEdit() ? 'Editar' : 'Novo' }]"
+  [breadcrumbs]="[{ label: 'Painel', route: '/app/dashboard' }, { label: 'Contas', route: '/app/despesas' }, { label: isEdit() ? 'Editar' : 'Novo' }]"
 />
 
 <section class="card-panel">
@@ -31,7 +31,7 @@
 
     <div class="field">
       <label class="field__label">Descrição</label>
-      <input class="input" formControlName="description" />
+      <input class="input" formControlName="description" placeholder="Descreva a despesa" />
     </div>
 
     <div class="field">
@@ -46,17 +46,17 @@
 
     <div class="field">
       <label class="field__label">Vencimento</label>
-      <input class="input" type="text" inputmode="numeric" formControlName="dueDate" placeholder="dd/mm/yyyy" appDateBrInput />
+      <input class="input" type="text" inputmode="numeric" formControlName="dueDate" placeholder="dd/mm/aaaa" appDateBrInput />
     </div>
 
     <div class="field">
       <label class="field__label">Valor total</label>
-      <input class="input" type="text" inputmode="decimal" formControlName="totalAmount" appBrlCurrencyInput />
+      <input class="input" type="text" inputmode="decimal" formControlName="totalAmount" appBrlCurrencyInput placeholder="R$ 0,00" />
     </div>
 
     <div class="field">
       <label class="field__label">Parcelas</label>
-      <input class="input" type="number" formControlName="installmentsCount" />
+      <input class="input" type="number" formControlName="installmentsCount" placeholder="Informe a quantidade" />
     </div>
 
     <div class="field field--full">
@@ -70,7 +70,7 @@
     @if (isYearly()) {
       <div class="field">
         <label class="field__label">Mes anual (1-12)</label>
-        <input class="input" type="number" min="1" max="12" formControlName="yearlyMonth" />
+        <input class="input" type="number" min="1" max="12" formControlName="yearlyMonth" placeholder="Informe o mês" />
       </div>
     }
 
@@ -88,7 +88,7 @@
 
     <div class="field field--full">
       <label class="field__label">Observações</label>
-      <textarea class="textarea" rows="4" formControlName="notes"></textarea>
+      <textarea class="textarea" rows="4" formControlName="notes" placeholder="Adicione observações sobre a despesa"></textarea>
     </div>
 
     <div class="actions">

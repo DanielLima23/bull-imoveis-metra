@@ -24,6 +24,7 @@ import { DateBrInputDirective } from '../../../shared/directives/date-br-input.d
 import { DateTimeBrInputDirective } from '../../../shared/directives/date-time-br-input.directive';
 import { BrlCurrencyPipe } from '../../../shared/pipes/brl-currency.pipe';
 import { DateOnlyBrPipe } from '../../../shared/pipes/date-only-br.pipe';
+import { DomainLabelPipe } from '../../../shared/pipes/domain-label.pipe';
 import { ToastService } from '../../../shared/services/toast.service';
 
 type PropertyDetailTab = 'resumo' | 'financeiro' | 'historico' | 'locacoes';
@@ -38,7 +39,8 @@ type PropertyDetailTab = 'resumo' | 'financeiro' | 'historico' | 'locacoes';
     DateBrInputDirective,
     DateTimeBrInputDirective,
     BrlCurrencyPipe,
-    DateOnlyBrPipe
+    DateOnlyBrPipe,
+    DomainLabelPipe
   ],
   templateUrl: './imoveis-detail.page.html',
   styleUrl: './imoveis-detail.page.scss',

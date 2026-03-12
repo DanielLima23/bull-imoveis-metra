@@ -1,7 +1,7 @@
 <app-page-header
   title="Pessoas"
   subtitle="Cadastro genérico para proprietários, administradores, fiadores e demais partes"
-  [breadcrumbs]="[{ label: 'Dashboard', route: '/app/dashboard' }, { label: 'Pessoas' }]"
+  [breadcrumbs]="[{ label: 'Painel', route: '/app/dashboard' }, { label: 'Pessoas' }]"
   actionLabel="Adicionar nova"
   actionRoute="/app/pessoas/new"
 />
@@ -12,12 +12,19 @@
     <div class="filters">
       <label class="toolbar-field">
         <span class="toolbar-label">Buscar</span>
-        <input class="input search" [value]="search()" (input)="onSearchInput(($any($event.target)).value)" placeholder="Nome, documento, email ou telefone" />
+        <input class="input search" [value]="search()" (input)="onSearchInput(($any($event.target)).value)" placeholder="Digite nome, documento, e-mail ou telefone" />
       </label>
 
       <label class="toolbar-field">
         <span class="toolbar-label">Tipo</span>
-        <input class="input" [value]="kind()" (input)="onKindInput(($any($event.target)).value)" placeholder="Ex.: OWNER, ADMINISTRATOR" />
+        <app-async-search-select
+          [value]="kind()"
+          [staticOptions]="kindOptions"
+          [searchable]="false"
+          [useFloatingPanel]="true"
+          placeholder="Todos"
+          (valueChange)="onKindChange($event)"
+        />
       </label>
 
       <label class="toolbar-field toolbar-field--compact">
@@ -38,7 +45,7 @@
           <th>Nome</th>
           <th>Tipo</th>
           <th>Documento</th>
-          <th>Email</th>
+          <th>E-mail</th>
           <th>Telefone</th>
           <th>Status</th>
           <th>Ações</th>
@@ -55,11 +62,11 @@
           @for (item of items(); track item.id) {
             <tr>
               <td>{{ item.name || '-' }}</td>
-              <td>{{ item.kind || '-' }}</td>
+              <td>{{ item.kind | domainLabel:'partyKind' }}</td>
               <td>{{ item.documentNumber | cpfCnpj }}</td>
               <td>{{ item.email || '-' }}</td>
               <td>{{ item.phone | phoneBr }}</td>
-              <td><span class="status" [class.off]="!item.isActive">{{ item.isActive ? 'Ativa' : 'Inativa' }}</span></td>
+              <td><span class="status" [class.off]="!item.isActive">{{ item.isActive ? 'Ativo' : 'Inativo' }}</span></td>
               <td class="actions-col">
                 <button class="btn btn-secondary" type="button" (click)="toggleRowMenu($event, item.id)">...</button>
               </td>

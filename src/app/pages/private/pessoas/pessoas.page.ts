@@ -3,17 +3,21 @@ import { RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { PartyDto } from '../../../core/models/domain.model';
 import { PartyApiService } from '../../../core/services/party-api.service';
+import { AsyncSearchSelectComponent } from '../../../shared/components/async-search-select/async-search-select.component';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { TablePaginationComponent } from '../../../shared/components/table-pagination/table-pagination.component';
 import { CpfCnpjPipe } from '../../../shared/pipes/cpf-cnpj.pipe';
+import { DomainLabelPipe } from '../../../shared/pipes/domain-label.pipe';
 import { PhoneBrPipe } from '../../../shared/pipes/phone-br.pipe';
 import { ToastService } from '../../../shared/services/toast.service';
+import { SelectOption } from '../../../shared/models/select-option.model';
+import { getDomainOptions } from '../../../shared/utils/domain-label.util';
 import { getFloatingMenuPosition } from '../../../shared/utils/floating-menu.util';
 
 @Component({
   selector: 'app-pessoas-page',
   standalone: true,
-  imports: [PageHeaderComponent, TablePaginationComponent, RouterLink, CpfCnpjPipe, PhoneBrPipe],
+  imports: [PageHeaderComponent, TablePaginationComponent, RouterLink, CpfCnpjPipe, PhoneBrPipe, AsyncSearchSelectComponent, DomainLabelPipe],
   templateUrl: './pessoas.page.html',
   styleUrl: './pessoas.page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -34,6 +38,7 @@ export class PessoasPage implements OnInit, OnDestroy {
   readonly totalPages = signal(1);
   readonly activeMenuId = signal<string | null>(null);
   readonly menuPosition = signal({ x: 0, y: 0 });
+  readonly kindOptions: SelectOption[] = getDomainOptions('partyKind', { includeEmptyOption: true, emptyLabel: 'Todos' });
 
   readonly activeMenuItem = computed(() => this.items().find((item) => item.id === this.activeMenuId()) ?? null);
 
@@ -85,7 +90,7 @@ export class PessoasPage implements OnInit, OnDestroy {
     this.load(false);
   }
 
-  onKindInput(value: string): void {
+  onKindChange(value: string): void {
     this.kind.set(value);
     this.page.set(1);
     this.load(false);

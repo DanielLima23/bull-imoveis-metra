@@ -9,7 +9,9 @@ import { TablePaginationComponent } from '../../../shared/components/table-pagin
 import { BrlCurrencyInputDirective } from '../../../shared/directives/brl-currency-input.directive';
 import { DateOnlyBrPipe } from '../../../shared/pipes/date-only-br.pipe';
 import { BrlCurrencyPipe } from '../../../shared/pipes/brl-currency.pipe';
+import { DomainLabelPipe } from '../../../shared/pipes/domain-label.pipe';
 import { ToastService } from '../../../shared/services/toast.service';
+import { getDomainLabel, getDomainOptions } from '../../../shared/utils/domain-label.util';
 import { getFloatingMenuPosition } from '../../../shared/utils/floating-menu.util';
 
 @Component({
@@ -21,6 +23,7 @@ import { getFloatingMenuPosition } from '../../../shared/utils/floating-menu.uti
     TablePaginationComponent,
     BrlCurrencyPipe,
     DateOnlyBrPipe,
+    DomainLabelPipe,
     RouterLink,
     AsyncSearchSelectComponent,
     BrlCurrencyInputDirective
@@ -54,12 +57,7 @@ export class DespesasPage implements OnInit {
   readonly typeOptions = computed(() =>
     [{ id: '', label: 'Todos' }, ...this.types().map((item) => ({ id: item.id, label: item.name }))]
   );
-  readonly statusOptions = [
-    { id: '', label: 'Todos' },
-    { id: 'PENDING', label: 'Pendente' },
-    { id: 'PAID', label: 'Paga' },
-    { id: 'CANCELED', label: 'Cancelada' }
-  ];
+  readonly statusOptions = getDomainOptions('expenseStatus', { includeEmptyOption: true, emptyLabel: 'Todos' });
 
   readonly typeForm = this.fb.nonNullable.group({
     name: ['', Validators.required],
@@ -81,7 +79,9 @@ export class DespesasPage implements OnInit {
     }
 
     return this.items().filter((item) =>
-      [item.propertyTitle, item.expenseTypeName, item.description, item.status].some((value) => value.toLowerCase().includes(term))
+      [item.propertyTitle, item.expenseTypeName, item.description, item.status, getDomainLabel('expenseStatus', item.status)].some((value) =>
+        value.toLowerCase().includes(term)
+      )
     );
   });
 

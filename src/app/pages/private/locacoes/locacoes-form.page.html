@@ -1,7 +1,7 @@
 <app-page-header
   [title]="isEdit() ? 'Editar Locação' : 'Nova Locação'"
   subtitle="Contrato completo alinhado aos campos do Swagger"
-  [breadcrumbs]="[{ label: 'Dashboard', route: '/app/dashboard' }, { label: 'Locações', route: '/app/locacoes' }, { label: isEdit() ? 'Editar' : 'Novo' }]"
+  [breadcrumbs]="[{ label: 'Painel', route: '/app/dashboard' }, { label: 'Locações', route: '/app/locacoes' }, { label: isEdit() ? 'Editar' : 'Novo' }]"
 />
 
 <section class="card-panel">
@@ -39,42 +39,42 @@
 
     <div class="field">
       <label class="field__label">Início</label>
-      <input class="input" formControlName="startDate" appDateBrInput />
+      <input class="input" formControlName="startDate" appDateBrInput placeholder="dd/mm/aaaa" />
     </div>
 
     <div class="field">
       <label class="field__label">Fim</label>
-      <input class="input" formControlName="endDate" appDateBrInput />
+      <input class="input" formControlName="endDate" appDateBrInput placeholder="dd/mm/aaaa" />
     </div>
 
     <div class="field">
       <label class="field__label">Aluguel mensal</label>
-      <input class="input" formControlName="monthlyRent" appBrlCurrencyInput />
+      <input class="input" formControlName="monthlyRent" appBrlCurrencyInput placeholder="R$ 0,00" />
     </div>
 
     <div class="field">
       <label class="field__label">Caução</label>
-      <input class="input" formControlName="depositAmount" appBrlCurrencyInput />
+      <input class="input" formControlName="depositAmount" appBrlCurrencyInput placeholder="R$ 0,00" />
     </div>
 
     <div class="field">
       <label class="field__label">Contrato com</label>
-      <input class="input" formControlName="contractWith" />
+      <input class="input" formControlName="contractWith" placeholder="Informe com quem o contrato foi firmado" />
     </div>
 
     <div class="field">
       <label class="field__label">Dia do pagamento</label>
-      <input class="input" type="number" min="1" max="31" formControlName="paymentDay" />
+      <input class="input" type="number" min="1" max="31" formControlName="paymentDay" placeholder="Dia do vencimento" />
     </div>
 
     <div class="field">
       <label class="field__label">Local do pagamento</label>
-      <input class="input" formControlName="paymentLocation" />
+      <input class="input" formControlName="paymentLocation" placeholder="Informe o local de pagamento" />
     </div>
 
     <div class="field">
       <label class="field__label">Índice de reajuste</label>
-      <input class="input" formControlName="readjustmentIndex" />
+      <input class="input" formControlName="readjustmentIndex" placeholder="Ex.: IGPM, IPCA" />
     </div>
 
     @if (isEdit()) {
@@ -93,49 +93,49 @@
 
     <div class="field">
       <label class="field__label">Registro do contrato</label>
-      <input class="input" formControlName="contractRegistration" />
+      <input class="input" formControlName="contractRegistration" placeholder="Informe o registro do contrato" />
     </div>
 
     <div class="field">
       <label class="field__label">Seguro</label>
-      <input class="input" formControlName="insurance" />
+      <input class="input" formControlName="insurance" placeholder="Informe o seguro, se houver" />
     </div>
 
     <div class="field">
       <label class="field__label">Reconhecimento de firma</label>
-      <input class="input" formControlName="signatureRecognition" />
+      <input class="input" formControlName="signatureRecognition" placeholder="Informe o reconhecimento de firma" />
     </div>
 
     <div class="field">
       <label class="field__label">Nome do fiador</label>
-      <input class="input" formControlName="guarantorName" />
+      <input class="input" formControlName="guarantorName" placeholder="Informe o nome do fiador" />
     </div>
 
     <div class="field">
       <label class="field__label">Documento do fiador</label>
-      <input class="input" formControlName="guarantorDocument" appCpfCnpjInput />
+      <input class="input" formControlName="guarantorDocument" appCpfCnpjInput placeholder="CPF ou CNPJ do fiador" />
     </div>
 
     <div class="field">
       <label class="field__label">Telefone do fiador</label>
-      <input class="input" formControlName="guarantorPhone" appPhoneBrInput />
+      <input class="input" formControlName="guarantorPhone" appPhoneBrInput placeholder="(00) 00000-0000" />
     </div>
 
     <div class="field field--full section-title"><h2>Contato adicional</h2></div>
 
     <div class="field">
       <label class="field__label">Nome do contato</label>
-      <input class="input" formControlName="optionalContactName" />
+      <input class="input" formControlName="optionalContactName" placeholder="Informe o nome do contato" />
     </div>
 
     <div class="field">
       <label class="field__label">Telefone do contato</label>
-      <input class="input" formControlName="optionalContactPhone" appPhoneBrInput />
+      <input class="input" formControlName="optionalContactPhone" appPhoneBrInput placeholder="(00) 00000-0000" />
     </div>
 
     <div class="field field--full">
       <label class="field__label">Observações</label>
-      <textarea class="textarea" rows="4" formControlName="notes"></textarea>
+      <textarea class="textarea" rows="4" formControlName="notes" placeholder="Adicione observações do contrato"></textarea>
     </div>
 
     <div class="actions">

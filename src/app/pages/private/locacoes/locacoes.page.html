@@ -1,7 +1,7 @@
 <app-page-header
   title="Locações"
   subtitle="Controle de contratos com filtros por imóvel, locatário e status"
-  [breadcrumbs]="[{ label: 'Dashboard', route: '/app/dashboard' }, { label: 'Locações' }]"
+  [breadcrumbs]="[{ label: 'Painel', route: '/app/dashboard' }, { label: 'Locações' }]"
   actionLabel="Adicionar nova"
   actionRoute="/app/locacoes/new"
 />
@@ -72,7 +72,7 @@
               <td>{{ item.tenantName }}</td>
               <td>{{ item.startDate | dateOnlyBr }} - {{ item.endDate ? (item.endDate | dateOnlyBr) : 'Em aberto' }}</td>
               <td>{{ item.monthlyRent | brlCurrency }}</td>
-              <td>{{ item.status }}</td>
+              <td>{{ item.status | domainLabel:'leaseStatus' }}</td>
               <td>{{ item.paymentDay ?? '-' }}</td>
               <td class="actions-col">
                 <button class="btn btn-secondary" type="button" (click)="toggleRowMenu($event, item.id)">...</button>
@@ -116,7 +116,7 @@
       <form class="grid-form" [formGroup]="closeForm" (ngSubmit)="submitCloseLease()">
         <div class="field">
           <label class="field__label">Data de encerramento</label>
-          <input class="input" formControlName="endDate" appDateBrInput />
+          <input class="input" formControlName="endDate" appDateBrInput placeholder="dd/mm/aaaa" />
         </div>
 
         <div class="modal-actions">

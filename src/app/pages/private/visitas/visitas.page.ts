@@ -5,12 +5,14 @@ import { PageHeaderComponent } from '../../../shared/components/page-header/page
 import { TablePaginationComponent } from '../../../shared/components/table-pagination/table-pagination.component';
 import { VisitApiService } from '../../../core/services/visit-api.service';
 import { VisitDto } from '../../../core/models/domain.model';
+import { DomainLabelPipe } from '../../../shared/pipes/domain-label.pipe';
 import { ToastService } from '../../../shared/services/toast.service';
+import { getDomainLabel } from '../../../shared/utils/domain-label.util';
 
 @Component({
   selector: 'app-visitas-page',
   standalone: true,
-  imports: [PageHeaderComponent, TablePaginationComponent, DatePipe, RouterLink],
+  imports: [PageHeaderComponent, TablePaginationComponent, DatePipe, RouterLink, DomainLabelPipe],
   templateUrl: './visitas.page.html',
   styleUrl: './visitas.page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -36,7 +38,9 @@ export class VisitasPage implements OnInit {
     }
 
     return this.items().filter((item) =>
-      [item.propertyTitle, item.contactName, item.status, item.responsibleName ?? ''].some((value) => value.toLowerCase().includes(term))
+      [item.propertyTitle, item.contactName, item.status, getDomainLabel('visitStatus', item.status), item.responsibleName ?? ''].some((value) =>
+        value.toLowerCase().includes(term)
+      )
     );
   });
 

@@ -1,7 +1,7 @@
 ﻿<app-page-header
   [title]="isEdit() ? 'Editar Pendência' : 'Nova Pendência'"
   subtitle="Tela única de criação e atualização de pendências"
-  [breadcrumbs]="[{ label: 'Dashboard', route: '/app/dashboard' }, { label: 'Pendências', route: '/app/pendencias' }, { label: isEdit() ? 'Editar' : 'Novo' }]"
+  [breadcrumbs]="[{ label: 'Painel', route: '/app/dashboard' }, { label: 'Pendências', route: '/app/pendencias' }, { label: isEdit() ? 'Editar' : 'Novo' }]"
 />
 
 <section class="card-panel">
@@ -31,17 +31,17 @@
 
     <div class="field">
       <label class="field__label">Título</label>
-      <input class="input" formControlName="title" />
+      <input class="input" formControlName="title" placeholder="Informe o título da pendência" />
     </div>
 
     <div class="field">
       <label class="field__label">Vencimento</label>
-      <input class="input" type="text" inputmode="numeric" formControlName="dueAtUtc" placeholder="dd/mm/yyyy hh:mm" appDateTimeBrInput />
+      <input class="input" type="text" inputmode="numeric" formControlName="dueAtUtc" placeholder="dd/mm/aaaa hh:mm" appDateTimeBrInput />
     </div>
 
     <div class="field field--full">
       <label class="field__label">Descrição</label>
-      <textarea class="textarea" rows="4" formControlName="description"></textarea>
+      <textarea class="textarea" rows="4" formControlName="description" placeholder="Descreva a pendência"></textarea>
     </div>
 
     <div class="actions">

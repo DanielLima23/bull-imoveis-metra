@@ -48,7 +48,7 @@ export class ImportacaoLegadoPage {
       },
       error: () => {
         this.submitting.set(false);
-        this.toast.error('Falha ao executar importação legado.');
+        this.toast.error('Falha ao executar a importação do legado.');
       }
     });
   }

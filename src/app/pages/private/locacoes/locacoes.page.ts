@@ -16,9 +16,11 @@ import { TenantApiService } from '../../../core/services/tenant-api.service';
 import { ToastService } from '../../../shared/services/toast.service';
 import { BrlCurrencyPipe } from '../../../shared/pipes/brl-currency.pipe';
 import { DateOnlyBrPipe } from '../../../shared/pipes/date-only-br.pipe';
+import { DomainLabelPipe } from '../../../shared/pipes/domain-label.pipe';
 import { DateBrInputDirective } from '../../../shared/directives/date-br-input.directive';
 import { SelectOption } from '../../../shared/models/select-option.model';
 import { getFloatingMenuPosition } from '../../../shared/utils/floating-menu.util';
+import { getDomainOptions } from '../../../shared/utils/domain-label.util';
 import { toPropertySelectOption, toTenantSelectOption } from '../../../shared/utils/select-option.util';
 
 @Component({
@@ -30,6 +32,7 @@ import { toPropertySelectOption, toTenantSelectOption } from '../../../shared/ut
     TablePaginationComponent,
     BrlCurrencyPipe,
     DateOnlyBrPipe,
+    DomainLabelPipe,
     RouterLink,
     AsyncSearchSelectComponent,
     DateBrInputDirective
@@ -59,13 +62,7 @@ export class LocacoesPage implements OnInit {
   readonly closingLease = signal<LeaseDto | null>(null);
 
   readonly activeMenuItem = computed(() => this.leases().find((item) => item.id === this.activeMenuId()) ?? null);
-  readonly statusOptions: SelectOption[] = [
-    { id: '', label: 'Todos' },
-    { id: 'DRAFT', label: 'Rascunho' },
-    { id: 'ACTIVE', label: 'Ativa' },
-    { id: 'ENDED', label: 'Encerrada' },
-    { id: 'CANCELED', label: 'Cancelada' }
-  ];
+  readonly statusOptions: SelectOption[] = getDomainOptions('leaseStatus', { includeEmptyOption: true, emptyLabel: 'Todos' });
 
   readonly propertySelectFetchPage: AsyncSelectFetchPage = (query) =>
     this.propertyApi

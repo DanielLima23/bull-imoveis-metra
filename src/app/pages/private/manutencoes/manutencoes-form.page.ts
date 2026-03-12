@@ -15,6 +15,7 @@ import { BrlCurrencyInputDirective } from '../../../shared/directives/brl-curren
 import { DateTimeBrInputDirective } from '../../../shared/directives/date-time-br-input.directive';
 import { SelectOption } from '../../../shared/models/select-option.model';
 import { ToastService } from '../../../shared/services/toast.service';
+import { getDomainOptions } from '../../../shared/utils/domain-label.util';
 import { toPropertySelectOption } from '../../../shared/utils/select-option.util';
 
 @Component({
@@ -36,17 +37,8 @@ export class ManutencoesFormPage implements OnInit {
   readonly id = signal<string | null>(null);
   readonly isEdit = computed(() => !!this.id());
   readonly submitting = signal(false);
-  readonly priorityOptions: SelectOption[] = [
-    { id: 'LOW', label: 'Baixa' },
-    { id: 'MEDIUM', label: 'Média' },
-    { id: 'HIGH', label: 'Alta' }
-  ];
-  readonly statusOptions: SelectOption[] = [
-    { id: 'OPEN', label: 'Aberta' },
-    { id: 'IN_PROGRESS', label: 'Em andamento' },
-    { id: 'DONE', label: 'Concluída' },
-    { id: 'CANCELED', label: 'Cancelada' }
-  ];
+  readonly priorityOptions: SelectOption[] = getDomainOptions('maintenancePriority');
+  readonly statusOptions: SelectOption[] = getDomainOptions('maintenanceStatus');
 
   readonly propertySelectFetchPage: AsyncSelectFetchPage = (query) =>
     this.propertyApi

@@ -269,7 +269,7 @@ const PRESET_MAP = new Map<ThemePresetKey, ThemePresetOption>(THEME_PRESETS.map(
 
 const DEFAULT_SETTINGS: SystemSettingsDto = {
   id: 'default',
-  brandName: 'Imoveis Hub',
+  brandName: 'Imóveis Hub',
   brandShortName: 'IH',
   themePreset: 'AURORA_LIGHT',
   primaryColor: '#1176EE',

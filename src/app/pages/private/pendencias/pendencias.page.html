@@ -1,7 +1,7 @@
 <app-page-header
   title="Pendências"
   subtitle="Listagem, resolução e manutenção dos tipos de pendência"
-  [breadcrumbs]="[{ label: 'Dashboard', route: '/app/dashboard' }, { label: 'Pendências' }]"
+  [breadcrumbs]="[{ label: 'Painel', route: '/app/dashboard' }, { label: 'Pendências' }]"
   actionLabel="Adicionar novo"
   actionRoute="/app/pendencias/new"
 />
@@ -26,19 +26,19 @@
     <form class="type-form" [formGroup]="typeForm" (ngSubmit)="saveType()">
       <div class="field">
         <label class="field__label">Código</label>
-        <input class="input" formControlName="code" />
+        <input class="input" formControlName="code" placeholder="Ex.: DOC, VIST, CHAVE" />
       </div>
       <div class="field">
         <label class="field__label">Nome</label>
-        <input class="input" formControlName="name" />
+        <input class="input" formControlName="name" placeholder="Informe o nome do tipo" />
       </div>
       <div class="field">
         <label class="field__label">SLA padrão (dias)</label>
-        <input class="input" type="number" formControlName="defaultSlaDays" />
+        <input class="input" type="number" formControlName="defaultSlaDays" placeholder="Informe o prazo" />
       </div>
       <div class="field field--full">
         <label class="field__label">Descrição</label>
-        <textarea class="textarea" rows="3" formControlName="description"></textarea>
+        <textarea class="textarea" rows="3" formControlName="description" placeholder="Descreva quando este tipo deve ser usado"></textarea>
       </div>
       <div class="actions">
         @if (editingTypeId()) {
@@ -56,7 +56,7 @@
     <div class="filters">
       <label class="toolbar-field">
         <span class="toolbar-label">Buscar</span>
-        <input class="input search" [value]="search()" (input)="search.set(($any($event.target)).value)" placeholder="Imóvel, título, tipo, status..." />
+        <input class="input search" [value]="search()" (input)="search.set(($any($event.target)).value)" placeholder="Digite o imóvel, título, tipo ou status" />
       </label>
 
       <label class="toolbar-field toolbar-field--compact">
@@ -97,8 +97,8 @@
               <td>{{ item.pendencyTypeName }}</td>
               <td>{{ item.title }}</td>
               <td>{{ item.dueAtUtc | date:'dd/MM/yyyy HH:mm' }}</td>
-              <td>{{ item.severity }}</td>
-              <td>{{ item.status }}</td>
+              <td>{{ item.severity | domainLabel:'pendencySeverity' }}</td>
+              <td>{{ item.status | domainLabel:'pendencyStatus' }}</td>
               <td class="actions-col">
                 <button class="btn btn-secondary" type="button" (click)="toggleRowMenu($event, item.id)">...</button>
               </td>

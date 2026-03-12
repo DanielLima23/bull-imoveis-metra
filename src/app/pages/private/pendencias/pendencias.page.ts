@@ -7,13 +7,15 @@ import { PendencyApiService } from '../../../core/services/pendency-api.service'
 import { AsyncSearchSelectComponent } from '../../../shared/components/async-search-select/async-search-select.component';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { TablePaginationComponent } from '../../../shared/components/table-pagination/table-pagination.component';
+import { DomainLabelPipe } from '../../../shared/pipes/domain-label.pipe';
 import { ToastService } from '../../../shared/services/toast.service';
+import { getDomainLabel, getDomainOptions } from '../../../shared/utils/domain-label.util';
 import { getFloatingMenuPosition } from '../../../shared/utils/floating-menu.util';
 
 @Component({
   selector: 'app-pendencias-page',
   standalone: true,
-  imports: [ReactiveFormsModule, PageHeaderComponent, TablePaginationComponent, DatePipe, RouterLink, AsyncSearchSelectComponent],
+  imports: [ReactiveFormsModule, PageHeaderComponent, TablePaginationComponent, DatePipe, RouterLink, AsyncSearchSelectComponent, DomainLabelPipe],
   templateUrl: './pendencias.page.html',
   styleUrl: './pendencias.page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -37,11 +39,7 @@ export class PendenciasPage implements OnInit {
   readonly showTypeForm = signal(false);
   readonly editingTypeId = signal<string | null>(null);
 
-  readonly statusOptions = [
-    { id: '', label: 'Todos' },
-    { id: 'OPEN', label: 'Aberta' },
-    { id: 'RESOLVED', label: 'Resolvida' }
-  ];
+  readonly statusOptions = getDomainOptions('pendencyStatus', { includeEmptyOption: true, emptyLabel: 'Todos' });
 
   readonly typeForm = this.fb.nonNullable.group({
     code: ['', Validators.required],
@@ -57,7 +55,15 @@ export class PendenciasPage implements OnInit {
     }
 
     return this.items().filter((item) =>
-      [item.propertyTitle, item.title, item.pendencyTypeName, item.status, item.severity].some((value) => value.toLowerCase().includes(term))
+      [
+        item.propertyTitle,
+        item.title,
+        item.pendencyTypeName,
+        item.status,
+        item.severity,
+        getDomainLabel('pendencyStatus', item.status),
+        getDomainLabel('pendencySeverity', item.severity)
+      ].some((value) => value.toLowerCase().includes(term))
     );
   });
 

@@ -1,7 +1,7 @@
 <app-page-header
   title="Contas e Despesas"
   subtitle="Financeiro dos imóveis com tipos reutilizáveis, atrasadas e baixa manual"
-  [breadcrumbs]="[{ label: 'Dashboard', route: '/app/dashboard' }, { label: 'Contas' }]"
+  [breadcrumbs]="[{ label: 'Painel', route: '/app/dashboard' }, { label: 'Contas' }]"
   actionLabel="Adicionar novo"
   actionRoute="/app/despesas/new"
 />
@@ -24,11 +24,11 @@
     <form class="type-form" [formGroup]="typeForm" (ngSubmit)="saveType()">
       <div class="field">
         <label class="field__label">Nome do tipo</label>
-        <input class="input" formControlName="name" />
+        <input class="input" formControlName="name" placeholder="Ex.: Condomínio" />
       </div>
       <div class="field">
         <label class="field__label">Categoria</label>
-        <input class="input" formControlName="category" />
+        <input class="input" formControlName="category" placeholder="Ex.: Taxas, consumo, manutenção" />
       </div>
       <div class="field field--full">
         <label class="checkbox-inline">
@@ -52,7 +52,7 @@
     <div class="filters">
       <label class="toolbar-field">
         <span class="toolbar-label">Buscar</span>
-        <input class="input search" [value]="search()" (input)="search.set(($any($event.target)).value)" placeholder="Imóvel, tipo, descrição ou status" />
+        <input class="input search" [value]="search()" (input)="search.set(($any($event.target)).value)" placeholder="Digite o imóvel, tipo, descrição ou status" />
       </label>
 
       <label class="toolbar-field">
@@ -105,7 +105,7 @@
               <td>{{ item.description }}</td>
               <td>{{ item.dueDate | dateOnlyBr }}</td>
               <td>{{ item.totalAmount | brlCurrency }}</td>
-              <td>{{ item.status }}</td>
+              <td>{{ item.status | domainLabel:'expenseStatus' }}</td>
               <td class="actions-col">
                 <button class="btn btn-secondary" type="button" (click)="toggleRowMenu($event, item.id)">...</button>
               </td>
@@ -182,22 +182,22 @@
       <form class="grid-form" [formGroup]="paymentForm" (ngSubmit)="submitPayment()">
         <div class="field">
           <label class="field__label">Valor pago</label>
-          <input class="input" formControlName="paidAmount" appBrlCurrencyInput />
+          <input class="input" formControlName="paidAmount" appBrlCurrencyInput placeholder="R$ 0,00" />
         </div>
 
         <div class="field">
           <label class="field__label">Pago em</label>
-          <input class="input" formControlName="paidAtUtc" />
+          <input class="input" formControlName="paidAtUtc" placeholder="dd/mm/aaaa hh:mm" />
         </div>
 
         <div class="field">
           <label class="field__label">Pago por</label>
-          <input class="input" formControlName="paidBy" />
+          <input class="input" formControlName="paidBy" placeholder="Informe quem realizou o pagamento" />
         </div>
 
         <div class="field field--full">
           <label class="field__label">Observações</label>
-          <textarea class="textarea" rows="3" formControlName="notes"></textarea>
+          <textarea class="textarea" rows="3" formControlName="notes" placeholder="Adicione observações sobre o pagamento"></textarea>
         </div>
 
         <div class="modal-actions">

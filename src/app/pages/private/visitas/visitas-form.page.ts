@@ -15,6 +15,7 @@ import { DateTimeBrInputDirective } from '../../../shared/directives/date-time-b
 import { PhoneBrInputDirective } from '../../../shared/directives/phone-br-input.directive';
 import { SelectOption } from '../../../shared/models/select-option.model';
 import { ToastService } from '../../../shared/services/toast.service';
+import { getDomainOptions } from '../../../shared/utils/domain-label.util';
 import { normalizePhone } from '../../../shared/utils/format.util';
 import { toPropertySelectOption } from '../../../shared/utils/select-option.util';
 
@@ -37,12 +38,7 @@ export class VisitasFormPage implements OnInit {
   readonly id = signal<string | null>(null);
   readonly isEdit = computed(() => !!this.id());
   readonly submitting = signal(false);
-  readonly visitStatusOptions: SelectOption[] = [
-    { id: 'SCHEDULED', label: 'Agendada' },
-    { id: 'DONE', label: 'Realizada' },
-    { id: 'CANCELED', label: 'Cancelada' },
-    { id: 'NO_SHOW', label: 'Não compareceu' }
-  ];
+  readonly visitStatusOptions: SelectOption[] = getDomainOptions('visitStatus');
 
   readonly propertySelectFetchPage: AsyncSelectFetchPage = (query) =>
     this.propertyApi

@@ -1,7 +1,7 @@
 <app-page-header
   [title]="isEdit() ? 'Editar Imóvel' : 'Novo Imóvel'"
   subtitle="Cadastro completo com identidade, documentação, características e administração"
-  [breadcrumbs]="[{ label: 'Dashboard', route: '/app/dashboard' }, { label: 'Imóveis', route: '/app/imoveis' }, { label: isEdit() ? 'Editar' : 'Novo' }]"
+  [breadcrumbs]="[{ label: 'Painel', route: '/app/dashboard' }, { label: 'Imóveis', route: '/app/imoveis' }, { label: isEdit() ? 'Editar' : 'Novo' }]"
 />
 
 <section class="card-panel">
@@ -10,7 +10,7 @@
 
     <div class="field">
       <label class="field__label">Título</label>
-      <input class="input" [formControl]="form.controls.identity.controls.title" />
+      <input class="input" [formControl]="form.controls.identity.controls.title" placeholder="Ex.: Apartamento 101" />
     </div>
 
     <div class="field">
@@ -25,18 +25,28 @@
 
     <div class="field">
       <label class="field__label">Ocupação</label>
-      <input class="input" [formControl]="form.controls.identity.controls.occupancyStatus" placeholder="AVAILABLE, OCCUPIED..." />
+      <app-async-search-select
+        [formControl]="form.controls.identity.controls.occupancyStatus"
+        [staticOptions]="occupancyStatusOptions"
+        [searchable]="false"
+        [allowClear]="false"
+      />
     </div>
 
     <div class="field">
       <label class="field__label">Estado do ativo</label>
-      <input class="input" [formControl]="form.controls.identity.controls.assetState" placeholder="READY, PREPARATION..." />
+      <app-async-search-select
+        [formControl]="form.controls.identity.controls.assetState"
+        [staticOptions]="assetStateOptions"
+        [searchable]="false"
+        [allowClear]="false"
+      />
     </div>
 
     <div class="field field--full">
       <label class="field__label">CEP</label>
       <div class="zip-row">
-        <input class="input" [formControl]="form.controls.identity.controls.zipCode" inputmode="numeric" />
+        <input class="input" [formControl]="form.controls.identity.controls.zipCode" inputmode="numeric" placeholder="00000-000" />
         <button class="btn btn-secondary" type="button" (click)="searchCep()" [disabled]="isCepLoading()">Buscar CEP</button>
       </div>
     </div>
@@ -50,43 +60,43 @@
 
     <div class="field">
       <label class="field__label">Rua</label>
-      <input class="input auto-filled" [formControl]="form.controls.identity.controls.street" />
+      <input class="input auto-filled" [formControl]="form.controls.identity.controls.street" placeholder="Rua preenchida pelo CEP" />
     </div>
 
     <div class="field">
       <label class="field__label">Número</label>
-      <input class="input" [formControl]="form.controls.identity.controls.number" />
+      <input class="input" [formControl]="form.controls.identity.controls.number" placeholder="Ex.: 123" />
     </div>
 
     <div class="field">
       <label class="field__label">Complemento</label>
-      <input class="input" [formControl]="form.controls.identity.controls.complement" />
+      <input class="input" [formControl]="form.controls.identity.controls.complement" placeholder="Ex.: Apto 12, Bloco B" />
     </div>
 
     <div class="field">
       <label class="field__label">Bairro</label>
-      <input class="input auto-filled" [formControl]="form.controls.identity.controls.district" />
+      <input class="input auto-filled" [formControl]="form.controls.identity.controls.district" placeholder="Bairro preenchido pelo CEP" />
     </div>
 
     <div class="field">
       <label class="field__label">Cidade</label>
-      <input class="input auto-filled" [formControl]="form.controls.identity.controls.city" />
+      <input class="input auto-filled" [formControl]="form.controls.identity.controls.city" placeholder="Cidade preenchida pelo CEP" />
     </div>
 
     <div class="field">
       <label class="field__label">UF</label>
-      <input class="input auto-filled uf" [formControl]="form.controls.identity.controls.state" />
+      <input class="input auto-filled uf" [formControl]="form.controls.identity.controls.state" placeholder="UF" />
     </div>
 
     @if (!isEdit()) {
       <div class="field">
         <label class="field__label">Valor locativo inicial</label>
-        <input class="input" formControlName="initialRentAmount" appBrlCurrencyInput />
+        <input class="input" formControlName="initialRentAmount" appBrlCurrencyInput placeholder="R$ 0,00" />
       </div>
 
       <div class="field">
         <label class="field__label">Vigência do valor inicial</label>
-        <input class="input" formControlName="initialRentEffectiveFrom" appDateBrInput />
+        <input class="input" formControlName="initialRentEffectiveFrom" appDateBrInput placeholder="dd/mm/aaaa" />
       </div>
     }
 
@@ -94,29 +104,29 @@
 
     <div class="field">
       <label class="field__label">Registro</label>
-      <input class="input" [formControl]="form.controls.documentation.controls.registration" />
+      <input class="input" [formControl]="form.controls.documentation.controls.registration" placeholder="Informe o número do registro" />
     </div>
 
     <div class="field">
       <label class="field__label">Escritura</label>
-      <input class="input" [formControl]="form.controls.documentation.controls.scripture" />
+      <input class="input" [formControl]="form.controls.documentation.controls.scripture" placeholder="Informe a escritura" />
     </div>
 
     <div class="field">
       <label class="field__label">Certidão</label>
-      <input class="input" [formControl]="form.controls.documentation.controls.registrationCertification" />
+      <input class="input" [formControl]="form.controls.documentation.controls.registrationCertification" placeholder="Informe a certidão" />
     </div>
 
     <div class="field field--full section-title"><h2>Características</h2></div>
 
     <div class="field">
       <label class="field__label">Número de quartos</label>
-      <input class="input" type="number" [formControl]="form.controls.characteristics.controls.numOfRooms" />
+      <input class="input" type="number" [formControl]="form.controls.characteristics.controls.numOfRooms" placeholder="Ex.: 3" />
     </div>
 
     <div class="field">
       <label class="field__label">Desocupado desde</label>
-      <input class="input" [formControl]="form.controls.characteristics.controls.unoccupiedSince" appDateBrInput />
+      <input class="input" [formControl]="form.controls.characteristics.controls.unoccupiedSince" appDateBrInput placeholder="dd/mm/aaaa" />
     </div>
 
     <label class="checkbox-inline">
@@ -138,42 +148,42 @@
 
     <div class="field">
       <label class="field__label">Proprietário</label>
-      <input class="input" [formControl]="form.controls.administration.controls.proprietary" />
+      <input class="input" [formControl]="form.controls.administration.controls.proprietary" placeholder="Informe o nome do proprietário" />
     </div>
 
     <div class="field">
       <label class="field__label">Administrador</label>
-      <input class="input" [formControl]="form.controls.administration.controls.administrator" />
+      <input class="input" [formControl]="form.controls.administration.controls.administrator" placeholder="Informe o nome do administrador" />
     </div>
 
     <div class="field">
-      <label class="field__label">Telefone administrador</label>
-      <input class="input" [formControl]="form.controls.administration.controls.administratorPhone" />
+      <label class="field__label">Telefone do administrador</label>
+      <input class="input" [formControl]="form.controls.administration.controls.administratorPhone" placeholder="(00) 00000-0000" />
     </div>
 
     <div class="field">
-      <label class="field__label">Email administrador</label>
-      <input class="input" [formControl]="form.controls.administration.controls.administratorEmail" />
+      <label class="field__label">E-mail do administrador</label>
+      <input class="input" [formControl]="form.controls.administration.controls.administratorEmail" placeholder="nome@empresa.com.br" />
     </div>
 
     <div class="field">
       <label class="field__label">Taxa administrativa</label>
-      <input class="input" [formControl]="form.controls.administration.controls.administrateTax" />
+      <input class="input" [formControl]="form.controls.administration.controls.administrateTax" placeholder="Ex.: 10%" />
     </div>
 
     <div class="field">
       <label class="field__label">Advogado</label>
-      <input class="input" [formControl]="form.controls.administration.controls.lawyer" />
+      <input class="input" [formControl]="form.controls.administration.controls.lawyer" placeholder="Informe o nome do advogado" />
     </div>
 
     <div class="field">
       <label class="field__label">Dados do advogado</label>
-      <input class="input" [formControl]="form.controls.administration.controls.lawyerData" />
+      <input class="input" [formControl]="form.controls.administration.controls.lawyerData" placeholder="OAB, contato ou observações" />
     </div>
 
     <div class="field field--full">
       <label class="field__label">Observações</label>
-      <textarea class="textarea" rows="4" [formControl]="form.controls.administration.controls.observation"></textarea>
+      <textarea class="textarea" rows="4" [formControl]="form.controls.administration.controls.observation" placeholder="Adicione observações relevantes sobre o imóvel"></textarea>
     </div>
 
     <div class="actions">

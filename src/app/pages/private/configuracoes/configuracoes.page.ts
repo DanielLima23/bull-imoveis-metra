@@ -10,7 +10,7 @@ import { PageHeaderComponent } from '../../../shared/components/page-header/page
 import { ToastService } from '../../../shared/services/toast.service';
 
 const DEFAULT_SETTINGS: SystemSettingsUpdateRequest = {
-  brandName: 'Imoveis Hub',
+  brandName: 'Imóveis Hub',
   brandShortName: 'IH',
   themePreset: 'AURORA_LIGHT',
   enableAnimations: true
@@ -142,7 +142,7 @@ export class ConfiguracoesPage implements OnInit, OnDestroy {
           this.settingsService.applyPreview(payload);
         },
         error: () => {
-          this.toast.error('Falha ao carregar configuracoes do sistema.');
+          this.toast.error('Falha ao carregar configurações do sistema.');
           const fallback = this.settingsService.settings();
           const payload = this.dtoToPayload(fallback);
           this.savedPayload.set(payload);

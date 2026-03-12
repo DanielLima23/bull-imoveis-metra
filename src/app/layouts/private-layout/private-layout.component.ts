@@ -42,7 +42,7 @@ export class PrivateLayoutComponent {
   readonly brandShortName = this.systemSettings.brandShortName;
 
   readonly menuItems = computed<MenuItem[]>(() => [
-    { label: 'Dashboard', route: '/app/dashboard', icon: 'dashboard' },
+    { label: 'Painel', route: '/app/dashboard', icon: 'dashboard' },
     { label: 'Imóveis', route: '/app/imoveis', icon: 'imoveis' },
     { label: 'Locatários', route: '/app/locatarios', icon: 'locatarios' },
     { label: 'Pessoas', route: '/app/pessoas', icon: 'pessoas' },

@@ -4,13 +4,15 @@ import { PageHeaderComponent } from '../../../shared/components/page-header/page
 import { TablePaginationComponent } from '../../../shared/components/table-pagination/table-pagination.component';
 import { MaintenanceApiService } from '../../../core/services/maintenance-api.service';
 import { MaintenanceDto } from '../../../core/models/domain.model';
+import { DomainLabelPipe } from '../../../shared/pipes/domain-label.pipe';
 import { ToastService } from '../../../shared/services/toast.service';
 import { BrlCurrencyPipe } from '../../../shared/pipes/brl-currency.pipe';
+import { getDomainLabel } from '../../../shared/utils/domain-label.util';
 
 @Component({
   selector: 'app-manutencoes-page',
   standalone: true,
-  imports: [PageHeaderComponent, TablePaginationComponent, BrlCurrencyPipe, RouterLink],
+  imports: [PageHeaderComponent, TablePaginationComponent, BrlCurrencyPipe, RouterLink, DomainLabelPipe],
   templateUrl: './manutencoes.page.html',
   styleUrl: './manutencoes.page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -36,7 +38,14 @@ export class ManutencoesPage implements OnInit {
     }
 
     return this.items().filter((item) =>
-      [item.propertyTitle, item.title, item.priority, item.status].some((value) => value.toLowerCase().includes(term))
+      [
+        item.propertyTitle,
+        item.title,
+        item.priority,
+        item.status,
+        getDomainLabel('maintenancePriority', item.priority),
+        getDomainLabel('maintenanceStatus', item.status)
+      ].some((value) => value.toLowerCase().includes(term))
     );
   });
 

@@ -1,7 +1,7 @@
 ﻿<app-page-header
   [title]="isEdit() ? 'Editar Visita' : 'Nova Visita'"
   subtitle="Tela única de criação e atualização de visitas"
-  [breadcrumbs]="[{ label: 'Dashboard', route: '/app/dashboard' }, { label: 'Visitas', route: '/app/visitas' }, { label: isEdit() ? 'Editar' : 'Novo' }]"
+  [breadcrumbs]="[{ label: 'Painel', route: '/app/dashboard' }, { label: 'Visitas', route: '/app/visitas' }, { label: isEdit() ? 'Editar' : 'Novo' }]"
 />
 
 <section class="card-panel">
@@ -20,22 +20,22 @@
 
     <div class="field">
       <label class="field__label">Data agendada</label>
-      <input class="input" type="text" inputmode="numeric" formControlName="scheduledAtUtc" placeholder="dd/mm/yyyy hh:mm" appDateTimeBrInput />
+      <input class="input" type="text" inputmode="numeric" formControlName="scheduledAtUtc" placeholder="dd/mm/aaaa hh:mm" appDateTimeBrInput />
     </div>
 
     <div class="field">
       <label class="field__label">Nome do contato</label>
-      <input class="input" formControlName="contactName" />
+      <input class="input" formControlName="contactName" placeholder="Informe o nome do contato" />
     </div>
 
     <div class="field">
       <label class="field__label">Telefone</label>
-      <input class="input" formControlName="contactPhone" inputmode="tel" appPhoneBrInput />
+      <input class="input" formControlName="contactPhone" inputmode="tel" appPhoneBrInput placeholder="(00) 00000-0000" />
     </div>
 
     <div class="field">
       <label class="field__label">Responsável</label>
-      <input class="input" formControlName="responsibleName" />
+      <input class="input" formControlName="responsibleName" placeholder="Informe o responsável pelo atendimento" />
     </div>
 
     @if (isEdit()) {
@@ -52,7 +52,7 @@
 
     <div class="field field--full">
       <label class="field__label">Observações</label>
-      <textarea class="textarea" rows="4" formControlName="notes"></textarea>
+      <textarea class="textarea" rows="4" formControlName="notes" placeholder="Adicione observações sobre a visita"></textarea>
     </div>
 
     <div class="actions">

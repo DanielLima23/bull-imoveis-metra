@@ -1,7 +1,7 @@
 ﻿<app-page-header
   title="Locatários"
   subtitle="Listagem completa com fluxo padrão de cadastro"
-  [breadcrumbs]="[{ label: 'Dashboard', route: '/app/dashboard' }, { label: 'Locatários' }]"
+  [breadcrumbs]="[{ label: 'Painel', route: '/app/dashboard' }, { label: 'Locatários' }]"
   actionLabel="Adicionar novo"
   actionRoute="/app/locatarios/new"
 />
@@ -11,7 +11,7 @@
     <h2>Listagem</h2>
     <div class="toolbar-field">
       <label class="toolbar-label">Buscar</label>
-      <input class="input search" [value]="search()" (input)="onSearchInput(($any($event.target)).value)" placeholder="Nome, documento, email ou telefone" />
+      <input class="input search" [value]="search()" (input)="onSearchInput(($any($event.target)).value)" placeholder="Nome, documento, e-mail ou telefone" />
     </div>
   </div>
 
@@ -21,7 +21,7 @@
         <tr>
           <th>Nome</th>
           <th>Documento</th>
-          <th>Email</th>
+            <th>E-mail</th>
           <th>Telefone</th>
           <th>Status</th>
           <th>Ações</th>

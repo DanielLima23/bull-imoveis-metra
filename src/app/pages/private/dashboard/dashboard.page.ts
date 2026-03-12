@@ -33,7 +33,7 @@ export class DashboardPage implements OnInit {
         this.isLoading.set(false);
       },
       error: () => {
-        this.toast.error('Falha ao carregar dashboard.');
+        this.toast.error('Falha ao carregar o painel.');
         this.isLoading.set(false);
       }
     });

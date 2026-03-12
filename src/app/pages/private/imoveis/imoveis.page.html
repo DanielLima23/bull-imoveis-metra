@@ -1,7 +1,7 @@
 <app-page-header
   title="Imóveis"
   subtitle="Listagem central com filtros, vínculo rápido e acesso ao hub do imóvel"
-  [breadcrumbs]="[{ label: 'Dashboard', route: '/app/dashboard' }, { label: 'Imóveis' }]"
+  [breadcrumbs]="[{ label: 'Painel', route: '/app/dashboard' }, { label: 'Imóveis' }]"
   actionLabel="Adicionar novo"
   actionRoute="/app/imoveis/new"
 />
@@ -12,27 +12,60 @@
     <div class="filters">
       <label class="toolbar-field">
         <span class="toolbar-label">Buscar</span>
-        <input class="input search" [value]="search()" (input)="onSearchInput(($any($event.target)).value)" placeholder="Título, endereço ou cidade" />
+        <input class="input search" [value]="search()" (input)="onSearchInput(($any($event.target)).value)" placeholder="Digite o título, endereço ou cidade" />
       </label>
 
       <label class="toolbar-field">
         <span class="toolbar-label">Cidade</span>
-        <input class="input" [value]="city()" (input)="onCityInput(($any($event.target)).value)" />
+        <input class="input" [value]="city()" (input)="onCityInput(($any($event.target)).value)" placeholder="Digite a cidade" />
+      </label>
+
+      <label class="toolbar-field">
+        <span class="toolbar-label">Status</span>
+        <app-async-search-select
+          [value]="status()"
+          [staticOptions]="propertyStatusOptions"
+          [searchable]="false"
+          [useFloatingPanel]="true"
+          placeholder="Todos"
+          (valueChange)="onStatusChange($event)"
+        />
       </label>
 
       <label class="toolbar-field">
         <span class="toolbar-label">Tipo do imóvel</span>
-        <input class="input" [value]="propertyType()" (input)="onPropertyTypeInput(($any($event.target)).value)" />
+        <app-async-search-select
+          [value]="propertyType()"
+          [staticOptions]="propertyTypeOptions"
+          [searchable]="false"
+          [useFloatingPanel]="true"
+          placeholder="Todos"
+          (valueChange)="onPropertyTypeChange($event)"
+        />
       </label>
 
       <label class="toolbar-field">
         <span class="toolbar-label">Ocupação</span>
-        <input class="input" [value]="occupancyStatus()" (input)="onOccupancyInput(($any($event.target)).value)" />
+        <app-async-search-select
+          [value]="occupancyStatus()"
+          [staticOptions]="occupancyStatusOptions"
+          [searchable]="false"
+          [useFloatingPanel]="true"
+          placeholder="Todos"
+          (valueChange)="onOccupancyChange($event)"
+        />
       </label>
 
       <label class="toolbar-field">
         <span class="toolbar-label">Estado do ativo</span>
-        <input class="input" [value]="assetState()" (input)="onAssetStateInput(($any($event.target)).value)" />
+        <app-async-search-select
+          [value]="assetState()"
+          [staticOptions]="assetStateOptions"
+          [searchable]="false"
+          [useFloatingPanel]="true"
+          placeholder="Todos"
+          (valueChange)="onAssetStateChange($event)"
+        />
       </label>
     </div>
   </div>
@@ -62,10 +95,10 @@
             <tr>
               <td>{{ item.title }}</td>
               <td>{{ item.city }}/{{ item.state }}</td>
-              <td>{{ item.propertyType }}</td>
-              <td>{{ item.status }}</td>
-              <td>{{ item.occupancyStatus || '-' }}</td>
-              <td>{{ item.assetState || '-' }}</td>
+              <td>{{ item.propertyType | domainLabel:'propertyType' }}</td>
+              <td>{{ item.status | domainLabel:'propertyStatus' }}</td>
+              <td>{{ item.occupancyStatus | domainLabel:'occupancyStatus' }}</td>
+              <td>{{ item.assetState | domainLabel:'assetState' }}</td>
               <td class="actions-col">
                 <button class="btn btn-secondary" type="button" (click)="toggleRowMenu($event, item.id)">...</button>
               </td>
@@ -111,7 +144,7 @@
             </div>
             <div class="field">
               <label class="field__label">Descrição</label>
-              <input class="input" formControlName="description" />
+              <input class="input" formControlName="description" placeholder="Descreva a conta" />
             </div>
             <div class="field">
               <label class="field__label">Frequência</label>
@@ -119,19 +152,19 @@
             </div>
             <div class="field">
               <label class="field__label">Vencimento</label>
-              <input class="input" formControlName="dueDate" appDateBrInput />
+              <input class="input" formControlName="dueDate" appDateBrInput placeholder="dd/mm/aaaa" />
             </div>
             <div class="field">
               <label class="field__label">Valor</label>
-              <input class="input" formControlName="totalAmount" appBrlCurrencyInput />
+              <input class="input" formControlName="totalAmount" appBrlCurrencyInput placeholder="R$ 0,00" />
             </div>
             <div class="field">
               <label class="field__label">Parcelas</label>
-              <input class="input" type="number" formControlName="installmentsCount" />
+              <input class="input" type="number" formControlName="installmentsCount" placeholder="Informe a quantidade" />
             </div>
             <div class="field field--full">
               <label class="field__label">Observações</label>
-              <textarea class="textarea" rows="3" formControlName="notes"></textarea>
+              <textarea class="textarea" rows="3" formControlName="notes" placeholder="Adicione observações, se necessário"></textarea>
             </div>
             <div class="modal-actions">
               <button class="btn btn-secondary" type="button" (click)="closeQuickModal()">Cancelar</button>
@@ -148,15 +181,15 @@
             </div>
             <div class="field">
               <label class="field__label">Título</label>
-              <input class="input" formControlName="title" />
+              <input class="input" formControlName="title" placeholder="Informe o título da pendência" />
             </div>
             <div class="field field--full">
               <label class="field__label">Descrição</label>
-              <textarea class="textarea" rows="3" formControlName="description"></textarea>
+              <textarea class="textarea" rows="3" formControlName="description" placeholder="Descreva a pendência"></textarea>
             </div>
             <div class="field">
               <label class="field__label">Vencimento</label>
-              <input class="input" formControlName="dueAtUtc" appDateTimeBrInput />
+              <input class="input" formControlName="dueAtUtc" appDateTimeBrInput placeholder="dd/mm/aaaa hh:mm" />
             </div>
             <div class="modal-actions">
               <button class="btn btn-secondary" type="button" (click)="closeQuickModal()">Cancelar</button>
@@ -169,11 +202,11 @@
           <form class="grid-form" [formGroup]="rentQuickForm" (ngSubmit)="submitQuickRentReference()">
             <div class="field">
               <label class="field__label">Valor de referência</label>
-              <input class="input" formControlName="amount" appBrlCurrencyInput />
+              <input class="input" formControlName="amount" appBrlCurrencyInput placeholder="R$ 0,00" />
             </div>
             <div class="field">
               <label class="field__label">Vigência</label>
-              <input class="input" formControlName="effectiveFrom" appDateBrInput />
+              <input class="input" formControlName="effectiveFrom" appDateBrInput placeholder="dd/mm/aaaa" />
             </div>
             <div class="modal-actions">
               <button class="btn btn-secondary" type="button" (click)="closeQuickModal()">Cancelar</button>
@@ -186,11 +219,21 @@
           <form class="grid-form" [formGroup]="statusQuickForm" (ngSubmit)="submitQuickStatus()">
             <div class="field">
               <label class="field__label">Ocupação</label>
-              <input class="input" formControlName="occupancyStatus" placeholder="AVAILABLE, OCCUPIED..." />
+              <app-async-search-select
+                formControlName="occupancyStatus"
+                [staticOptions]="occupancyStatusOptions.slice(1)"
+                [searchable]="false"
+                [allowClear]="false"
+              />
             </div>
             <div class="field">
               <label class="field__label">Estado do ativo</label>
-              <input class="input" formControlName="assetState" placeholder="READY, PREPARATION..." />
+              <app-async-search-select
+                formControlName="assetState"
+                [staticOptions]="assetStateOptions.slice(1)"
+                [searchable]="false"
+                [allowClear]="false"
+              />
             </div>
             <div class="modal-actions">
               <button class="btn btn-secondary" type="button" (click)="closeQuickModal()">Cancelar</button>

@@ -2,7 +2,7 @@
   [title]="title()"
   [subtitle]="subtitle()"
   [breadcrumbs]="[
-    { label: 'Dashboard', route: '/app/dashboard' },
+    { label: 'Painel', route: '/app/dashboard' },
     { label: 'Imóveis', route: '/app/imoveis' },
     { label: title() }
   ]"
@@ -29,10 +29,10 @@
         <h2>Identificação</h2>
         <dl class="detail-grid">
           <div><dt>Código</dt><dd>{{ data.property.code }}</dd></div>
-          <div><dt>Status</dt><dd>{{ data.property.status }}</dd></div>
-          <div><dt>Ocupação</dt><dd>{{ data.property.occupancyStatus || '-' }}</dd></div>
-          <div><dt>Estado do ativo</dt><dd>{{ data.property.assetState || '-' }}</dd></div>
-          <div><dt>Tipo</dt><dd>{{ data.property.propertyType }}</dd></div>
+          <div><dt>Status</dt><dd>{{ data.property.status | domainLabel:'propertyStatus' }}</dd></div>
+          <div><dt>Ocupação</dt><dd>{{ data.property.occupancyStatus | domainLabel:'occupancyStatus' }}</dd></div>
+          <div><dt>Estado do ativo</dt><dd>{{ data.property.assetState | domainLabel:'assetState' }}</dd></div>
+          <div><dt>Tipo</dt><dd>{{ data.property.propertyType | domainLabel:'propertyType' }}</dd></div>
           <div><dt>Valor base atual</dt><dd>{{ data.property.currentBaseRent | brlCurrency }}</dd></div>
         </dl>
       </article>
@@ -43,7 +43,7 @@
           <div><dt>Proprietário</dt><dd>{{ data.property.administration?.proprietary || data.property.proprietary || '-' }}</dd></div>
           <div><dt>Administrador</dt><dd>{{ data.property.administration?.administrator || data.property.administrator || '-' }}</dd></div>
           <div><dt>Telefone</dt><dd>{{ data.property.administration?.administratorPhone || '-' }}</dd></div>
-          <div><dt>Email</dt><dd>{{ data.property.administration?.administratorEmail || '-' }}</dd></div>
+          <div><dt>E-mail</dt><dd>{{ data.property.administration?.administratorEmail || '-' }}</dd></div>
           <div><dt>Taxa adm.</dt><dd>{{ data.property.administration?.administrateTax || '-' }}</dd></div>
           <div><dt>Advogado</dt><dd>{{ data.property.administration?.lawyer || '-' }}</dd></div>
         </dl>
@@ -66,7 +66,7 @@
         @if (data.currentLease) {
           <dl class="detail-grid">
             <div><dt>Locatário</dt><dd>{{ data.currentLease.tenantName }}</dd></div>
-            <div><dt>Status</dt><dd>{{ data.currentLease.status }}</dd></div>
+            <div><dt>Status</dt><dd>{{ data.currentLease.status | domainLabel:'leaseStatus' }}</dd></div>
             <div><dt>Início</dt><dd>{{ data.currentLease.startDate | dateOnlyBr }}</dd></div>
             <div><dt>Fim</dt><dd>{{ data.currentLease.endDate ? (data.currentLease.endDate | dateOnlyBr) : '-' }}</dd></div>
             <div><dt>Aluguel</dt><dd>{{ data.currentLease.monthlyRent | brlCurrency }}</dd></div>
@@ -107,7 +107,7 @@
           <header><strong>Manutenções</strong><span>{{ data.maintenanceItems.length }}</span></header>
           <ul class="simple-list">
             @for (item of data.maintenanceItems; track item.id) {
-              <li>{{ item.title }} · {{ item.status }}</li>
+              <li>{{ item.title }} · {{ item.status | domainLabel:'maintenanceStatus' }}</li>
             } @empty {
               <li>Nenhuma manutenção relacionada.</li>
             }
@@ -124,11 +124,11 @@
         <form class="grid-form compact-form" [formGroup]="rentForm" (ngSubmit)="submitRentReference()">
           <div class="field">
             <label class="field__label">Valor</label>
-            <input class="input" formControlName="amount" appBrlCurrencyInput />
+            <input class="input" formControlName="amount" appBrlCurrencyInput placeholder="R$ 0,00" />
           </div>
           <div class="field">
             <label class="field__label">Vigência</label>
-            <input class="input" formControlName="effectiveFrom" appDateBrInput />
+            <input class="input" formControlName="effectiveFrom" appDateBrInput placeholder="dd/mm/aaaa" />
           </div>
           <div class="actions">
             <button class="btn btn-primary" type="submit">Salvar</button>
@@ -141,31 +141,31 @@
         <form class="grid-form compact-form" [formGroup]="templateForm" (ngSubmit)="submitTemplate()">
           <div class="field">
             <label class="field__label">Tipo</label>
-            <input class="input" formControlName="kind" />
+            <input class="input" formControlName="kind" placeholder="Ex.: Água, condomínio, IPTU" />
           </div>
           <div class="field">
             <label class="field__label">Título</label>
-            <input class="input" formControlName="title" />
+            <input class="input" formControlName="title" placeholder="Informe o título da conta-modelo" />
           </div>
           <div class="field">
             <label class="field__label">Valor padrão</label>
-            <input class="input" formControlName="defaultAmount" appBrlCurrencyInput />
+            <input class="input" formControlName="defaultAmount" appBrlCurrencyInput placeholder="R$ 0,00" />
           </div>
           <div class="field">
             <label class="field__label">Vencimento</label>
-            <input class="input" type="number" formControlName="dueDay" />
+            <input class="input" type="number" formControlName="dueDay" placeholder="Dia do vencimento" />
           </div>
           <div class="field">
             <label class="field__label">Responsabilidade</label>
-            <input class="input" formControlName="defaultResponsibility" />
+            <input class="input" formControlName="defaultResponsibility" placeholder="Ex.: Proprietário ou locatário" />
           </div>
           <div class="field">
             <label class="field__label">Fornecedor</label>
-            <input class="input" formControlName="providerInformation" />
+            <input class="input" formControlName="providerInformation" placeholder="Informe o fornecedor ou referência" />
           </div>
           <div class="field field--full">
             <label class="field__label">Observações</label>
-            <textarea class="textarea" rows="3" formControlName="notes"></textarea>
+            <textarea class="textarea" rows="3" formControlName="notes" placeholder="Adicione observações sobre a conta-modelo"></textarea>
           </div>
           <label class="checkbox-inline field--full">
             <input type="checkbox" formControlName="isActive" />
@@ -245,8 +245,8 @@
       <div class="section-header">
         <h2>Extrato mensal</h2>
         <form class="statement-filter" [formGroup]="statementForm" (ngSubmit)="loadStatement()">
-          <input class="input" type="number" min="1" max="12" formControlName="month" />
-          <input class="input" type="number" min="2000" formControlName="year" />
+          <input class="input" type="number" min="1" max="12" formControlName="month" placeholder="Mês" />
+          <input class="input" type="number" min="2000" formControlName="year" placeholder="Ano" />
           <button class="btn btn-secondary" type="submit">Atualizar</button>
         </form>
       </div>
@@ -269,7 +269,7 @@
                 <td>{{ line.label }}</td>
                 <td>{{ line.expectedAmount | brlCurrency }}</td>
                 <td>{{ line.paidAmount | brlCurrency }}</td>
-                <td>{{ line.status || '-' }}</td>
+                <td>{{ line.status | domainLabel:'expenseStatus' }}</td>
               </tr>
             } @empty {
               <tr><td colspan="5">Nenhum lançamento no período informado.</td></tr>
@@ -287,11 +287,11 @@
         <form class="grid-form compact-form" [formGroup]="historyForm" (ngSubmit)="submitHistory()">
           <div class="field field--full">
             <label class="field__label">Descrição</label>
-            <textarea class="textarea" rows="4" formControlName="content"></textarea>
+            <textarea class="textarea" rows="4" formControlName="content" placeholder="Descreva o fato ocorrido"></textarea>
           </div>
           <div class="field">
             <label class="field__label">Ocorrido em</label>
-            <input class="input" formControlName="occurredAtUtc" appDateTimeBrInput />
+            <input class="input" formControlName="occurredAtUtc" appDateTimeBrInput placeholder="dd/mm/aaaa hh:mm" />
           </div>
           <div class="actions">
             <button class="btn btn-primary" type="submit">Salvar</button>
@@ -304,23 +304,23 @@
         <form class="grid-form compact-form" [formGroup]="attachmentForm" (ngSubmit)="submitAttachment()">
           <div class="field">
             <label class="field__label">Categoria</label>
-            <input class="input" formControlName="category" />
+            <input class="input" formControlName="category" placeholder="Ex.: Contrato, laudo, foto" />
           </div>
           <div class="field">
             <label class="field__label">Título</label>
-            <input class="input" formControlName="title" />
+            <input class="input" formControlName="title" placeholder="Informe o título do anexo" />
           </div>
           <div class="field field--full">
             <label class="field__label">URL / Localização</label>
-            <input class="input" formControlName="resourceLocation" />
+            <input class="input" formControlName="resourceLocation" placeholder="Cole a URL ou localização do arquivo" />
           </div>
           <div class="field">
             <label class="field__label">Data de referência</label>
-            <input class="input" formControlName="referenceDateUtc" appDateTimeBrInput />
+            <input class="input" formControlName="referenceDateUtc" appDateTimeBrInput placeholder="dd/mm/aaaa hh:mm" />
           </div>
           <div class="field field--full">
             <label class="field__label">Observações</label>
-            <textarea class="textarea" rows="3" formControlName="notes"></textarea>
+            <textarea class="textarea" rows="3" formControlName="notes" placeholder="Adicione observações sobre o anexo"></textarea>
           </div>
           <div class="actions">
             <button class="btn btn-primary" type="submit">Salvar</button>
@@ -397,7 +397,7 @@
                 <td>{{ item.tenantName }}</td>
                 <td>{{ item.startDate | dateOnlyBr }} - {{ item.endDate ? (item.endDate | dateOnlyBr) : 'Em aberto' }}</td>
                 <td>{{ item.monthlyRent | brlCurrency }}</td>
-                <td>{{ item.status }}</td>
+                <td>{{ item.status | domainLabel:'leaseStatus' }}</td>
                 <td>Dia {{ item.paymentDay ?? '-' }}</td>
                 <td class="row-actions">
                   <button class="btn btn-secondary" type="button" (click)="editLease(item.id)">Editar</button>

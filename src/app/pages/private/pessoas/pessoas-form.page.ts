@@ -2,16 +2,19 @@ import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } 
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PartyApiService } from '../../../core/services/party-api.service';
+import { AsyncSearchSelectComponent } from '../../../shared/components/async-search-select/async-search-select.component';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { CpfCnpjInputDirective } from '../../../shared/directives/cpf-cnpj-input.directive';
 import { PhoneBrInputDirective } from '../../../shared/directives/phone-br-input.directive';
+import { SelectOption } from '../../../shared/models/select-option.model';
 import { ToastService } from '../../../shared/services/toast.service';
+import { getDomainOptions } from '../../../shared/utils/domain-label.util';
 import { normalizeDocument, normalizePhone } from '../../../shared/utils/format.util';
 
 @Component({
   selector: 'app-pessoas-form-page',
   standalone: true,
-  imports: [ReactiveFormsModule, PageHeaderComponent, CpfCnpjInputDirective, PhoneBrInputDirective],
+  imports: [ReactiveFormsModule, PageHeaderComponent, CpfCnpjInputDirective, PhoneBrInputDirective, AsyncSearchSelectComponent],
   templateUrl: './pessoas-form.page.html',
   styleUrl: './pessoas-form.page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -26,6 +29,7 @@ export class PessoasFormPage implements OnInit {
   readonly id = signal<string | null>(null);
   readonly isEdit = computed(() => !!this.id());
   readonly submitting = signal(false);
+  readonly kindOptions: SelectOption[] = getDomainOptions('partyKind');
 
   readonly form = this.fb.nonNullable.group({
     kind: ['', Validators.required],

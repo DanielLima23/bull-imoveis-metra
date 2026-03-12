@@ -11,6 +11,7 @@ import { SelectOption } from '../../../shared/models/select-option.model';
 import { ToastService } from '../../../shared/services/toast.service';
 import { DateBrInputDirective } from '../../../shared/directives/date-br-input.directive';
 import { BrlCurrencyInputDirective } from '../../../shared/directives/brl-currency-input.directive';
+import { getDomainOptions } from '../../../shared/utils/domain-label.util';
 
 @Component({
   selector: 'app-imoveis-form-page',
@@ -38,6 +39,8 @@ export class ImoveisFormPage implements OnInit {
     { id: 'Comercial', label: 'Comercial' },
     { id: 'Terreno', label: 'Terreno' }
   ];
+  readonly occupancyStatusOptions: SelectOption[] = getDomainOptions('occupancyStatus');
+  readonly assetStateOptions: SelectOption[] = getDomainOptions('assetState');
 
   readonly isCepLoading = signal(false);
   readonly cepStatus = signal<'idle' | 'loading' | 'success' | 'error'>('idle');

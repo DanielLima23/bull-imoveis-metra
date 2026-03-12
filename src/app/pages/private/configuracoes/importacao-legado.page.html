@@ -1,10 +1,10 @@
 <app-page-header
-  title="Importação Legado"
-  subtitle="Envio manual do payload JSON para /api/legado/importacao"
+  title="Importação do legado"
+  subtitle="Envio manual do conteúdo JSON para /api/legado/importacao"
   [breadcrumbs]="[
-    { label: 'Dashboard', route: '/app/dashboard' },
+    { label: 'Painel', route: '/app/dashboard' },
     { label: 'Configurações', route: '/app/configuracoes' },
-    { label: 'Importação legado' }
+    { label: 'Importação do legado' }
   ]"
 />
 
@@ -16,7 +16,7 @@
         class="textarea"
         formControlName="payload"
         rows="18"
-        placeholder='{"estates":[],"financialRecords":[],"histories":[],"pendencyAcronyms":[],"pendencyStates":[]}'
+        placeholder="Cole aqui o JSON de importação do legado"
       ></textarea>
     </div>
 

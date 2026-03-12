@@ -13,7 +13,9 @@ import { BrlCurrencyInputDirective } from '../../../shared/directives/brl-curren
 import { DateBrInputDirective } from '../../../shared/directives/date-br-input.directive';
 import { DateTimeBrInputDirective } from '../../../shared/directives/date-time-br-input.directive';
 import { SelectOption } from '../../../shared/models/select-option.model';
+import { DomainLabelPipe } from '../../../shared/pipes/domain-label.pipe';
 import { ToastService } from '../../../shared/services/toast.service';
+import { getDomainOptions } from '../../../shared/utils/domain-label.util';
 import { getFloatingMenuPosition } from '../../../shared/utils/floating-menu.util';
 
 @Component({
@@ -27,7 +29,8 @@ import { getFloatingMenuPosition } from '../../../shared/utils/floating-menu.uti
     BrlCurrencyInputDirective,
     DateBrInputDirective,
     DateTimeBrInputDirective,
-    AsyncSearchSelectComponent
+    AsyncSearchSelectComponent,
+    DomainLabelPipe
   ],
   templateUrl: './imoveis.page.html',
   styleUrl: './imoveis.page.scss',
@@ -46,6 +49,7 @@ export class ImoveisPage implements OnInit, OnDestroy {
   readonly items = signal<PropertyDto[]>([]);
   readonly search = signal('');
   readonly city = signal('');
+  readonly status = signal('');
   readonly propertyType = signal('');
   readonly occupancyStatus = signal('');
   readonly assetState = signal('');
@@ -69,12 +73,17 @@ export class ImoveisPage implements OnInit, OnDestroy {
       label: `${item.code ? `${item.code} · ` : ''}${item.name}`
     }))
   );
-
-  readonly frequencyOptions: SelectOption[] = [
-    { id: 'ONE_TIME', label: 'Eventual' },
-    { id: 'MONTHLY', label: 'Mensal' },
-    { id: 'YEARLY', label: 'Anual' }
+  readonly propertyStatusOptions = getDomainOptions('propertyStatus', { includeEmptyOption: true, emptyLabel: 'Todos' });
+  readonly propertyTypeOptions: SelectOption[] = [
+    { id: '', label: 'Todos' },
+    { id: 'Casa', label: 'Casa' },
+    { id: 'Apartamento', label: 'Apartamento' },
+    { id: 'Comercial', label: 'Comercial' },
+    { id: 'Terreno', label: 'Terreno' }
   ];
+  readonly occupancyStatusOptions = getDomainOptions('occupancyStatus', { includeEmptyOption: true, emptyLabel: 'Todos' });
+  readonly assetStateOptions = getDomainOptions('assetState', { includeEmptyOption: true, emptyLabel: 'Todos' });
+  readonly frequencyOptions = getDomainOptions('expenseFrequency');
 
   readonly expenseQuickForm = this.fb.nonNullable.group({
     expenseTypeId: ['', Validators.required],
@@ -126,6 +135,7 @@ export class ImoveisPage implements OnInit, OnDestroy {
         {
           search: this.search().trim() || undefined,
           city: this.city().trim() || undefined,
+          status: this.status().trim() || undefined,
           propertyType: this.propertyType().trim() || undefined,
           occupancyStatus: this.occupancyStatus().trim() || undefined,
           assetState: this.assetState().trim() || undefined,
@@ -165,19 +175,25 @@ export class ImoveisPage implements OnInit, OnDestroy {
     this.load(false);
   }
 
-  onPropertyTypeInput(value: string): void {
+  onStatusChange(value: string): void {
+    this.status.set(value);
+    this.page.set(1);
+    this.load(false);
+  }
+
+  onPropertyTypeChange(value: string): void {
     this.propertyType.set(value);
     this.page.set(1);
     this.load(false);
   }
 
-  onOccupancyInput(value: string): void {
+  onOccupancyChange(value: string): void {
     this.occupancyStatus.set(value);
     this.page.set(1);
     this.load(false);
   }
 
-  onAssetStateInput(value: string): void {
+  onAssetStateChange(value: string): void {
     this.assetState.set(value);
     this.page.set(1);
     this.load(false);

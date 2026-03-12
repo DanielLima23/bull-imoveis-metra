@@ -15,6 +15,7 @@ import { DateBrInputDirective } from '../../../shared/directives/date-br-input.d
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { SelectOption } from '../../../shared/models/select-option.model';
 import { ToastService } from '../../../shared/services/toast.service';
+import { getDomainOptions } from '../../../shared/utils/domain-label.util';
 import { toPropertySelectOption } from '../../../shared/utils/select-option.util';
 
 @Component({
@@ -38,16 +39,8 @@ export class DespesasFormPage implements OnInit {
   readonly submitting = signal(false);
   readonly types = signal<ExpenseTypeDto[]>([]);
   readonly expenseTypeOptions = computed<SelectOption[]>(() => this.types().map((item) => ({ id: item.id, label: item.name })));
-  readonly frequencyOptions: SelectOption[] = [
-    { id: 'ONE_TIME', label: 'Eventual' },
-    { id: 'MONTHLY', label: 'Mensal' },
-    { id: 'YEARLY', label: 'Anual' }
-  ];
-  readonly expenseStatusOptions: SelectOption[] = [
-    { id: 'PENDING', label: 'Pendente' },
-    { id: 'PAID', label: 'Paga' },
-    { id: 'CANCELED', label: 'Cancelada' }
-  ];
+  readonly frequencyOptions: SelectOption[] = getDomainOptions('expenseFrequency');
+  readonly expenseStatusOptions: SelectOption[] = getDomainOptions('expenseStatus');
 
   readonly propertySelectFetchPage: AsyncSelectFetchPage = (query) =>
     this.propertyApi

@@ -1,7 +1,7 @@
 ﻿<app-page-header
   title="Manutenções"
   subtitle="Controle de reformas e serviços por imóvel"
-  [breadcrumbs]="[{ label: 'Dashboard', route: '/app/dashboard' }, { label: 'Manutenções' }]"
+  [breadcrumbs]="[{ label: 'Painel', route: '/app/dashboard' }, { label: 'Manutenções' }]"
   actionLabel="Adicionar novo"
   actionRoute="/app/manutencoes/new"
 />
@@ -11,7 +11,7 @@
     <h2>Listagem</h2>
     <div class="toolbar-field">
       <label class="toolbar-label">Buscar</label>
-      <input class="input search" [value]="search()" (input)="search.set(($any($event.target)).value)" placeholder="Imóvel, título, prioridade ou status" />
+      <input class="input search" [value]="search()" (input)="search.set(($any($event.target)).value)" placeholder="Digite o imóvel, título, prioridade ou status" />
     </div>
   </div>
 
@@ -40,8 +40,8 @@
             <tr>
               <td>{{ item.propertyTitle }}</td>
               <td>{{ item.title }}</td>
-              <td>{{ item.priority }}</td>
-              <td>{{ item.status }}</td>
+              <td>{{ item.priority | domainLabel:'maintenancePriority' }}</td>
+              <td>{{ item.status | domainLabel:'maintenanceStatus' }}</td>
               <td>{{ item.estimatedCost ?? 0 | brlCurrency }}</td>
               <td>{{ item.actualCost ?? 0 | brlCurrency }}</td>
               <td class="actions-col">
@@ -70,7 +70,7 @@
   <div class="menu-popover menu-popover--floating" [style.left.px]="menuPosition().x" [style.top.px]="menuPosition().y">
     <a [routerLink]="['/app/manutencoes', item.id, 'edit']" (click)="closeRowMenu()">Editar cadastro</a>
     <button type="button" (click)="updateStatus(item, 'IN_PROGRESS')">Mover para em andamento</button>
-    <button type="button" (click)="updateStatus(item, 'DONE')">Marcar como concluida</button>
+    <button type="button" (click)="updateStatus(item, 'DONE')">Marcar como concluída</button>
   </div>
 }
 

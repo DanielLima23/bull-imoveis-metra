@@ -52,7 +52,7 @@ export class AsyncSearchSelectComponent implements ControlValueAccessor, OnInit,
   readonly searchPlaceholder = input('Buscar...');
   readonly noResultsText = input('Nenhum registro encontrado.');
   readonly loadingText = input('Carregando mais...');
-  readonly clearLabel = input('Limpar seleção');
+  readonly clearLabel = input('Limpar sele\u00E7\u00E3o');
   readonly pageSize = input(15);
   readonly minSearchLength = input(2);
   readonly searchable = input(true);
@@ -327,7 +327,7 @@ export class AsyncSearchSelectComponent implements ControlValueAccessor, OnInit,
       this.options.set([]);
       this.currentPage.set(0);
       this.totalPages.set(0);
-      this.initialError.set('Fonte de dados do select não configurada.');
+      this.initialError.set('Fonte de dados do select n\u00E3o configurada.');
       this.loadMoreError.set('');
       this.isLoadingInitial.set(false);
       return;
@@ -377,7 +377,7 @@ export class AsyncSearchSelectComponent implements ControlValueAccessor, OnInit,
         this.options.set([]);
         this.currentPage.set(0);
         this.totalPages.set(0);
-        this.initialError.set('Falha ao carregar opções. Tente novamente.');
+        this.initialError.set('Falha ao carregar op\u00E7\u00F5es. Tente novamente.');
         this.isLoadingInitial.set(false);
       }
     });

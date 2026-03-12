@@ -1,7 +1,7 @@
 ﻿<app-page-header
   title="Visitas"
   subtitle="Acompanhamento de visitas e monitoramento do imóvel"
-  [breadcrumbs]="[{ label: 'Dashboard', route: '/app/dashboard' }, { label: 'Visitas' }]"
+  [breadcrumbs]="[{ label: 'Painel', route: '/app/dashboard' }, { label: 'Visitas' }]"
   actionLabel="Adicionar novo"
   actionRoute="/app/visitas/new"
 />
@@ -11,7 +11,7 @@
     <h2>Listagem</h2>
     <div class="toolbar-field">
       <label class="toolbar-label">Buscar</label>
-      <input class="input search" [value]="search()" (input)="search.set(($any($event.target)).value)" placeholder="Imóvel, contato, responsável ou status" />
+      <input class="input search" [value]="search()" (input)="search.set(($any($event.target)).value)" placeholder="Digite o imóvel, contato, responsável ou status" />
     </div>
   </div>
 
@@ -41,7 +41,7 @@
               <td>{{ item.contactName }}</td>
               <td>{{ item.scheduledAtUtc | date: 'dd/MM/yyyy HH:mm' }}</td>
               <td>{{ item.responsibleName ?? '-' }}</td>
-              <td>{{ item.status }}</td>
+              <td>{{ item.status | domainLabel:'visitStatus' }}</td>
               <td class="actions-col">
                 <button class="btn btn-secondary" type="button" (click)="toggleRowMenu($event, item.id)">...</button>
               </td>
@@ -69,7 +69,7 @@
     <a [routerLink]="['/app/visitas', item.id, 'edit']" (click)="closeRowMenu()">Editar cadastro</a>
     <button type="button" (click)="updateStatus(item, 'DONE')">Marcar como realizada</button>
     <button type="button" (click)="updateStatus(item, 'CANCELED')">Marcar como cancelada</button>
-    <button type="button" (click)="updateStatus(item, 'NO_SHOW')">Marcar como no-show</button>
+    <button type="button" (click)="updateStatus(item, 'NO_SHOW')">Marcar como não compareceu</button>
   </div>
 }
 

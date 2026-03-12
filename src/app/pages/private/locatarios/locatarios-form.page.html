@@ -1,29 +1,29 @@
 ﻿<app-page-header
   [title]="isEdit() ? 'Editar Locatário' : 'Novo Locatário'"
   subtitle="Tela única de criação e atualização de cadastro"
-  [breadcrumbs]="[{ label: 'Dashboard', route: '/app/dashboard' }, { label: 'Locatários', route: '/app/locatarios' }, { label: isEdit() ? 'Editar' : 'Novo' }]"
+  [breadcrumbs]="[{ label: 'Painel', route: '/app/dashboard' }, { label: 'Locatários', route: '/app/locatarios' }, { label: isEdit() ? 'Editar' : 'Novo' }]"
 />
 
 <section class="card-panel">
   <form class="grid-form" [formGroup]="form" (ngSubmit)="submit()">
     <div class="field">
       <label class="field__label">Nome completo</label>
-      <input class="input" formControlName="name" />
+      <input class="input" formControlName="name" placeholder="Informe o nome completo" />
     </div>
 
     <div class="field">
       <label class="field__label">CPF ou CNPJ</label>
-      <input class="input" formControlName="documentNumber" inputmode="numeric" appCpfCnpjInput />
+      <input class="input" formControlName="documentNumber" inputmode="numeric" appCpfCnpjInput placeholder="CPF ou CNPJ" />
     </div>
 
     <div class="field">
-      <label class="field__label">Email</label>
-      <input class="input" formControlName="email" />
+      <label class="field__label">E-mail</label>
+      <input class="input" formControlName="email" placeholder="nome@exemplo.com.br" />
     </div>
 
     <div class="field">
       <label class="field__label">Telefone</label>
-      <input class="input" formControlName="phone" inputmode="tel" appPhoneBrInput />
+      <input class="input" formControlName="phone" inputmode="tel" appPhoneBrInput placeholder="(00) 00000-0000" />
     </div>
 
     @if (isEdit()) {
