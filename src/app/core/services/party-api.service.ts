@@ -43,4 +43,8 @@ export class PartyApiService {
   update(id: string, payload: PartyUpdatePayload): Observable<PartyDto> {
     return this.api.put<PartyDto>(`/pessoas/${id}`, payload);
   }
+
+  delete(id: string): Observable<{ message?: string }> {
+    return this.api.delete<{ message?: string }>(`/pessoas/${id}`);
+  }
 }

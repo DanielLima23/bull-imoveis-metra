@@ -9,6 +9,35 @@
   gap: 0.72rem;
 }
 
+.table-wrap {
+  overflow: visible;
+}
+
+.table {
+  min-width: 0;
+  table-layout: fixed;
+}
+
+.table th,
+.table td {
+  white-space: normal;
+}
+
+.table th:nth-child(1),
+.table td:nth-child(1) {
+  width: 44%;
+}
+
+.table th:nth-child(2),
+.table td:nth-child(2) {
+  width: 36%;
+}
+
+.table th:nth-child(3),
+.table td:nth-child(3) {
+  width: 20%;
+}
+
 .toolbar-field--compact {
   width: min(220px, 100%);
 }

@@ -1,6 +1,6 @@
 <app-page-header
   title="Pessoas"
-  subtitle="Cadastro genérico para proprietários, administradores, fiadores e demais partes"
+  subtitle="Cadastro generico para proprietarios, administradores, fiadores e demais partes"
   [breadcrumbs]="[{ label: 'Painel', route: '/app/dashboard' }, { label: 'Pessoas' }]"
   actionLabel="Adicionar nova"
   actionRoute="/app/pessoas/new"
@@ -44,7 +44,7 @@
         <tr>
           <th>Nome</th>
           <th>Tipo</th>
-          <th>Ações</th>
+          <th>Acoes</th>
         </tr>
       </thead>
       <tbody>
@@ -78,9 +78,8 @@
                     class="icon-action icon-action--delete"
                     type="button"
                     aria-label="Excluir pessoa"
-                    [attr.title]="item.isActive ? 'Excluir pessoa' : 'Pessoa já inativa'"
-                    [attr.data-tooltip]="item.isActive ? 'Excluir pessoa' : 'Pessoa já inativa'"
-                    [disabled]="!item.isActive"
+                    title="Excluir pessoa"
+                    data-tooltip="Excluir pessoa"
                     (click)="openDeleteDialog(item)"
                   >
                     <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -124,13 +123,13 @@
       </header>
 
       <p class="confirm-modal__text">
-        Esta ação vai inativar o cadastro da pessoa. Ela deixará de aparecer nas listagens ativas, mas continuará registrada no sistema.
+        Esta acao vai excluir a pessoa permanentemente do sistema e remover os vinculos de cadastro associados a ela.
       </p>
 
       <div class="modal-actions">
         <button class="btn btn-secondary" type="button" (click)="closeDeleteDialog()" [disabled]="isDeleting()">Cancelar</button>
         <button class="btn btn-danger" type="button" (click)="confirmDelete()" [disabled]="isDeleting()">
-          @if (isDeleting()) { Excluindo... } @else { Confirmar exclusão }
+          @if (isDeleting()) { Excluindo... } @else { Confirmar exclusao }
         </button>
       </div>
     </section>

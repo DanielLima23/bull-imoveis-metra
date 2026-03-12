@@ -34,6 +34,10 @@ export class HttpApiService {
     return this.http.patch<ApiResponse<T>>(`${environment.apiUrl}${path}`, body, { context: this.buildContext(options) }).pipe(map((response) => response.data));
   }
 
+  delete<T>(path: string, options?: ApiRequestOptions): Observable<T> {
+    return this.http.delete<ApiResponse<T>>(`${environment.apiUrl}${path}`, { context: this.buildContext(options) }).pipe(map((response) => response.data));
+  }
+
   private buildContext(options?: ApiRequestOptions): HttpContext {
     let context = new HttpContext();
     if (options?.silent) {

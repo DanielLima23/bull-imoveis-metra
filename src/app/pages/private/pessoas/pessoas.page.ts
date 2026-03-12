@@ -136,20 +136,12 @@ export class PessoasPage implements OnInit, OnDestroy {
 
     this.isDeleting.set(true);
     this.api
-      .update(item.id, {
-        kind: item.kind ?? undefined,
-        name: item.name ?? undefined,
-        documentNumber: item.documentNumber ?? undefined,
-        email: item.email ?? undefined,
-        phone: item.phone ?? undefined,
-        notes: item.notes ?? undefined,
-        isActive: false
-      })
+      .delete(item.id)
       .subscribe({
         next: () => {
           this.isDeleting.set(false);
           this.deletingPerson.set(null);
-          this.toast.success('Pessoa inativada com sucesso.');
+          this.toast.success('Pessoa excluida com sucesso.');
           this.load(false);
         },
         error: () => {
