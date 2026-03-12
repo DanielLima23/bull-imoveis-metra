@@ -103,15 +103,8 @@ const DOMAIN_LABELS: DomainLabelMap = {
     URGENT: 'Urgente'
   },
   partyKind: {
-    OWNER: 'Propriet\u00e1rio',
-    ADMINISTRATOR: 'Administrador',
-    GUARANTOR: 'Fiador',
-    TENANT: 'Locat\u00e1rio',
-    BROKER: 'Corretor',
-    LAWYER: 'Advogado',
-    LEGAL_REPRESENTATIVE: 'Representante legal',
-    WITNESS: 'Testemunha',
-    OTHER: 'Outro'
+    PERSON: 'Pessoa f\u00edsica',
+    COMPANY: 'Pessoa jur\u00eddica'
   }
 };
 
