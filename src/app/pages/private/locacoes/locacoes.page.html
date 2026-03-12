@@ -1,17 +1,49 @@
-﻿<app-page-header
+<app-page-header
   title="Locações"
-  subtitle="Listagem de contratos ativos e histórico"
+  subtitle="Controle de contratos com filtros por imóvel, locatário e status"
   [breadcrumbs]="[{ label: 'Dashboard', route: '/app/dashboard' }, { label: 'Locações' }]"
-  actionLabel="Adicionar novo"
+  actionLabel="Adicionar nova"
   actionRoute="/app/locacoes/new"
 />
 
 <section class="card-panel">
-  <div class="list-toolbar">
-    <h2>Listagem</h2>
-    <div class="toolbar-field">
-      <label class="toolbar-label">Buscar</label>
-      <input class="input search" [value]="search()" (input)="search.set(($any($event.target)).value)" placeholder="Imóvel, locatário ou status" />
+  <div class="list-toolbar list-toolbar--stack">
+    <h2>Filtros</h2>
+    <div class="filters">
+      <label class="toolbar-field">
+        <span class="toolbar-label">Imóvel</span>
+        <app-async-search-select
+          [value]="propertyId()"
+          [fetchPage]="propertySelectFetchPage"
+          [fetchById]="propertySelectFetchById"
+          placeholder="Todos"
+          [useFloatingPanel]="true"
+          (valueChange)="onPropertyFilterChange($event)"
+        />
+      </label>
+
+      <label class="toolbar-field">
+        <span class="toolbar-label">Locatário</span>
+        <app-async-search-select
+          [value]="tenantId()"
+          [fetchPage]="tenantSelectFetchPage"
+          [fetchById]="tenantSelectFetchById"
+          placeholder="Todos"
+          [useFloatingPanel]="true"
+          (valueChange)="onTenantFilterChange($event)"
+        />
+      </label>
+
+      <label class="toolbar-field toolbar-field--compact">
+        <span class="toolbar-label">Status</span>
+        <app-async-search-select
+          [value]="status()"
+          [staticOptions]="statusOptions"
+          [searchable]="false"
+          [useFloatingPanel]="true"
+          (valueChange)="onStatusChange($event)"
+        />
+      </label>
     </div>
   </div>
 
@@ -21,29 +53,27 @@
         <tr>
           <th>Imóvel</th>
           <th>Locatário</th>
-          <th>Início</th>
-          <th>Fim</th>
+          <th>Período</th>
           <th>Aluguel</th>
           <th>Status</th>
+          <th>Dia pagamento</th>
           <th>Ações</th>
         </tr>
       </thead>
       <tbody>
         @if (isLoading()) {
-          @for (i of [1,2,3,4,5,6]; track i) {
-            <tr>
-              <td colspan="7"><div class="skeleton-row"></div></td>
-            </tr>
+          @for (i of [1,2,3,4,5]; track i) {
+            <tr><td colspan="7"><div class="skeleton-row"></div></td></tr>
           }
         } @else {
-          @for (item of filtered(); track item.id) {
+          @for (item of leases(); track item.id) {
             <tr>
               <td>{{ item.propertyTitle }}</td>
               <td>{{ item.tenantName }}</td>
-              <td>{{ item.startDate | dateOnlyBr }}</td>
-              <td>{{ item.endDate ? (item.endDate | dateOnlyBr) : '-' }}</td>
+              <td>{{ item.startDate | dateOnlyBr }} - {{ item.endDate ? (item.endDate | dateOnlyBr) : 'Em aberto' }}</td>
               <td>{{ item.monthlyRent | brlCurrency }}</td>
-              <td><span class="status">{{ item.status }}</span></td>
+              <td>{{ item.status }}</td>
+              <td>{{ item.paymentDay ?? '-' }}</td>
               <td class="actions-col">
                 <button class="btn btn-secondary" type="button" (click)="toggleRowMenu($event, item.id)">...</button>
               </td>
@@ -68,11 +98,32 @@
 @if (activeMenuItem(); as item) {
   <button class="menu-overlay" type="button" (click)="closeRowMenu()" aria-label="Fechar menu de ações"></button>
   <div class="menu-popover menu-popover--floating" [style.left.px]="menuPosition().x" [style.top.px]="menuPosition().y">
-    <a [routerLink]="['/app/locacoes', item.id, 'edit']" (click)="closeRowMenu()">Editar cadastro</a>
+    <a [routerLink]="['/app/locacoes', item.id, 'edit']" (click)="closeRowMenu()">Editar contrato</a>
     @if (item.status === 'ACTIVE') {
-      <button type="button" (click)="closeLease(item)">Encerrar locação</button>
+      <button type="button" (click)="openCloseModal(item)">Encerrar locação</button>
     }
   </div>
 }
 
+@if (closingLease(); as lease) {
+  <div class="modal-backdrop" (click)="closeCloseModal()">
+    <section class="card-panel close-modal" (click)="$event.stopPropagation()">
+      <header>
+        <h3>Encerrar locação</h3>
+        <p>{{ lease.propertyTitle }} · {{ lease.tenantName }}</p>
+      </header>
 
+      <form class="grid-form" [formGroup]="closeForm" (ngSubmit)="submitCloseLease()">
+        <div class="field">
+          <label class="field__label">Data de encerramento</label>
+          <input class="input" formControlName="endDate" appDateBrInput />
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn btn-secondary" type="button" (click)="closeCloseModal()">Cancelar</button>
+          <button class="btn btn-primary" type="submit">Encerrar</button>
+        </div>
+      </form>
+    </section>
+  </div>
+}

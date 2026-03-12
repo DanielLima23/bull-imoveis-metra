@@ -1,4 +1,29 @@
-﻿export interface PropertyDto {
+export interface PropertyDocumentationSectionDto {
+  registration?: string | null;
+  scripture?: string | null;
+  registrationCertification?: string | null;
+}
+
+export interface PropertyCharacteristicsSectionDto {
+  numOfRooms?: number | null;
+  cleaningIncluded?: boolean | null;
+  elevator?: boolean | null;
+  garage?: boolean | null;
+  unoccupiedSince?: string | null;
+}
+
+export interface PropertyAdministrationSectionDto {
+  proprietary?: string | null;
+  administrator?: string | null;
+  administratorPhone?: string | null;
+  administratorEmail?: string | null;
+  administrateTax?: string | null;
+  lawyer?: string | null;
+  lawyerData?: string | null;
+  observation?: string | null;
+}
+
+export interface PropertyDto {
   id: string;
   code: string;
   title: string;
@@ -7,10 +32,122 @@
   state: string;
   zipCode: string;
   propertyType: string;
-  status: 'AVAILABLE' | 'LEASED' | 'PREPARATION';
-  notes?: string;
-  currentBaseRent?: number;
+  occupancyStatus?: string | null;
+  assetState?: string | null;
+  status: string;
+  proprietary?: string | null;
+  administrator?: string | null;
+  currentBaseRent?: number | null;
   createdAtUtc: string;
+  documentation?: PropertyDocumentationSectionDto | null;
+  characteristics?: PropertyCharacteristicsSectionDto | null;
+  administration?: PropertyAdministrationSectionDto | null;
+}
+
+export interface PropertyCurrentLeaseDto {
+  id: string;
+  tenantId: string;
+  tenantName: string;
+  startDate: string;
+  endDate?: string | null;
+  monthlyRent: number;
+  status: string;
+  paymentDay?: number | null;
+  paymentLocation?: string | null;
+}
+
+export interface PropertyRentReferenceDto {
+  id: string;
+  amount: number;
+  effectiveFrom: string;
+}
+
+export interface PropertyChargeTemplateDto {
+  id: string;
+  kind?: string | null;
+  title?: string | null;
+  defaultAmount?: number | null;
+  dueDay?: number | null;
+  defaultResponsibility?: string | null;
+  providerInformation?: string | null;
+  notes?: string | null;
+  isActive: boolean;
+  createdAtUtc: string;
+}
+
+export interface PropertyHistoryEntryDto {
+  id: string;
+  content?: string | null;
+  occurredAtUtc: string;
+  createdAtUtc: string;
+}
+
+export interface PropertyAttachmentDto {
+  id: string;
+  category?: string | null;
+  title?: string | null;
+  resourceLocation?: string | null;
+  notes?: string | null;
+  referenceDateUtc?: string | null;
+  createdAtUtc: string;
+}
+
+export interface PropertyOpenPendencyDto {
+  id: string;
+  code?: string | null;
+  name?: string | null;
+  title?: string | null;
+  dueAtUtc: string;
+  severity?: string | null;
+  status?: string | null;
+}
+
+export interface PropertyUpcomingVisitDto {
+  id: string;
+  scheduledAtUtc: string;
+  contactName?: string | null;
+  status?: string | null;
+}
+
+export interface PropertyMaintenanceSummaryDto {
+  id: string;
+  title?: string | null;
+  priority?: string | null;
+  status?: string | null;
+  estimatedCost?: number | null;
+  actualCost?: number | null;
+}
+
+export interface PropertyMonthlyStatementLineDto {
+  sourceType?: string | null;
+  kind?: string | null;
+  label?: string | null;
+  competenceDate: string;
+  dueDate: string;
+  expectedAmount: number;
+  paidAmount?: number | null;
+  status?: string | null;
+  paidBy?: string | null;
+  notes?: string | null;
+}
+
+export interface PropertyMonthlyStatementDto {
+  propertyId: string;
+  year: number;
+  month?: number | null;
+  lines: PropertyMonthlyStatementLineDto[];
+}
+
+export interface PropertyDetailDto {
+  property: PropertyDto;
+  currentLease?: PropertyCurrentLeaseDto | null;
+  rentHistory: PropertyRentReferenceDto[];
+  chargeTemplates: PropertyChargeTemplateDto[];
+  historyEntries: PropertyHistoryEntryDto[];
+  attachments: PropertyAttachmentDto[];
+  openPendencies: PropertyOpenPendencyDto[];
+  upcomingVisits: PropertyUpcomingVisitDto[];
+  maintenanceItems: PropertyMaintenanceSummaryDto[];
 }
 
 export interface TenantDto {
@@ -30,11 +167,23 @@ export interface LeaseDto {
   propertyTitle: string;
   tenantName: string;
   startDate: string;
-  endDate?: string;
+  endDate?: string | null;
   monthlyRent: number;
-  depositAmount?: number;
-  status: 'DRAFT' | 'ACTIVE' | 'ENDED' | 'CANCELED';
-  notes?: string;
+  depositAmount?: number | null;
+  status: string;
+  contractWith?: string | null;
+  paymentDay?: number | null;
+  paymentLocation?: string | null;
+  readjustmentIndex?: string | null;
+  contractRegistration?: string | null;
+  insurance?: string | null;
+  signatureRecognition?: string | null;
+  optionalContactName?: string | null;
+  optionalContactPhone?: string | null;
+  guarantorName?: string | null;
+  guarantorDocument?: string | null;
+  guarantorPhone?: string | null;
+  notes?: string | null;
   createdAtUtc: string;
 }
 
@@ -51,8 +200,8 @@ export interface ExpenseInstallmentDto {
   dueDate: string;
   amount: number;
   status: string;
-  paidAtUtc?: string;
-  paidAmount?: number;
+  paidAtUtc?: string | null;
+  paidAmount?: number | null;
 }
 
 export interface ExpenseDto {
@@ -67,15 +216,24 @@ export interface ExpenseDto {
   totalAmount: number;
   installmentsCount: number;
   isRecurring: boolean;
-  yearlyMonth?: number;
+  yearlyMonth?: number | null;
   status: string;
-  notes?: string;
+  notes?: string | null;
   installments: ExpenseInstallmentDto[];
+}
+
+export interface ExpenseMarkPaidRequest {
+  paidAmount?: number | null;
+  paidAtUtc?: string | null;
+  paidBy?: string | null;
+  notes?: string | null;
 }
 
 export interface PendencyTypeDto {
   id: string;
+  code?: string | null;
   name: string;
+  description?: string | null;
   defaultSlaDays: number;
 }
 
@@ -86,12 +244,12 @@ export interface PendencyDto {
   propertyTitle: string;
   pendencyTypeName: string;
   title: string;
-  description?: string;
+  description?: string | null;
   dueAtUtc: string;
   openedAtUtc: string;
-  resolvedAtUtc?: string;
-  status: 'OPEN' | 'RESOLVED';
-  severity: 'ATTENTION' | 'URGENT' | 'CRITICAL';
+  resolvedAtUtc?: string | null;
+  status: string;
+  severity: string;
   elapsedDays: number;
   slaDays: number;
 }
@@ -102,10 +260,11 @@ export interface VisitDto {
   propertyTitle: string;
   scheduledAtUtc: string;
   contactName: string;
-  contactPhone?: string;
-  responsibleName?: string;
+  contactPhone?: string | null;
+  responsibleName?: string | null;
   status: string;
-  notes?: string;
+  notes?: string | null;
+  createdAtUtc?: string | null;
 }
 
 export interface MaintenanceDto {
@@ -116,12 +275,12 @@ export interface MaintenanceDto {
   description: string;
   priority: string;
   status: string;
-  estimatedCost?: number;
-  actualCost?: number;
+  estimatedCost?: number | null;
+  actualCost?: number | null;
   requestedAtUtc: string;
-  startedAtUtc?: string;
-  finishedAtUtc?: string;
-  notes?: string;
+  startedAtUtc?: string | null;
+  finishedAtUtc?: string | null;
+  notes?: string | null;
 }
 
 export interface DashboardOverviewDto {
@@ -148,6 +307,15 @@ export interface DashboardOverdueExpenseDto {
   overdueDays: number;
 }
 
+export interface DashboardOverdueReceivableDto {
+  leaseId: string;
+  propertyTitle: string;
+  tenantName: string;
+  dueDate: string;
+  amount: number;
+  overdueDays: number;
+}
+
 export interface DashboardPendencyAlertDto {
   pendencyId: string;
   propertyTitle: string;
@@ -162,6 +330,7 @@ export interface DashboardPendencyAlertDto {
 export interface RealEstateDashboardDto {
   overview: DashboardOverviewDto;
   overdueExpenses: DashboardOverdueExpenseDto[];
+  overdueReceivables?: DashboardOverdueReceivableDto[];
   pendencyAlerts: DashboardPendencyAlertDto[];
 }
 
@@ -184,6 +353,45 @@ export interface SystemSettingsUpdateRequest {
   brandShortName: string;
   themePreset: ThemePresetKey;
   enableAnimations: boolean;
+}
+
+export interface ReportCatalogItemDto {
+  slug?: string | null;
+  name?: string | null;
+  description?: string | null;
+  requiresMonth: boolean;
+  requiresYear: boolean;
+}
+
+export interface PartyDto {
+  id: string;
+  kind?: string | null;
+  name?: string | null;
+  documentNumber?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  notes?: string | null;
+  isActive: boolean;
+  createdAtUtc: string;
+}
+
+export interface LegacyImportRequest {
+  estates: unknown[];
+  financialRecords: unknown[];
+  histories: unknown[];
+  pendencyAcronyms: unknown[];
+  pendencyStates: unknown[];
+}
+
+export interface LegacyImportResultDto {
+  importedProperties: number;
+  importedTenants: number;
+  importedLeases: number;
+  importedChargeTemplates: number;
+  importedExpenses: number;
+  importedHistoryEntries: number;
+  importedAttachments: number;
+  importedPendencies: number;
 }
 
 export interface PagedResult<T> {

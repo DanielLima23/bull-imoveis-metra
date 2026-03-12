@@ -1,21 +1,22 @@
-﻿<app-page-header
+<app-page-header
   [title]="isEdit() ? 'Editar Imóvel' : 'Novo Imóvel'"
-  subtitle="Cadastro orientado por CEP com endereço preenchido automaticamente"
+  subtitle="Cadastro completo com identidade, documentação, características e administração"
   [breadcrumbs]="[{ label: 'Dashboard', route: '/app/dashboard' }, { label: 'Imóveis', route: '/app/imoveis' }, { label: isEdit() ? 'Editar' : 'Novo' }]"
 />
 
 <section class="card-panel">
-  <form class="grid-form" [formGroup]="form" (ngSubmit)="submit()" [class.invalid-submit]="invalidSubmitPulse()">
+  <form class="grid-form property-form" [formGroup]="form" (ngSubmit)="submit()">
+    <div class="field field--full section-title"><h2>Identidade</h2></div>
+
     <div class="field">
-      <label class="field__label">Apelido</label>
-      <input class="input" formControlName="alias" />
+      <label class="field__label">Título</label>
+      <input class="input" [formControl]="form.controls.identity.controls.title" />
     </div>
 
     <div class="field">
       <label class="field__label">Tipo do imóvel</label>
       <app-async-search-select
-        formControlName="propertyType"
-        placeholder="Selecione"
+        [formControl]="form.controls.identity.controls.propertyType"
         [staticOptions]="propertyTypeOptions"
         [searchable]="false"
         [allowClear]="false"
@@ -23,19 +24,19 @@
     </div>
 
     <div class="field">
-      <label class="field__label">Status</label>
-      <app-async-search-select
-        formControlName="status"
-        [staticOptions]="propertyStatusOptions"
-        [searchable]="false"
-        [allowClear]="false"
-      />
+      <label class="field__label">Ocupação</label>
+      <input class="input" [formControl]="form.controls.identity.controls.occupancyStatus" placeholder="AVAILABLE, OCCUPIED..." />
+    </div>
+
+    <div class="field">
+      <label class="field__label">Estado do ativo</label>
+      <input class="input" [formControl]="form.controls.identity.controls.assetState" placeholder="READY, PREPARATION..." />
     </div>
 
     <div class="field field--full">
       <label class="field__label">CEP</label>
       <div class="zip-row">
-        <input class="input" formControlName="zipCode" inputmode="numeric" />
+        <input class="input" [formControl]="form.controls.identity.controls.zipCode" inputmode="numeric" />
         <button class="btn btn-secondary" type="button" (click)="searchCep()" [disabled]="isCepLoading()">Buscar CEP</button>
       </div>
     </div>
@@ -47,41 +48,132 @@
       <span>{{ cepStatusText() }}</span>
     </p>
 
-    <p class="auto-legend">[AUTO] Rua, Bairro, Cidade e UF são preenchidos pelo CEP e ficam bloqueados.</p>
-
     <div class="field">
       <label class="field__label">Rua</label>
-      <input class="input auto-filled" formControlName="street" />
+      <input class="input auto-filled" [formControl]="form.controls.identity.controls.street" />
     </div>
 
     <div class="field">
-      <label class="field__label">Numero</label>
-      <input class="input" formControlName="number" />
+      <label class="field__label">Número</label>
+      <input class="input" [formControl]="form.controls.identity.controls.number" />
     </div>
 
     <div class="field">
       <label class="field__label">Complemento</label>
-      <input class="input" formControlName="complement" />
+      <input class="input" [formControl]="form.controls.identity.controls.complement" />
     </div>
 
     <div class="field">
       <label class="field__label">Bairro</label>
-      <input class="input auto-filled" formControlName="district" />
+      <input class="input auto-filled" [formControl]="form.controls.identity.controls.district" />
     </div>
 
     <div class="field">
       <label class="field__label">Cidade</label>
-      <input class="input auto-filled" formControlName="city" />
+      <input class="input auto-filled" [formControl]="form.controls.identity.controls.city" />
     </div>
 
     <div class="field">
       <label class="field__label">UF</label>
-      <input class="input uf auto-filled" formControlName="state" />
+      <input class="input auto-filled uf" [formControl]="form.controls.identity.controls.state" />
+    </div>
+
+    @if (!isEdit()) {
+      <div class="field">
+        <label class="field__label">Valor locativo inicial</label>
+        <input class="input" formControlName="initialRentAmount" appBrlCurrencyInput />
+      </div>
+
+      <div class="field">
+        <label class="field__label">Vigência do valor inicial</label>
+        <input class="input" formControlName="initialRentEffectiveFrom" appDateBrInput />
+      </div>
+    }
+
+    <div class="field field--full section-title"><h2>Documentação</h2></div>
+
+    <div class="field">
+      <label class="field__label">Registro</label>
+      <input class="input" [formControl]="form.controls.documentation.controls.registration" />
+    </div>
+
+    <div class="field">
+      <label class="field__label">Escritura</label>
+      <input class="input" [formControl]="form.controls.documentation.controls.scripture" />
+    </div>
+
+    <div class="field">
+      <label class="field__label">Certidão</label>
+      <input class="input" [formControl]="form.controls.documentation.controls.registrationCertification" />
+    </div>
+
+    <div class="field field--full section-title"><h2>Características</h2></div>
+
+    <div class="field">
+      <label class="field__label">Número de quartos</label>
+      <input class="input" type="number" [formControl]="form.controls.characteristics.controls.numOfRooms" />
+    </div>
+
+    <div class="field">
+      <label class="field__label">Desocupado desde</label>
+      <input class="input" [formControl]="form.controls.characteristics.controls.unoccupiedSince" appDateBrInput />
+    </div>
+
+    <label class="checkbox-inline">
+      <input type="checkbox" [formControl]="form.controls.characteristics.controls.cleaningIncluded" />
+      Limpeza incluída
+    </label>
+
+    <label class="checkbox-inline">
+      <input type="checkbox" [formControl]="form.controls.characteristics.controls.elevator" />
+      Elevador
+    </label>
+
+    <label class="checkbox-inline">
+      <input type="checkbox" [formControl]="form.controls.characteristics.controls.garage" />
+      Garagem
+    </label>
+
+    <div class="field field--full section-title"><h2>Administração</h2></div>
+
+    <div class="field">
+      <label class="field__label">Proprietário</label>
+      <input class="input" [formControl]="form.controls.administration.controls.proprietary" />
+    </div>
+
+    <div class="field">
+      <label class="field__label">Administrador</label>
+      <input class="input" [formControl]="form.controls.administration.controls.administrator" />
+    </div>
+
+    <div class="field">
+      <label class="field__label">Telefone administrador</label>
+      <input class="input" [formControl]="form.controls.administration.controls.administratorPhone" />
+    </div>
+
+    <div class="field">
+      <label class="field__label">Email administrador</label>
+      <input class="input" [formControl]="form.controls.administration.controls.administratorEmail" />
+    </div>
+
+    <div class="field">
+      <label class="field__label">Taxa administrativa</label>
+      <input class="input" [formControl]="form.controls.administration.controls.administrateTax" />
+    </div>
+
+    <div class="field">
+      <label class="field__label">Advogado</label>
+      <input class="input" [formControl]="form.controls.administration.controls.lawyer" />
+    </div>
+
+    <div class="field">
+      <label class="field__label">Dados do advogado</label>
+      <input class="input" [formControl]="form.controls.administration.controls.lawyerData" />
     </div>
 
     <div class="field field--full">
       <label class="field__label">Observações</label>
-      <textarea class="textarea" formControlName="notes" rows="4"></textarea>
+      <textarea class="textarea" rows="4" [formControl]="form.controls.administration.controls.observation"></textarea>
     </div>
 
     <div class="actions">
@@ -92,6 +184,3 @@
     </div>
   </form>
 </section>
-
-
-

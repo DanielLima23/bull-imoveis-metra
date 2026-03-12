@@ -1,0 +1,56 @@
+<app-page-header
+  [title]="isEdit() ? 'Editar Pessoa' : 'Nova Pessoa'"
+  subtitle="Cadastro genérico alinhado ao endpoint /api/pessoas"
+  [breadcrumbs]="[{ label: 'Dashboard', route: '/app/dashboard' }, { label: 'Pessoas', route: '/app/pessoas' }, { label: isEdit() ? 'Editar' : 'Novo' }]"
+/>
+
+<section class="card-panel">
+  <form class="grid-form" [formGroup]="form" (ngSubmit)="submit()">
+    <div class="field">
+      <label class="field__label">Tipo</label>
+      <input class="input" formControlName="kind" placeholder="OWNER, ADMINISTRATOR, GUARANTOR..." />
+    </div>
+
+    <div class="field">
+      <label class="field__label">Nome</label>
+      <input class="input" formControlName="name" />
+    </div>
+
+    <div class="field">
+      <label class="field__label">Documento</label>
+      <input class="input" formControlName="documentNumber" appCpfCnpjInput />
+    </div>
+
+    <div class="field">
+      <label class="field__label">Email</label>
+      <input class="input" formControlName="email" type="email" />
+    </div>
+
+    <div class="field">
+      <label class="field__label">Telefone</label>
+      <input class="input" formControlName="phone" appPhoneBrInput />
+    </div>
+
+    @if (isEdit()) {
+      <label class="field checkbox-field">
+        <span class="field__label">Situação</span>
+        <span class="checkbox-inline">
+          <input type="checkbox" formControlName="isActive" />
+          Cadastro ativo
+        </span>
+      </label>
+    }
+
+    <div class="field field--full">
+      <label class="field__label">Observações</label>
+      <textarea class="textarea" rows="4" formControlName="notes"></textarea>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-secondary" type="button" (click)="back()">Cancelar</button>
+      <button class="btn btn-primary" type="submit" [disabled]="submitting()">
+        @if (submitting()) { Salvando... } @else { Salvar cadastro }
+      </button>
+    </div>
+  </form>
+</section>

@@ -1,17 +1,39 @@
-﻿<app-page-header
+<app-page-header
   title="Imóveis"
-  subtitle="Lista de imóveis com ação rápida por registro"
+  subtitle="Listagem central com filtros, vínculo rápido e acesso ao hub do imóvel"
   [breadcrumbs]="[{ label: 'Dashboard', route: '/app/dashboard' }, { label: 'Imóveis' }]"
   actionLabel="Adicionar novo"
   actionRoute="/app/imoveis/new"
 />
 
 <section class="card-panel">
-  <div class="list-toolbar">
+  <div class="list-toolbar list-toolbar--stack">
     <h2>Listagem</h2>
-    <div class="toolbar-field">
-      <label class="toolbar-label">Buscar</label>
-      <input class="input search" [value]="search()" (input)="onSearchInput(($any($event.target)).value)" placeholder="Apelido, cidade ou endereço" />
+    <div class="filters">
+      <label class="toolbar-field">
+        <span class="toolbar-label">Buscar</span>
+        <input class="input search" [value]="search()" (input)="onSearchInput(($any($event.target)).value)" placeholder="Título, endereço ou cidade" />
+      </label>
+
+      <label class="toolbar-field">
+        <span class="toolbar-label">Cidade</span>
+        <input class="input" [value]="city()" (input)="onCityInput(($any($event.target)).value)" />
+      </label>
+
+      <label class="toolbar-field">
+        <span class="toolbar-label">Tipo do imóvel</span>
+        <input class="input" [value]="propertyType()" (input)="onPropertyTypeInput(($any($event.target)).value)" />
+      </label>
+
+      <label class="toolbar-field">
+        <span class="toolbar-label">Ocupação</span>
+        <input class="input" [value]="occupancyStatus()" (input)="onOccupancyInput(($any($event.target)).value)" />
+      </label>
+
+      <label class="toolbar-field">
+        <span class="toolbar-label">Estado do ativo</span>
+        <input class="input" [value]="assetState()" (input)="onAssetStateInput(($any($event.target)).value)" />
+      </label>
     </div>
   </div>
 
@@ -19,9 +41,12 @@
     <table class="table">
       <thead>
         <tr>
-          <th>Apelido</th>
+          <th>Título</th>
           <th>Cidade</th>
+          <th>Tipo</th>
           <th>Status</th>
+          <th>Ocupação</th>
+          <th>Ativo</th>
           <th>Ações</th>
         </tr>
       </thead>
@@ -29,30 +54,18 @@
         @if (isLoading()) {
           @for (i of [1,2,3,4,5,6]; track i) {
             <tr>
-              <td colspan="4"><div class="skeleton-row"></div></td>
+              <td colspan="7"><div class="skeleton-row"></div></td>
             </tr>
           }
         } @else {
           @for (item of items(); track item.id) {
             <tr>
               <td>{{ item.title }}</td>
-              <td>{{ item.city }}</td>
-              <td>
-                <div class="status-cell">
-                  <select
-                    class="status-chip"
-                    [value]="item.status"
-                    [class.status-chip--available]="item.status === 'AVAILABLE'"
-                    [class.status-chip--leased]="item.status === 'LEASED'"
-                    [class.status-chip--preparation]="item.status === 'PREPARATION'"
-                    (change)="changeStatus(item, ($any($event.target)).value)"
-                  >
-                    @for (statusOption of propertyStatusOptions; track statusOption.id) {
-                      <option [value]="statusOption.id">{{ statusOption.label }}</option>
-                    }
-                  </select>
-                </div>
-              </td>
+              <td>{{ item.city }}/{{ item.state }}</td>
+              <td>{{ item.propertyType }}</td>
+              <td>{{ item.status }}</td>
+              <td>{{ item.occupancyStatus || '-' }}</td>
+              <td>{{ item.assetState || '-' }}</td>
               <td class="actions-col">
                 <button class="btn btn-secondary" type="button" (click)="toggleRowMenu($event, item.id)">...</button>
               </td>
@@ -74,187 +87,131 @@
   />
 </section>
 
-@if (activeMenuProperty(); as item) {
+@if (selectedProperty(); as selected) {
+  @if (quickModal()) {
+    <div class="quick-modal-backdrop" (click)="closeQuickModal()">
+      <section class="quick-modal card-panel" (click)="$event.stopPropagation()">
+        <header>
+          <h3>
+            @switch (quickModal()) {
+              @case ('rent') { Atualizar valor de referência locativa }
+              @case ('expense') { Nova conta para o imóvel }
+              @case ('pendency') { Nova pendência do imóvel }
+              @case ('status') { Atualizar ocupação e estado do ativo }
+            }
+          </h3>
+          <p>{{ selected.title }}</p>
+        </header>
+
+        @if (quickModal() === 'expense') {
+          <form class="grid-form" [formGroup]="expenseQuickForm" (ngSubmit)="submitQuickExpense()">
+            <div class="field">
+              <label class="field__label">Tipo</label>
+              <app-async-search-select formControlName="expenseTypeId" [staticOptions]="expenseTypeOptions()" [searchable]="false" [allowClear]="false" />
+            </div>
+            <div class="field">
+              <label class="field__label">Descrição</label>
+              <input class="input" formControlName="description" />
+            </div>
+            <div class="field">
+              <label class="field__label">Frequência</label>
+              <app-async-search-select formControlName="frequency" [staticOptions]="frequencyOptions" [searchable]="false" [allowClear]="false" />
+            </div>
+            <div class="field">
+              <label class="field__label">Vencimento</label>
+              <input class="input" formControlName="dueDate" appDateBrInput />
+            </div>
+            <div class="field">
+              <label class="field__label">Valor</label>
+              <input class="input" formControlName="totalAmount" appBrlCurrencyInput />
+            </div>
+            <div class="field">
+              <label class="field__label">Parcelas</label>
+              <input class="input" type="number" formControlName="installmentsCount" />
+            </div>
+            <div class="field field--full">
+              <label class="field__label">Observações</label>
+              <textarea class="textarea" rows="3" formControlName="notes"></textarea>
+            </div>
+            <div class="modal-actions">
+              <button class="btn btn-secondary" type="button" (click)="closeQuickModal()">Cancelar</button>
+              <button class="btn btn-primary" type="submit">Salvar</button>
+            </div>
+          </form>
+        }
+
+        @if (quickModal() === 'pendency') {
+          <form class="grid-form" [formGroup]="pendencyQuickForm" (ngSubmit)="submitQuickPendency()">
+            <div class="field">
+              <label class="field__label">Tipo</label>
+              <app-async-search-select formControlName="pendencyTypeId" [staticOptions]="pendencyTypeOptions()" [searchable]="false" [allowClear]="false" />
+            </div>
+            <div class="field">
+              <label class="field__label">Título</label>
+              <input class="input" formControlName="title" />
+            </div>
+            <div class="field field--full">
+              <label class="field__label">Descrição</label>
+              <textarea class="textarea" rows="3" formControlName="description"></textarea>
+            </div>
+            <div class="field">
+              <label class="field__label">Vencimento</label>
+              <input class="input" formControlName="dueAtUtc" appDateTimeBrInput />
+            </div>
+            <div class="modal-actions">
+              <button class="btn btn-secondary" type="button" (click)="closeQuickModal()">Cancelar</button>
+              <button class="btn btn-primary" type="submit">Salvar</button>
+            </div>
+          </form>
+        }
+
+        @if (quickModal() === 'rent') {
+          <form class="grid-form" [formGroup]="rentQuickForm" (ngSubmit)="submitQuickRentReference()">
+            <div class="field">
+              <label class="field__label">Valor de referência</label>
+              <input class="input" formControlName="amount" appBrlCurrencyInput />
+            </div>
+            <div class="field">
+              <label class="field__label">Vigência</label>
+              <input class="input" formControlName="effectiveFrom" appDateBrInput />
+            </div>
+            <div class="modal-actions">
+              <button class="btn btn-secondary" type="button" (click)="closeQuickModal()">Cancelar</button>
+              <button class="btn btn-primary" type="submit">Salvar</button>
+            </div>
+          </form>
+        }
+
+        @if (quickModal() === 'status') {
+          <form class="grid-form" [formGroup]="statusQuickForm" (ngSubmit)="submitQuickStatus()">
+            <div class="field">
+              <label class="field__label">Ocupação</label>
+              <input class="input" formControlName="occupancyStatus" placeholder="AVAILABLE, OCCUPIED..." />
+            </div>
+            <div class="field">
+              <label class="field__label">Estado do ativo</label>
+              <input class="input" formControlName="assetState" placeholder="READY, PREPARATION..." />
+            </div>
+            <div class="modal-actions">
+              <button class="btn btn-secondary" type="button" (click)="closeQuickModal()">Cancelar</button>
+              <button class="btn btn-primary" type="submit">Atualizar</button>
+            </div>
+          </form>
+        }
+      </section>
+    </div>
+  }
+}
+
+@if (activeMenuItem(); as item) {
   <button class="menu-overlay" type="button" (click)="closeRowMenu()" aria-label="Fechar menu de ações"></button>
   <div class="menu-popover menu-popover--floating menu-popover--rich" [style.left.px]="menuPosition().x" [style.top.px]="menuPosition().y">
-    <button class="menu-action" type="button" (click)="openPropertyTenants(item.id)">
-      <span class="menu-action__icon" aria-hidden="true">
-        <svg viewBox="0 0 24 24">
-          <circle cx="9" cy="8" r="3" />
-          <path d="M3 19a6 6 0 0 1 12 0" />
-          <circle cx="17" cy="10" r="2.5" />
-          <path d="M14 19a5 5 0 0 1 7 0" />
-        </svg>
-      </span>
-      <span>Locatários</span>
-    </button>
-    <button class="menu-action" type="button" (click)="openQuickModal('rent', item)">
-      <span class="menu-action__icon" aria-hidden="true">
-        <svg viewBox="0 0 24 24">
-          <path d="M12 3v18" />
-          <path d="M16 7.5c0-1.9-1.8-3.5-4-3.5s-4 1.6-4 3.5 1.8 3.5 4 3.5 4 1.6 4 3.5-1.8 3.5-4 3.5-4-1.6-4-3.5" />
-        </svg>
-      </span>
-      <span>Atualizar referência</span>
-    </button>
-    <button class="menu-action" type="button" (click)="openQuickModal('expense', item)">
-      <span class="menu-action__icon" aria-hidden="true">
-        <svg viewBox="0 0 24 24">
-          <rect x="4" y="3" width="16" height="18" rx="2.2" />
-          <path d="M8 8h8" />
-          <path d="M8 12h8" />
-          <path d="M8 16h5" />
-        </svg>
-      </span>
-      <span>Nova conta</span>
-    </button>
-    <button class="menu-action" type="button" (click)="openQuickModal('pendency', item)">
-      <span class="menu-action__icon" aria-hidden="true">
-        <svg viewBox="0 0 24 24">
-          <circle cx="12" cy="12" r="9" />
-          <path d="M12 7v6" />
-          <circle cx="12" cy="16.8" r="0.7" />
-        </svg>
-      </span>
-      <span>Nova pendência</span>
-    </button>
-    <a class="menu-action menu-action--link" [routerLink]="['/app/imoveis', item.id, 'edit']" (click)="closeRowMenu()">
-      <span class="menu-action__icon" aria-hidden="true">
-        <svg viewBox="0 0 24 24">
-          <path d="m4 20 4.2-1 9.4-9.4-3.2-3.2L5 15.8 4 20z" />
-          <path d="m13.8 6.4 3.2 3.2" />
-        </svg>
-      </span>
-      <span>Editar cadastro</span>
-    </a>
+    <button class="menu-action" type="button" (click)="openPropertyDetail(item.id)">Abrir hub do imóvel</button>
+    <button class="menu-action" type="button" (click)="openPropertyLeases(item.id)">Locações</button>
+    <button class="menu-action" type="button" (click)="openQuickModal('status', item)">Atualizar situação</button>
+    <button class="menu-action" type="button" (click)="openQuickModal('rent', item)">Atualizar referência</button>
+    <button class="menu-action" type="button" (click)="openQuickModal('expense', item)">Nova conta</button>
+    <button class="menu-action" type="button" (click)="openQuickModal('pendency', item)">Nova pendência</button>
+    <a class="menu-action menu-action--link" [routerLink]="['/app/imoveis', item.id, 'edit']" (click)="closeRowMenu()">Editar cadastro</a>
   </div>
 }
-
-@if (quickModal()) {
-  <div class="quick-modal-backdrop" (click)="closeQuickModal()">
-    <section class="quick-modal card-panel" (click)="$event.stopPropagation()">
-      <header>
-        <h3>
-          @switch (quickModal()) {
-            @case ('rent') { Atualizar valor de referência locativa }
-            @case ('expense') { Nova conta para o imóvel }
-            @case ('pendency') { Nova pendência do imóvel }
-          }
-        </h3>
-        <p>{{ selectedProperty()?.title }}</p>
-      </header>
-
-      @if (quickModal() === 'expense') {
-        <form class="grid-form" [formGroup]="expenseQuickForm" (ngSubmit)="submitQuickExpense()">
-          <div class="field">
-            <label class="field__label">Tipo</label>
-            <app-async-search-select
-              formControlName="expenseTypeId"
-              placeholder="Selecione"
-              [staticOptions]="expenseTypeOptions()"
-              [searchable]="false"
-              [allowClear]="false"
-            />
-          </div>
-
-          <div class="field">
-            <label class="field__label">Descrição</label>
-            <input class="input" formControlName="description" />
-          </div>
-
-          <div class="field">
-            <label class="field__label">Frequência</label>
-            <app-async-search-select
-              formControlName="frequency"
-              [staticOptions]="frequencyOptions"
-              [searchable]="false"
-              [allowClear]="false"
-            />
-          </div>
-
-          <div class="field">
-            <label class="field__label">Vencimento</label>
-            <input class="input" type="text" inputmode="numeric" formControlName="dueDate" placeholder="dd/mm/yyyy" appDateBrInput />
-          </div>
-
-          <div class="field">
-            <label class="field__label">Valor</label>
-            <input class="input" type="text" inputmode="decimal" formControlName="totalAmount" appBrlCurrencyInput />
-          </div>
-
-          <div class="field">
-            <label class="field__label">Parcelas</label>
-            <input class="input" type="number" formControlName="installmentsCount" />
-          </div>
-
-          <div class="field field--full">
-            <label class="field__label">Observações</label>
-            <input class="input" formControlName="notes" />
-          </div>
-
-          <div class="modal-actions">
-            <button class="btn btn-secondary" type="button" (click)="closeQuickModal()">Cancelar</button>
-            <button class="btn btn-primary" type="submit">Salvar</button>
-          </div>
-        </form>
-      }
-
-      @if (quickModal() === 'pendency') {
-        <form class="grid-form" [formGroup]="pendencyQuickForm" (ngSubmit)="submitQuickPendency()">
-          <div class="field">
-            <label class="field__label">Tipo</label>
-            <app-async-search-select
-              formControlName="pendencyTypeId"
-              placeholder="Selecione"
-              [staticOptions]="pendencyTypeOptions()"
-              [searchable]="false"
-              [allowClear]="false"
-            />
-          </div>
-
-          <div class="field">
-            <label class="field__label">Título</label>
-            <input class="input" formControlName="title" />
-          </div>
-
-          <div class="field">
-            <label class="field__label">Descrição</label>
-            <input class="input" formControlName="description" />
-          </div>
-
-          <div class="field">
-            <label class="field__label">Vencimento</label>
-            <input class="input" type="text" inputmode="numeric" formControlName="dueAtUtc" placeholder="dd/mm/yyyy hh:mm" appDateTimeBrInput />
-          </div>
-
-          <div class="modal-actions">
-            <button class="btn btn-secondary" type="button" (click)="closeQuickModal()">Cancelar</button>
-            <button class="btn btn-primary" type="submit">Salvar</button>
-          </div>
-        </form>
-      }
-
-      @if (quickModal() === 'rent') {
-        <form class="grid-form" [formGroup]="rentQuickForm" (ngSubmit)="submitQuickRentReference()">
-          <div class="field">
-            <label class="field__label">Valor de referência</label>
-            <input class="input" type="text" inputmode="decimal" formControlName="amount" appBrlCurrencyInput />
-          </div>
-
-          <div class="field">
-            <label class="field__label">Vigência</label>
-            <input class="input" type="text" inputmode="numeric" formControlName="effectiveFrom" placeholder="dd/mm/yyyy" appDateBrInput />
-          </div>
-
-          <div class="modal-actions">
-            <button class="btn btn-secondary" type="button" (click)="closeQuickModal()">Cancelar</button>
-            <button class="btn btn-primary" type="submit">Salvar</button>
-          </div>
-        </form>
-      }
-    </section>
-  </div>
-}
-
-
-

@@ -1,4 +1,4 @@
-﻿import { Injectable, Signal, computed, inject, signal } from '@angular/core';
+import { Injectable, Signal, computed, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, catchError, map, of, shareReplay, tap } from 'rxjs';
@@ -18,6 +18,28 @@ export class AuthService {
 
   readonly currentUser: Signal<AuthUser | null> = computed(() => this.userState());
   readonly isAuthenticated = computed(() => !!this.storage.accessToken && !!this.userState());
+
+  bootstrapSession(): Observable<AuthUser | null> {
+    if (!this.storage.accessToken) {
+      return of(null);
+    }
+
+    if (this.userState()) {
+      return of(this.userState());
+    }
+
+    return this.http.get<ApiResponse<AuthUser>>(`${environment.apiUrl}/auth/me`).pipe(
+      map((response) => response.data),
+      tap((user) => {
+        this.storage.user = user;
+        this.userState.set(user);
+      }),
+      catchError(() => {
+        this.clearSession();
+        return of(null);
+      })
+    );
+  }
 
   login(payload: LoginRequest): Observable<AuthToken> {
     return this.http

@@ -47,3 +47,24 @@
     width: 100%;
   }
 }
+.lease-form {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.section-title {
+  margin-top: 0.6rem;
+}
+
+.section-title h2 {
+  font-size: 1rem;
+}
+
+.field--action {
+  align-self: end;
+}
+
+@media (max-width: 960px) {
+  .lease-form {
+    grid-template-columns: 1fr;
+  }
+}

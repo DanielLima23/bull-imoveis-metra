@@ -1,71 +1,80 @@
-﻿<app-page-header
+<app-page-header
   [title]="isEdit() ? 'Editar Locação' : 'Nova Locação'"
-  subtitle="Tela única de criação e atualização de contrato"
+  subtitle="Contrato completo alinhado aos campos do Swagger"
   [breadcrumbs]="[{ label: 'Dashboard', route: '/app/dashboard' }, { label: 'Locações', route: '/app/locacoes' }, { label: isEdit() ? 'Editar' : 'Novo' }]"
 />
 
 <section class="card-panel">
-  @if (isEdit() && selectedLease(); as lease) {
-    <div class="contract-info">
-      <div>
-        <span>Imóvel</span>
-        <strong>{{ lease.propertyTitle }}</strong>
-      </div>
-      <div>
-        <span>Locatário</span>
-        <strong>{{ lease.tenantName }}</strong>
-      </div>
-    </div>
-  }
+  <form class="grid-form lease-form" [formGroup]="form" (ngSubmit)="submit()">
+    <div class="field field--full section-title"><h2>Vínculo</h2></div>
 
-  <form class="grid-form" [formGroup]="form" (ngSubmit)="submit()">
     <div class="field">
       <label class="field__label">Imóvel</label>
       <app-async-search-select
         formControlName="propertyId"
-        placeholder="Selecione"
-        searchPlaceholder="Buscar imóvel..."
-        [pageSize]="15"
         [fetchPage]="propertySelectFetchPage"
         [fetchById]="propertySelectFetchById"
+        [allowClear]="false"
+        [useFloatingPanel]="true"
       />
     </div>
 
     <div class="field">
       <label class="field__label">Locatário</label>
-      <div class="tenant-field">
-        <app-async-search-select
-          formControlName="tenantId"
-          placeholder="Selecione"
-          searchPlaceholder="Buscar locatário..."
-          [pageSize]="15"
-          [fetchPage]="tenantSelectFetchPage"
-          [fetchById]="tenantSelectFetchById"
-        />
-        @if (!isEdit()) {
-          <button class="btn btn-secondary tenant-field__button" type="button" (click)="goToCreateTenant()">Novo locatário</button>
-        }
-      </div>
+      <app-async-search-select
+        formControlName="tenantId"
+        [fetchPage]="tenantSelectFetchPage"
+        [fetchById]="tenantSelectFetchById"
+        [allowClear]="false"
+        [useFloatingPanel]="true"
+      />
     </div>
+
+    <div class="field field--action">
+      <label class="field__label">Atalho</label>
+      <button class="btn btn-secondary" type="button" (click)="goToCreateTenant()">Cadastrar locatário</button>
+    </div>
+
+    <div class="field field--full section-title"><h2>Condições principais</h2></div>
 
     <div class="field">
       <label class="field__label">Início</label>
-      <input class="input" type="text" inputmode="numeric" formControlName="startDate" placeholder="dd/mm/yyyy" appDateBrInput />
+      <input class="input" formControlName="startDate" appDateBrInput />
     </div>
 
     <div class="field">
       <label class="field__label">Fim</label>
-      <input class="input" type="text" inputmode="numeric" formControlName="endDate" placeholder="dd/mm/yyyy" appDateBrInput />
+      <input class="input" formControlName="endDate" appDateBrInput />
     </div>
 
     <div class="field">
       <label class="field__label">Aluguel mensal</label>
-      <input class="input" type="text" inputmode="decimal" formControlName="monthlyRent" appBrlCurrencyInput />
+      <input class="input" formControlName="monthlyRent" appBrlCurrencyInput />
     </div>
 
     <div class="field">
-      <label class="field__label">Caucao</label>
-      <input class="input" type="text" inputmode="decimal" formControlName="depositAmount" appBrlCurrencyInput />
+      <label class="field__label">Caução</label>
+      <input class="input" formControlName="depositAmount" appBrlCurrencyInput />
+    </div>
+
+    <div class="field">
+      <label class="field__label">Contrato com</label>
+      <input class="input" formControlName="contractWith" />
+    </div>
+
+    <div class="field">
+      <label class="field__label">Dia do pagamento</label>
+      <input class="input" type="number" min="1" max="31" formControlName="paymentDay" />
+    </div>
+
+    <div class="field">
+      <label class="field__label">Local do pagamento</label>
+      <input class="input" formControlName="paymentLocation" />
+    </div>
+
+    <div class="field">
+      <label class="field__label">Índice de reajuste</label>
+      <input class="input" formControlName="readjustmentIndex" />
     </div>
 
     @if (isEdit()) {
@@ -80,6 +89,50 @@
       </div>
     }
 
+    <div class="field field--full section-title"><h2>Garantias e formalização</h2></div>
+
+    <div class="field">
+      <label class="field__label">Registro do contrato</label>
+      <input class="input" formControlName="contractRegistration" />
+    </div>
+
+    <div class="field">
+      <label class="field__label">Seguro</label>
+      <input class="input" formControlName="insurance" />
+    </div>
+
+    <div class="field">
+      <label class="field__label">Reconhecimento de firma</label>
+      <input class="input" formControlName="signatureRecognition" />
+    </div>
+
+    <div class="field">
+      <label class="field__label">Nome do fiador</label>
+      <input class="input" formControlName="guarantorName" />
+    </div>
+
+    <div class="field">
+      <label class="field__label">Documento do fiador</label>
+      <input class="input" formControlName="guarantorDocument" appCpfCnpjInput />
+    </div>
+
+    <div class="field">
+      <label class="field__label">Telefone do fiador</label>
+      <input class="input" formControlName="guarantorPhone" appPhoneBrInput />
+    </div>
+
+    <div class="field field--full section-title"><h2>Contato adicional</h2></div>
+
+    <div class="field">
+      <label class="field__label">Nome do contato</label>
+      <input class="input" formControlName="optionalContactName" />
+    </div>
+
+    <div class="field">
+      <label class="field__label">Telefone do contato</label>
+      <input class="input" formControlName="optionalContactPhone" appPhoneBrInput />
+    </div>
+
     <div class="field field--full">
       <label class="field__label">Observações</label>
       <textarea class="textarea" rows="4" formControlName="notes"></textarea>
@@ -88,9 +141,8 @@
     <div class="actions">
       <button class="btn btn-secondary" type="button" (click)="back()">Cancelar</button>
       <button class="btn btn-primary" type="submit" [disabled]="submitting()">
-        @if (submitting()) { Salvando... } @else { Salvar cadastro }
+        @if (submitting()) { Salvando... } @else { Salvar contrato }
       </button>
     </div>
   </form>
 </section>
-

@@ -87,6 +87,17 @@
         </label>
       </article>
 
+      <article class="settings-section">
+        <header class="section-head">
+          <h2>Administração</h2>
+          <p>Ferramentas administrativas adicionais do sistema.</p>
+        </header>
+
+        <div class="admin-actions">
+          <a class="btn btn-secondary" routerLink="/app/configuracoes/importacao-legado">Abrir importação legado</a>
+        </div>
+      </article>
+
       @if (!canEdit()) {
         <div class="permission-note">
           Seu perfil possui acesso de consulta. Apenas administradores podem salvar alteracoes.

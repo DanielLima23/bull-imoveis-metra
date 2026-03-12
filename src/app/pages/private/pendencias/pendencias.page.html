@@ -1,17 +1,74 @@
-﻿<app-page-header
-  title="Pendências e Urgências"
-  subtitle="Fila operacional por prioridade e vencimento"
+<app-page-header
+  title="Pendências"
+  subtitle="Listagem, resolução e manutenção dos tipos de pendência"
   [breadcrumbs]="[{ label: 'Dashboard', route: '/app/dashboard' }, { label: 'Pendências' }]"
   actionLabel="Adicionar novo"
   actionRoute="/app/pendencias/new"
 />
 
+<section class="card-panel types-panel">
+  <div class="types-head">
+    <h2>Tipos de pendência</h2>
+    <button class="btn btn-secondary" type="button" (click)="toggleTypeForm()">
+      @if (showTypeForm()) { Fechar } @else { Novo tipo }
+    </button>
+  </div>
+
+  <div class="types-list">
+    @for (type of types(); track type.id) {
+      <button type="button" class="type-chip" (click)="editType(type)">
+        {{ type.code ? type.code + ' / ' : '' }}{{ type.name }} · SLA {{ type.defaultSlaDays }}d
+      </button>
+    }
+  </div>
+
+  @if (showTypeForm()) {
+    <form class="type-form" [formGroup]="typeForm" (ngSubmit)="saveType()">
+      <div class="field">
+        <label class="field__label">Código</label>
+        <input class="input" formControlName="code" />
+      </div>
+      <div class="field">
+        <label class="field__label">Nome</label>
+        <input class="input" formControlName="name" />
+      </div>
+      <div class="field">
+        <label class="field__label">SLA padrão (dias)</label>
+        <input class="input" type="number" formControlName="defaultSlaDays" />
+      </div>
+      <div class="field field--full">
+        <label class="field__label">Descrição</label>
+        <textarea class="textarea" rows="3" formControlName="description"></textarea>
+      </div>
+      <div class="actions">
+        @if (editingTypeId()) {
+          <button class="btn btn-secondary" type="button" (click)="cancelTypeEdit()">Cancelar</button>
+        }
+        <button class="btn btn-primary" type="submit">{{ editingTypeId() ? 'Atualizar tipo' : 'Salvar tipo' }}</button>
+      </div>
+    </form>
+  }
+</section>
+
 <section class="card-panel">
-  <div class="list-toolbar">
+  <div class="list-toolbar list-toolbar--stack">
     <h2>Listagem</h2>
-    <div class="toolbar-field">
-      <label class="toolbar-label">Buscar</label>
-      <input class="input search" [value]="search()" (input)="search.set(($any($event.target)).value)" placeholder="Imóvel, título, tipo, status ou severidade" />
+    <div class="filters">
+      <label class="toolbar-field">
+        <span class="toolbar-label">Buscar</span>
+        <input class="input search" [value]="search()" (input)="search.set(($any($event.target)).value)" placeholder="Imóvel, título, tipo, status..." />
+      </label>
+
+      <label class="toolbar-field toolbar-field--compact">
+        <span class="toolbar-label">Status</span>
+        <app-async-search-select
+          [value]="status()"
+          [staticOptions]="statusOptions"
+          [searchable]="false"
+          [useFloatingPanel]="true"
+          (valueChange)="onStatusChange($event)"
+        />
+      </label>
     </div>
   </div>
 
@@ -20,31 +77,27 @@
       <thead>
         <tr>
           <th>Imóvel</th>
-          <th>Título</th>
           <th>Tipo</th>
-          <th>Severidade</th>
+          <th>Título</th>
           <th>Vencimento</th>
+          <th>Severidade</th>
           <th>Status</th>
           <th>Ações</th>
         </tr>
       </thead>
       <tbody>
         @if (isLoading()) {
-          @for (i of [1,2,3,4,5,6]; track i) {
-            <tr>
-              <td colspan="7"><div class="skeleton-row"></div></td>
-            </tr>
+          @for (i of [1,2,3,4,5]; track i) {
+            <tr><td colspan="7"><div class="skeleton-row"></div></td></tr>
           }
         } @else {
           @for (item of filtered(); track item.id) {
             <tr>
               <td>{{ item.propertyTitle }}</td>
-              <td>{{ item.title }}</td>
               <td>{{ item.pendencyTypeName }}</td>
-              <td>
-                <span class="badge" [class]="'badge badge--' + item.severity.toLowerCase()">{{ item.severity }}</span>
-              </td>
-              <td>{{ item.dueAtUtc | date: 'dd/MM/yyyy HH:mm' }}</td>
+              <td>{{ item.title }}</td>
+              <td>{{ item.dueAtUtc | date:'dd/MM/yyyy HH:mm' }}</td>
+              <td>{{ item.severity }}</td>
               <td>{{ item.status }}</td>
               <td class="actions-col">
                 <button class="btn btn-secondary" type="button" (click)="toggleRowMenu($event, item.id)">...</button>
@@ -71,11 +124,8 @@
   <button class="menu-overlay" type="button" (click)="closeRowMenu()" aria-label="Fechar menu de ações"></button>
   <div class="menu-popover menu-popover--floating" [style.left.px]="menuPosition().x" [style.top.px]="menuPosition().y">
     <a [routerLink]="['/app/pendencias', item.id, 'edit']" (click)="closeRowMenu()">Editar cadastro</a>
-    @if (item.status === 'OPEN') {
-      <button type="button" (click)="resolve(item)">Marcar como resolvida</button>
+    @if (item.status !== 'RESOLVED') {
+      <button type="button" (click)="resolve(item)">Resolver pendência</button>
     }
   </div>
 }
-
-
-

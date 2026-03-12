@@ -1,0 +1,45 @@
+<app-page-header
+  title="Importação Legado"
+  subtitle="Envio manual do payload JSON para /api/legado/importacao"
+  [breadcrumbs]="[
+    { label: 'Dashboard', route: '/app/dashboard' },
+    { label: 'Configurações', route: '/app/configuracoes' },
+    { label: 'Importação legado' }
+  ]"
+/>
+
+<section class="card-panel">
+  <form class="legacy-form" [formGroup]="form" (ngSubmit)="submit()">
+    <div class="field field--full">
+      <label class="field__label">Payload JSON</label>
+      <textarea
+        class="textarea"
+        formControlName="payload"
+        rows="18"
+        placeholder='{"estates":[],"financialRecords":[],"histories":[],"pendencyAcronyms":[],"pendencyStates":[]}'
+      ></textarea>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-primary" type="submit" [disabled]="submitting()">
+        @if (submitting()) { Importando... } @else { Importar dados }
+      </button>
+    </div>
+  </form>
+</section>
+
+@if (result(); as data) {
+  <section class="card-panel">
+    <h2>Resultado</h2>
+    <div class="results-grid">
+      <article><strong>{{ data.importedProperties }}</strong><span>Imóveis</span></article>
+      <article><strong>{{ data.importedTenants }}</strong><span>Locatários</span></article>
+      <article><strong>{{ data.importedLeases }}</strong><span>Locações</span></article>
+      <article><strong>{{ data.importedChargeTemplates }}</strong><span>Contas-modelo</span></article>
+      <article><strong>{{ data.importedExpenses }}</strong><span>Despesas</span></article>
+      <article><strong>{{ data.importedHistoryEntries }}</strong><span>Históricos</span></article>
+      <article><strong>{{ data.importedAttachments }}</strong><span>Anexos</span></article>
+      <article><strong>{{ data.importedPendencies }}</strong><span>Pendências</span></article>
+    </div>
+  </section>
+}

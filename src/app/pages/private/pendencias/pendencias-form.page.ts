@@ -1,4 +1,4 @@
-﻿import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, map, of } from 'rxjs';
@@ -7,11 +7,11 @@ import {
   AsyncSelectFetchById,
   AsyncSelectFetchPage
 } from '../../../shared/components/async-search-select/async-search-select.component';
-import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { PendencyTypeDto, PagedResult, PropertyDto } from '../../../core/models/domain.model';
 import { PendencyApiService } from '../../../core/services/pendency-api.service';
 import { PropertyApiService } from '../../../core/services/property-api.service';
 import { DateTimeBrInputDirective } from '../../../shared/directives/date-time-br-input.directive';
+import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { SelectOption } from '../../../shared/models/select-option.model';
 import { ToastService } from '../../../shared/services/toast.service';
 import { toPropertySelectOption } from '../../../shared/utils/select-option.util';
@@ -39,13 +39,13 @@ export class PendenciasFormPage implements OnInit {
   readonly pendencyTypeOptions = computed<SelectOption[]>(() =>
     this.types().map((item) => ({
       id: item.id,
-      label: `${item.name} (${item.defaultSlaDays}d)`
+      label: `${item.code ? `${item.code} · ` : ''}${item.name} (${item.defaultSlaDays}d)`
     }))
   );
 
   readonly propertySelectFetchPage: AsyncSelectFetchPage = (query) =>
     this.propertyApi
-      .list(query.search, '', query.page, query.pageSize, { silent: true })
+      .list({ search: query.search, page: query.page, pageSize: query.pageSize }, { silent: true })
       .pipe(map((result) => this.mapOptionsResult(result)));
 
   readonly propertySelectFetchById: AsyncSelectFetchById = (id) =>
@@ -149,5 +149,3 @@ export class PendenciasFormPage implements OnInit {
     };
   }
 }
-
-

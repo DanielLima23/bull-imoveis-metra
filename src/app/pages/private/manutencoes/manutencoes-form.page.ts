@@ -50,7 +50,7 @@ export class ManutencoesFormPage implements OnInit {
 
   readonly propertySelectFetchPage: AsyncSelectFetchPage = (query) =>
     this.propertyApi
-      .list(query.search, '', query.page, query.pageSize, { silent: true })
+      .list({ search: query.search, page: query.page, pageSize: query.pageSize }, { silent: true })
       .pipe(map((result) => this.mapOptionsResult(result)));
 
   readonly propertySelectFetchById: AsyncSelectFetchById = (id) =>

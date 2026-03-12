@@ -1,6 +1,6 @@
-﻿<app-page-header
+<app-page-header
   title="Contas e Despesas"
-  subtitle="Listagem financeira dos imóveis com tipos reutilizáveis"
+  subtitle="Financeiro dos imóveis com tipos reutilizáveis, atrasadas e baixa manual"
   [breadcrumbs]="[{ label: 'Dashboard', route: '/app/dashboard' }, { label: 'Contas' }]"
   actionLabel="Adicionar novo"
   actionRoute="/app/despesas/new"
@@ -14,14 +14,14 @@
     </button>
   </div>
 
-  <div class="types-chips">
+  <div class="types-list">
     @for (type of types(); track type.id) {
-      <span>{{ type.name }} / {{ type.category }}</span>
+      <button type="button" class="type-chip" (click)="editType(type)">{{ type.name }} / {{ type.category }}</button>
     }
   </div>
 
   @if (showTypeForm()) {
-    <form class="type-form" [formGroup]="typeForm" (ngSubmit)="createType()">
+    <form class="type-form" [formGroup]="typeForm" (ngSubmit)="saveType()">
       <div class="field">
         <label class="field__label">Nome do tipo</label>
         <input class="input" formControlName="name" />
@@ -31,25 +31,51 @@
         <input class="input" formControlName="category" />
       </div>
       <div class="field field--full">
-        <label class="field__label">Tipo de custo</label>
         <label class="checkbox-inline">
           <input type="checkbox" formControlName="isFixedCost" />
           Custo fixo
         </label>
       </div>
-      <button class="btn btn-primary" type="submit" [disabled]="typeSubmitting()">
-        @if (typeSubmitting()) { Salvando... } @else { Salvar tipo }
-      </button>
+      <div class="actions">
+        @if (editingTypeId()) {
+          <button class="btn btn-secondary" type="button" (click)="cancelTypeEdit()">Cancelar</button>
+        }
+        <button class="btn btn-primary" type="submit">{{ editingTypeId() ? 'Atualizar tipo' : 'Salvar tipo' }}</button>
+      </div>
     </form>
   }
 </section>
 
 <section class="card-panel">
-  <div class="list-toolbar">
+  <div class="list-toolbar list-toolbar--stack">
     <h2>Listagem</h2>
-    <div class="toolbar-field">
-      <label class="toolbar-label">Buscar</label>
-      <input class="input search" [value]="search()" (input)="search.set(($any($event.target)).value)" placeholder="Imóvel, tipo, descrição ou status" />
+    <div class="filters">
+      <label class="toolbar-field">
+        <span class="toolbar-label">Buscar</span>
+        <input class="input search" [value]="search()" (input)="search.set(($any($event.target)).value)" placeholder="Imóvel, tipo, descrição ou status" />
+      </label>
+
+      <label class="toolbar-field">
+        <span class="toolbar-label">Tipo</span>
+        <app-async-search-select
+          [value]="typeFilter()"
+          [staticOptions]="typeOptions()"
+          [searchable]="false"
+          [useFloatingPanel]="true"
+          (valueChange)="onTypeChange($event)"
+        />
+      </label>
+
+      <label class="toolbar-field">
+        <span class="toolbar-label">Status</span>
+        <app-async-search-select
+          [value]="statusFilter()"
+          [staticOptions]="statusOptions"
+          [searchable]="false"
+          [useFloatingPanel]="true"
+          (valueChange)="onStatusChange($event)"
+        />
+      </label>
     </div>
   </div>
 
@@ -69,9 +95,7 @@
       <tbody>
         @if (isLoading()) {
           @for (i of [1,2,3,4,5,6]; track i) {
-            <tr>
-              <td colspan="7"><div class="skeleton-row"></div></td>
-            </tr>
+            <tr><td colspan="7"><div class="skeleton-row"></div></td></tr>
           }
         } @else {
           @for (item of filtered(); track item.id) {
@@ -103,14 +127,84 @@
   />
 </section>
 
+<section class="card-panel">
+  <div class="section-header">
+    <h2>Atrasadas</h2>
+    <span class="counter">{{ overdueItems().length }}</span>
+  </div>
+
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Imóvel</th>
+          <th>Tipo</th>
+          <th>Descrição</th>
+          <th>Vencimento</th>
+          <th>Valor</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (item of overdueItems(); track item.id) {
+          <tr>
+            <td>{{ item.propertyTitle }}</td>
+            <td>{{ item.expenseTypeName }}</td>
+            <td>{{ item.description }}</td>
+            <td>{{ item.dueDate | dateOnlyBr }}</td>
+            <td>{{ item.totalAmount | brlCurrency }}</td>
+          </tr>
+        } @empty {
+          <tr><td colspan="5">Nenhuma despesa atrasada.</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</section>
+
 @if (activeMenuItem(); as item) {
   <button class="menu-overlay" type="button" (click)="closeRowMenu()" aria-label="Fechar menu de ações"></button>
   <div class="menu-popover menu-popover--floating" [style.left.px]="menuPosition().x" [style.top.px]="menuPosition().y">
     <a [routerLink]="['/app/despesas', item.id, 'edit']" (click)="closeRowMenu()">Editar cadastro</a>
     @if (item.status !== 'PAID') {
-      <button type="button" (click)="pay(item)">Marcar como paga</button>
+      <button type="button" (click)="openPaymentModal(item)">Registrar pagamento</button>
     }
   </div>
 }
 
+@if (payingExpense(); as item) {
+  <div class="modal-backdrop" (click)="closePaymentModal()">
+    <section class="card-panel payment-modal" (click)="$event.stopPropagation()">
+      <header>
+        <h3>Registrar pagamento</h3>
+        <p>{{ item.propertyTitle }} · {{ item.description }}</p>
+      </header>
 
+      <form class="grid-form" [formGroup]="paymentForm" (ngSubmit)="submitPayment()">
+        <div class="field">
+          <label class="field__label">Valor pago</label>
+          <input class="input" formControlName="paidAmount" appBrlCurrencyInput />
+        </div>
+
+        <div class="field">
+          <label class="field__label">Pago em</label>
+          <input class="input" formControlName="paidAtUtc" />
+        </div>
+
+        <div class="field">
+          <label class="field__label">Pago por</label>
+          <input class="input" formControlName="paidBy" />
+        </div>
+
+        <div class="field field--full">
+          <label class="field__label">Observações</label>
+          <textarea class="textarea" rows="3" formControlName="notes"></textarea>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn btn-secondary" type="button" (click)="closePaymentModal()">Cancelar</button>
+          <button class="btn btn-primary" type="submit">Registrar</button>
+        </div>
+      </form>
+    </section>
+  </div>
+}

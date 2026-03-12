@@ -1,3 +1,3 @@
 window.__env = {
-  apiUrl: "http://localhost:5140/api"
+  apiUrl: "https://api.imoveis-metra.dw-softwares.com.br/api"
 };

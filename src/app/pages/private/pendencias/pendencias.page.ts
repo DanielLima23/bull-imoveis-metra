@@ -1,16 +1,19 @@
-﻿import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { PendencyDto, PendencyTypeDto } from '../../../core/models/domain.model';
+import { PendencyApiService } from '../../../core/services/pendency-api.service';
+import { AsyncSearchSelectComponent } from '../../../shared/components/async-search-select/async-search-select.component';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { TablePaginationComponent } from '../../../shared/components/table-pagination/table-pagination.component';
-import { PendencyApiService } from '../../../core/services/pendency-api.service';
-import { PendencyDto } from '../../../core/models/domain.model';
 import { ToastService } from '../../../shared/services/toast.service';
+import { getFloatingMenuPosition } from '../../../shared/utils/floating-menu.util';
 
 @Component({
   selector: 'app-pendencias-page',
   standalone: true,
-  imports: [PageHeaderComponent, TablePaginationComponent, DatePipe, RouterLink],
+  imports: [ReactiveFormsModule, PageHeaderComponent, TablePaginationComponent, DatePipe, RouterLink, AsyncSearchSelectComponent],
   templateUrl: './pendencias.page.html',
   styleUrl: './pendencias.page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -18,16 +21,34 @@ import { ToastService } from '../../../shared/services/toast.service';
 export class PendenciasPage implements OnInit {
   private readonly api = inject(PendencyApiService);
   private readonly toast = inject(ToastService);
+  private readonly fb = inject(FormBuilder);
 
   readonly isLoading = signal(false);
   readonly items = signal<PendencyDto[]>([]);
+  readonly types = signal<PendencyTypeDto[]>([]);
   readonly search = signal('');
+  readonly status = signal('');
   readonly page = signal(1);
   readonly pageSize = signal(10);
   readonly totalItems = signal(0);
   readonly totalPages = signal(1);
   readonly activeMenuId = signal<string | null>(null);
   readonly menuPosition = signal({ x: 0, y: 0 });
+  readonly showTypeForm = signal(false);
+  readonly editingTypeId = signal<string | null>(null);
+
+  readonly statusOptions = [
+    { id: '', label: 'Todos' },
+    { id: 'OPEN', label: 'Aberta' },
+    { id: 'RESOLVED', label: 'Resolvida' }
+  ];
+
+  readonly typeForm = this.fb.nonNullable.group({
+    code: ['', Validators.required],
+    name: ['', Validators.required],
+    description: [''],
+    defaultSlaDays: [1, [Validators.required, Validators.min(1)]]
+  });
 
   readonly filtered = computed(() => {
     const term = this.search().trim().toLowerCase();
@@ -40,36 +61,46 @@ export class PendenciasPage implements OnInit {
     );
   });
 
-  readonly activeMenuItem = computed(() => {
-    const id = this.activeMenuId();
-    if (!id) {
-      return null;
-    }
-
-    return this.items().find((item) => item.id === id) ?? null;
-  });
+  readonly activeMenuItem = computed(() => this.items().find((item) => item.id === this.activeMenuId()) ?? null);
 
   ngOnInit(): void {
+    this.loadTypes();
     this.load();
   }
 
   load(): void {
     this.isLoading.set(true);
-    this.api.list('', this.page(), this.pageSize()).subscribe({
-      next: (result) => {
-        this.items.set(result.items);
-        this.page.set(result.page);
-        this.pageSize.set(result.pageSize);
-        this.totalItems.set(result.totalItems);
-        this.totalPages.set(result.totalPages);
-        this.activeMenuId.set(null);
-        this.isLoading.set(false);
-      },
-      error: () => {
-        this.toast.error('Falha ao carregar pendências.');
-        this.isLoading.set(false);
-      }
-    });
+    this.api
+      .list({
+        status: this.status() || undefined,
+        page: this.page(),
+        pageSize: this.pageSize()
+      })
+      .subscribe({
+        next: (result) => {
+          this.items.set(result.items);
+          this.page.set(result.page);
+          this.pageSize.set(result.pageSize);
+          this.totalItems.set(result.totalItems);
+          this.totalPages.set(result.totalPages);
+          this.activeMenuId.set(null);
+          this.isLoading.set(false);
+        },
+        error: () => {
+          this.toast.error('Falha ao carregar pendências.');
+          this.isLoading.set(false);
+        }
+      });
+  }
+
+  loadTypes(): void {
+    this.api.listTypes().subscribe({ next: (items) => this.types.set(items) });
+  }
+
+  onStatusChange(value: string): void {
+    this.status.set(value);
+    this.page.set(1);
+    this.load();
   }
 
   onPageChange(page: number): void {
@@ -102,19 +133,7 @@ export class PendenciasPage implements OnInit {
       return;
     }
 
-    const rect = trigger.getBoundingClientRect();
-    const menuWidth = 230;
-    const menuHeight = 150;
-
-    let x = rect.right - menuWidth;
-    x = Math.max(12, Math.min(x, window.innerWidth - menuWidth - 12));
-
-    let y = rect.bottom + 8;
-    if (y + menuHeight > window.innerHeight - 12) {
-      y = Math.max(12, rect.top - menuHeight - 8);
-    }
-
-    this.menuPosition.set({ x, y });
+    this.menuPosition.set(getFloatingMenuPosition(trigger, 230, 150));
     this.activeMenuId.set(id);
   }
 
@@ -132,6 +151,51 @@ export class PendenciasPage implements OnInit {
       error: () => this.toast.error('Falha ao resolver pendência.')
     });
   }
+
+  toggleTypeForm(): void {
+    this.showTypeForm.update((value) => !value);
+    if (!this.showTypeForm()) {
+      this.cancelTypeEdit();
+    }
+  }
+
+  editType(item: PendencyTypeDto): void {
+    this.showTypeForm.set(true);
+    this.editingTypeId.set(item.id);
+    this.typeForm.reset({
+      code: item.code ?? '',
+      name: item.name,
+      description: item.description ?? '',
+      defaultSlaDays: item.defaultSlaDays
+    });
+  }
+
+  cancelTypeEdit(): void {
+    this.editingTypeId.set(null);
+    this.typeForm.reset({
+      code: '',
+      name: '',
+      description: '',
+      defaultSlaDays: 1
+    });
+  }
+
+  saveType(): void {
+    if (this.typeForm.invalid) {
+      this.typeForm.markAllAsTouched();
+      return;
+    }
+
+    const id = this.editingTypeId();
+    const request$ = id ? this.api.updateType(id, this.typeForm.getRawValue()) : this.api.createType(this.typeForm.getRawValue());
+    request$.subscribe({
+      next: () => {
+        this.toast.success(id ? 'Tipo de pendência atualizado.' : 'Tipo de pendência criado.');
+        this.cancelTypeEdit();
+        this.showTypeForm.set(false);
+        this.loadTypes();
+      },
+      error: () => this.toast.error('Falha ao salvar tipo de pendência.')
+    });
+  }
 }
-
-

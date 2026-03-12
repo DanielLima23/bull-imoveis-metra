@@ -1,19 +1,20 @@
-﻿import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
-import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
+import { ExpenseTypeDto, PendencyTypeDto, PropertyDto } from '../../../core/models/domain.model';
+import { ExpenseApiService } from '../../../core/services/expense-api.service';
+import { PendencyApiService } from '../../../core/services/pendency-api.service';
+import { PropertyApiService } from '../../../core/services/property-api.service';
 import { AsyncSearchSelectComponent } from '../../../shared/components/async-search-select/async-search-select.component';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { TablePaginationComponent } from '../../../shared/components/table-pagination/table-pagination.component';
-import { PropertyApiService } from '../../../core/services/property-api.service';
-import { PropertyDto, ExpenseTypeDto, PendencyTypeDto } from '../../../core/models/domain.model';
-import { ToastService } from '../../../shared/services/toast.service';
-import { ExpenseApiService } from '../../../core/services/expense-api.service';
-import { PendencyApiService } from '../../../core/services/pendency-api.service';
 import { BrlCurrencyInputDirective } from '../../../shared/directives/brl-currency-input.directive';
 import { DateBrInputDirective } from '../../../shared/directives/date-br-input.directive';
 import { DateTimeBrInputDirective } from '../../../shared/directives/date-time-br-input.directive';
 import { SelectOption } from '../../../shared/models/select-option.model';
+import { ToastService } from '../../../shared/services/toast.service';
+import { getFloatingMenuPosition } from '../../../shared/utils/floating-menu.util';
 
 @Component({
   selector: 'app-imoveis-page',
@@ -40,11 +41,14 @@ export class ImoveisPage implements OnInit, OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly router = inject(Router);
   private listRequestSub: Subscription | null = null;
-  private listRequestUsesSkeleton = false;
 
   readonly isLoading = signal(false);
   readonly items = signal<PropertyDto[]>([]);
   readonly search = signal('');
+  readonly city = signal('');
+  readonly propertyType = signal('');
+  readonly occupancyStatus = signal('');
+  readonly assetState = signal('');
   readonly page = signal(1);
   readonly pageSize = signal(10);
   readonly totalItems = signal(0);
@@ -52,42 +56,25 @@ export class ImoveisPage implements OnInit, OnDestroy {
 
   readonly activeMenuId = signal<string | null>(null);
   readonly menuPosition = signal({ x: 0, y: 0 });
-  readonly quickModal = signal<'expense' | 'pendency' | 'rent' | null>(null);
+  readonly quickModal = signal<'expense' | 'pendency' | 'rent' | 'status' | null>(null);
   readonly selectedProperty = signal<PropertyDto | null>(null);
+  readonly activeMenuItem = computed(() => this.items().find((item) => item.id === this.activeMenuId()) ?? null);
 
   readonly expenseTypes = signal<ExpenseTypeDto[]>([]);
   readonly pendencyTypes = signal<PendencyTypeDto[]>([]);
-  readonly propertyStatusOptions: SelectOption[] = [
-    { id: 'AVAILABLE', label: 'Disponível' },
-    { id: 'LEASED', label: 'Locado' },
-    { id: 'PREPARATION', label: 'Preparação' }
-  ];
-  readonly expenseTypeOptions = computed<SelectOption[]>(() =>
-    this.expenseTypes().map((item) => ({
+  readonly expenseTypeOptions = computed<SelectOption[]>(() => this.expenseTypes().map((item) => ({ id: item.id, label: item.name })));
+  readonly pendencyTypeOptions = computed<SelectOption[]>(() =>
+    this.pendencyTypes().map((item) => ({
       id: item.id,
-      label: item.name
+      label: `${item.code ? `${item.code} · ` : ''}${item.name}`
     }))
   );
+
   readonly frequencyOptions: SelectOption[] = [
     { id: 'ONE_TIME', label: 'Eventual' },
     { id: 'MONTHLY', label: 'Mensal' },
     { id: 'YEARLY', label: 'Anual' }
   ];
-  readonly pendencyTypeOptions = computed<SelectOption[]>(() =>
-    this.pendencyTypes().map((item) => ({
-      id: item.id,
-      label: `${item.name} (${item.defaultSlaDays}d)`
-    }))
-  );
-
-  readonly activeMenuProperty = computed(() => {
-    const id = this.activeMenuId();
-    if (!id) {
-      return null;
-    }
-
-    return this.items().find((item) => item.id === id) ?? null;
-  });
 
   readonly expenseQuickForm = this.fb.nonNullable.group({
     expenseTypeId: ['', Validators.required],
@@ -113,52 +100,85 @@ export class ImoveisPage implements OnInit, OnDestroy {
     effectiveFrom: [new Date().toISOString().slice(0, 10), Validators.required]
   });
 
+  readonly statusQuickForm = this.fb.nonNullable.group({
+    occupancyStatus: ['', Validators.required],
+    assetState: ['', Validators.required]
+  });
+
   ngOnInit(): void {
     this.load();
-    this.loadQuickLookups();
+    this.expenseApi.listTypes().subscribe({ next: (items) => this.expenseTypes.set(items) });
+    this.pendencyApi.listTypes().subscribe({ next: (items) => this.pendencyTypes.set(items) });
   }
 
   ngOnDestroy(): void {
-    this.cancelListRequest();
+    this.listRequestSub?.unsubscribe();
   }
 
   load(showLoading = true): void {
-    this.cancelListRequest();
-    this.listRequestUsesSkeleton = showLoading;
-
+    this.listRequestSub?.unsubscribe();
     if (showLoading) {
       this.isLoading.set(true);
     }
 
     this.listRequestSub = this.propertyApi
-      .list(this.search().trim(), '', this.page(), this.pageSize(), showLoading ? undefined : { silent: true })
+      .list(
+        {
+          search: this.search().trim() || undefined,
+          city: this.city().trim() || undefined,
+          propertyType: this.propertyType().trim() || undefined,
+          occupancyStatus: this.occupancyStatus().trim() || undefined,
+          assetState: this.assetState().trim() || undefined,
+          page: this.page(),
+          pageSize: this.pageSize()
+        },
+        showLoading ? undefined : { silent: true }
+      )
       .subscribe({
-      next: (result) => {
-        this.items.set(result.items);
-        this.page.set(result.page);
-        this.pageSize.set(result.pageSize);
-        this.totalItems.set(result.totalItems);
-        this.totalPages.set(result.totalPages);
-        this.activeMenuId.set(null);
-        this.listRequestSub = null;
-        if (this.listRequestUsesSkeleton) {
+        next: (result) => {
+          this.items.set(result.items);
+          this.page.set(result.page);
+          this.pageSize.set(result.pageSize);
+          this.totalItems.set(result.totalItems);
+          this.totalPages.set(result.totalPages);
+          this.activeMenuId.set(null);
           this.isLoading.set(false);
-        }
-        this.listRequestUsesSkeleton = false;
-      },
-      error: () => {
-        this.toast.error('Falha ao carregar imóveis.');
-        this.listRequestSub = null;
-        if (this.listRequestUsesSkeleton) {
+          this.listRequestSub = null;
+        },
+        error: () => {
+          this.toast.error('Falha ao carregar imóveis.');
           this.isLoading.set(false);
+          this.listRequestSub = null;
         }
-        this.listRequestUsesSkeleton = false;
-      }
-    });
+      });
   }
 
   onSearchInput(value: string): void {
     this.search.set(value);
+    this.page.set(1);
+    this.load(false);
+  }
+
+  onCityInput(value: string): void {
+    this.city.set(value);
+    this.page.set(1);
+    this.load(false);
+  }
+
+  onPropertyTypeInput(value: string): void {
+    this.propertyType.set(value);
+    this.page.set(1);
+    this.load(false);
+  }
+
+  onOccupancyInput(value: string): void {
+    this.occupancyStatus.set(value);
+    this.page.set(1);
+    this.load(false);
+  }
+
+  onAssetStateInput(value: string): void {
+    this.assetState.set(value);
     this.page.set(1);
     this.load(false);
   }
@@ -182,16 +202,6 @@ export class ImoveisPage implements OnInit, OnDestroy {
     this.load();
   }
 
-  changeStatus(item: PropertyDto, status: string): void {
-    this.propertyApi.updateStatus(item.id, status).subscribe({
-      next: () => {
-        this.toast.success('Status atualizado.');
-        this.load();
-      },
-      error: () => this.toast.error('Falha ao atualizar status.')
-    });
-  }
-
   toggleRowMenu(event: MouseEvent, propertyId: string): void {
     if (this.activeMenuId() === propertyId) {
       this.closeRowMenu();
@@ -203,19 +213,7 @@ export class ImoveisPage implements OnInit, OnDestroy {
       return;
     }
 
-    const rect = trigger.getBoundingClientRect();
-    const menuWidth = 228;
-    const menuHeight = 264;
-
-    let x = rect.right - menuWidth;
-    x = Math.max(12, Math.min(x, window.innerWidth - menuWidth - 12));
-
-    let y = rect.bottom + 8;
-    if (y + menuHeight > window.innerHeight - 12) {
-      y = Math.max(12, rect.top - menuHeight - 8);
-    }
-
-    this.menuPosition.set({ x, y });
+    this.menuPosition.set(getFloatingMenuPosition(trigger, 248, 318));
     this.activeMenuId.set(propertyId);
   }
 
@@ -223,12 +221,17 @@ export class ImoveisPage implements OnInit, OnDestroy {
     this.activeMenuId.set(null);
   }
 
-  openPropertyTenants(propertyId: string): void {
+  openPropertyDetail(propertyId: string): void {
     this.closeRowMenu();
-    void this.router.navigate(['/app/imoveis', propertyId, 'locatarios']);
+    void this.router.navigate(['/app/imoveis', propertyId]);
   }
 
-  openQuickModal(type: 'expense' | 'pendency' | 'rent', property: PropertyDto): void {
+  openPropertyLeases(propertyId: string): void {
+    this.closeRowMenu();
+    void this.router.navigate(['/app/imoveis', propertyId], { queryParams: { tab: 'locacoes' } });
+  }
+
+  openQuickModal(type: 'expense' | 'pendency' | 'rent' | 'status', property: PropertyDto): void {
     this.selectedProperty.set(property);
     this.quickModal.set(type);
     this.closeRowMenu();
@@ -256,6 +259,11 @@ export class ImoveisPage implements OnInit, OnDestroy {
       amount: property.currentBaseRent ?? 0,
       effectiveFrom: new Date().toISOString().slice(0, 10)
     });
+
+    this.statusQuickForm.reset({
+      occupancyStatus: property.occupancyStatus ?? '',
+      assetState: property.assetState ?? ''
+    });
   }
 
   closeQuickModal(): void {
@@ -282,7 +290,7 @@ export class ImoveisPage implements OnInit, OnDestroy {
         installmentsCount: payload.installmentsCount,
         isRecurring: payload.isRecurring,
         yearlyMonth: payload.yearlyMonth,
-        notes: payload.notes
+        notes: payload.notes || undefined
       })
       .subscribe({
         next: () => {
@@ -306,7 +314,7 @@ export class ImoveisPage implements OnInit, OnDestroy {
         propertyId: property.id,
         pendencyTypeId: payload.pendencyTypeId,
         title: payload.title,
-        description: payload.description,
+        description: payload.description || undefined,
         dueAtUtc: payload.dueAtUtc
       })
       .subscribe({
@@ -325,33 +333,30 @@ export class ImoveisPage implements OnInit, OnDestroy {
       return;
     }
 
-    const payload = this.rentQuickForm.getRawValue();
-    this.propertyApi.addRentReference(property.id, payload).subscribe({
+    this.propertyApi.addRentReference(property.id, this.rentQuickForm.getRawValue()).subscribe({
       next: () => {
         this.toast.success('Valor de referência atualizado.');
         this.closeQuickModal();
-        this.load();
+        this.load(false);
       },
       error: () => this.toast.error('Falha ao atualizar valor de referência.')
     });
   }
 
-  private loadQuickLookups(): void {
-    this.expenseApi.listTypes().subscribe({ next: (items) => this.expenseTypes.set(items) });
-    this.pendencyApi.listTypes().subscribe({ next: (items) => this.pendencyTypes.set(items) });
-  }
-
-  private cancelListRequest(): void {
-    if (!this.listRequestSub) {
+  submitQuickStatus(): void {
+    const property = this.selectedProperty();
+    if (!property || this.statusQuickForm.invalid) {
+      this.statusQuickForm.markAllAsTouched();
       return;
     }
 
-    this.listRequestSub.unsubscribe();
-    this.listRequestSub = null;
-    if (this.listRequestUsesSkeleton) {
-      this.isLoading.set(false);
-    }
-    this.listRequestUsesSkeleton = false;
+    this.propertyApi.updateStatus(property.id, this.statusQuickForm.getRawValue()).subscribe({
+      next: () => {
+        this.toast.success('Situação do imóvel atualizada.');
+        this.closeQuickModal();
+        this.load(false);
+      },
+      error: () => this.toast.error('Falha ao atualizar situação do imóvel.')
+    });
   }
 }
-

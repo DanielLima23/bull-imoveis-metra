@@ -1,9 +1,6 @@
-const runtimeApiUrl =
-  typeof window !== 'undefined' && typeof (window as Window & { __env?: { apiUrl?: string } }).__env?.apiUrl === 'string'
-    ? (window as Window & { __env?: { apiUrl?: string } }).__env!.apiUrl!
-    : undefined;
+import { resolveApiUrl } from '../app/core/config/runtime-environment';
 
 export const environment = {
   production: false,
-  apiUrl: runtimeApiUrl ?? 'http://localhost:5140/api'
+  apiUrl: resolveApiUrl('http://localhost:5140/api')
 };

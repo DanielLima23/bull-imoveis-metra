@@ -1,0 +1,417 @@
+<app-page-header
+  [title]="title()"
+  [subtitle]="subtitle()"
+  [breadcrumbs]="[
+    { label: 'Dashboard', route: '/app/dashboard' },
+    { label: 'Imóveis', route: '/app/imoveis' },
+    { label: title() }
+  ]"
+  actionLabel="Editar cadastro"
+  [actionRoute]="'/app/imoveis/' + propertyId() + '/edit'"
+/>
+
+<section class="tabs-row card-panel">
+  @for (tab of tabs; track tab.id) {
+    <button class="tab-btn" type="button" [class.active]="activeTab() === tab.id" (click)="changeTab(tab.id)">{{ tab.label }}</button>
+  }
+</section>
+
+@if (loading()) {
+  <section class="card-panel">
+    @for (i of [1,2,3,4]; track i) {
+      <div class="skeleton-row section-skeleton"></div>
+    }
+  </section>
+} @else if (detail(); as data) {
+  @if (activeTab() === 'resumo') {
+    <section class="cards-grid">
+      <article class="card-panel">
+        <h2>Identificação</h2>
+        <dl class="detail-grid">
+          <div><dt>Código</dt><dd>{{ data.property.code }}</dd></div>
+          <div><dt>Status</dt><dd>{{ data.property.status }}</dd></div>
+          <div><dt>Ocupação</dt><dd>{{ data.property.occupancyStatus || '-' }}</dd></div>
+          <div><dt>Estado do ativo</dt><dd>{{ data.property.assetState || '-' }}</dd></div>
+          <div><dt>Tipo</dt><dd>{{ data.property.propertyType }}</dd></div>
+          <div><dt>Valor base atual</dt><dd>{{ data.property.currentBaseRent | brlCurrency }}</dd></div>
+        </dl>
+      </article>
+
+      <article class="card-panel">
+        <h2>Administração</h2>
+        <dl class="detail-grid">
+          <div><dt>Proprietário</dt><dd>{{ data.property.administration?.proprietary || data.property.proprietary || '-' }}</dd></div>
+          <div><dt>Administrador</dt><dd>{{ data.property.administration?.administrator || data.property.administrator || '-' }}</dd></div>
+          <div><dt>Telefone</dt><dd>{{ data.property.administration?.administratorPhone || '-' }}</dd></div>
+          <div><dt>Email</dt><dd>{{ data.property.administration?.administratorEmail || '-' }}</dd></div>
+          <div><dt>Taxa adm.</dt><dd>{{ data.property.administration?.administrateTax || '-' }}</dd></div>
+          <div><dt>Advogado</dt><dd>{{ data.property.administration?.lawyer || '-' }}</dd></div>
+        </dl>
+      </article>
+
+      <article class="card-panel">
+        <h2>Documentação</h2>
+        <dl class="detail-grid">
+          <div><dt>Registro</dt><dd>{{ data.property.documentation?.registration || '-' }}</dd></div>
+          <div><dt>Escritura</dt><dd>{{ data.property.documentation?.scripture || '-' }}</dd></div>
+          <div><dt>Certidão</dt><dd>{{ data.property.documentation?.registrationCertification || '-' }}</dd></div>
+          <div><dt>Quartos</dt><dd>{{ data.property.characteristics?.numOfRooms ?? '-' }}</dd></div>
+          <div><dt>Garagem</dt><dd>{{ data.property.characteristics?.garage ? 'Sim' : 'Não' }}</dd></div>
+          <div><dt>Elevador</dt><dd>{{ data.property.characteristics?.elevator ? 'Sim' : 'Não' }}</dd></div>
+        </dl>
+      </article>
+
+      <article class="card-panel">
+        <h2>Locação atual</h2>
+        @if (data.currentLease) {
+          <dl class="detail-grid">
+            <div><dt>Locatário</dt><dd>{{ data.currentLease.tenantName }}</dd></div>
+            <div><dt>Status</dt><dd>{{ data.currentLease.status }}</dd></div>
+            <div><dt>Início</dt><dd>{{ data.currentLease.startDate | dateOnlyBr }}</dd></div>
+            <div><dt>Fim</dt><dd>{{ data.currentLease.endDate ? (data.currentLease.endDate | dateOnlyBr) : '-' }}</dd></div>
+            <div><dt>Aluguel</dt><dd>{{ data.currentLease.monthlyRent | brlCurrency }}</dd></div>
+            <div><dt>Dia do pagamento</dt><dd>{{ data.currentLease.paymentDay ?? '-' }}</dd></div>
+          </dl>
+        } @else {
+          <p class="empty-state">Nenhuma locação ativa vinculada.</p>
+        }
+      </article>
+    </section>
+
+    <section class="card-panel">
+      <h2>Pendências, visitas e manutenções</h2>
+      <div class="summary-grid">
+        <article>
+          <header><strong>Pendências abertas</strong><span>{{ data.openPendencies.length }}</span></header>
+          <ul class="simple-list">
+            @for (item of data.openPendencies; track item.id) {
+              <li>{{ item.title }} · {{ item.dueAtUtc | dateOnlyBr }}</li>
+            } @empty {
+              <li>Nenhuma pendência aberta.</li>
+            }
+          </ul>
+        </article>
+
+        <article>
+          <header><strong>Próximas visitas</strong><span>{{ data.upcomingVisits.length }}</span></header>
+          <ul class="simple-list">
+            @for (item of data.upcomingVisits; track item.id) {
+              <li>{{ item.contactName || 'Contato não informado' }} · {{ item.scheduledAtUtc | dateOnlyBr }}</li>
+            } @empty {
+              <li>Nenhuma visita futura.</li>
+            }
+          </ul>
+        </article>
+
+        <article>
+          <header><strong>Manutenções</strong><span>{{ data.maintenanceItems.length }}</span></header>
+          <ul class="simple-list">
+            @for (item of data.maintenanceItems; track item.id) {
+              <li>{{ item.title }} · {{ item.status }}</li>
+            } @empty {
+              <li>Nenhuma manutenção relacionada.</li>
+            }
+          </ul>
+        </article>
+      </div>
+    </section>
+  }
+
+  @if (activeTab() === 'financeiro') {
+    <section class="cards-grid">
+      <article class="card-panel">
+        <h2>Nova referência locativa</h2>
+        <form class="grid-form compact-form" [formGroup]="rentForm" (ngSubmit)="submitRentReference()">
+          <div class="field">
+            <label class="field__label">Valor</label>
+            <input class="input" formControlName="amount" appBrlCurrencyInput />
+          </div>
+          <div class="field">
+            <label class="field__label">Vigência</label>
+            <input class="input" formControlName="effectiveFrom" appDateBrInput />
+          </div>
+          <div class="actions">
+            <button class="btn btn-primary" type="submit">Salvar</button>
+          </div>
+        </form>
+      </article>
+
+      <article class="card-panel">
+        <h2>Contas-modelo</h2>
+        <form class="grid-form compact-form" [formGroup]="templateForm" (ngSubmit)="submitTemplate()">
+          <div class="field">
+            <label class="field__label">Tipo</label>
+            <input class="input" formControlName="kind" />
+          </div>
+          <div class="field">
+            <label class="field__label">Título</label>
+            <input class="input" formControlName="title" />
+          </div>
+          <div class="field">
+            <label class="field__label">Valor padrão</label>
+            <input class="input" formControlName="defaultAmount" appBrlCurrencyInput />
+          </div>
+          <div class="field">
+            <label class="field__label">Vencimento</label>
+            <input class="input" type="number" formControlName="dueDay" />
+          </div>
+          <div class="field">
+            <label class="field__label">Responsabilidade</label>
+            <input class="input" formControlName="defaultResponsibility" />
+          </div>
+          <div class="field">
+            <label class="field__label">Fornecedor</label>
+            <input class="input" formControlName="providerInformation" />
+          </div>
+          <div class="field field--full">
+            <label class="field__label">Observações</label>
+            <textarea class="textarea" rows="3" formControlName="notes"></textarea>
+          </div>
+          <label class="checkbox-inline field--full">
+            <input type="checkbox" formControlName="isActive" />
+            Conta-modelo ativa
+          </label>
+          <div class="actions">
+            @if (editingTemplateId()) {
+              <button class="btn btn-secondary" type="button" (click)="cancelTemplateEdit()">Cancelar edição</button>
+            }
+            <button class="btn btn-primary" type="submit">{{ editingTemplateId() ? 'Atualizar' : 'Criar' }}</button>
+          </div>
+        </form>
+      </article>
+    </section>
+
+    <section class="card-panel">
+      <div class="section-header">
+        <h2>Histórico de referências</h2>
+      </div>
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Vigência</th>
+              <th>Valor</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of rentHistory(); track item.id) {
+              <tr>
+                <td>{{ item.effectiveFrom | dateOnlyBr }}</td>
+                <td>{{ item.amount | brlCurrency }}</td>
+              </tr>
+            } @empty {
+              <tr><td colspan="2">Nenhuma referência cadastrada.</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card-panel">
+      <div class="section-header">
+        <h2>Contas-modelo cadastradas</h2>
+      </div>
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Título</th>
+              <th>Tipo</th>
+              <th>Vencimento</th>
+              <th>Valor</th>
+              <th>Status</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of chargeTemplates(); track item.id) {
+              <tr>
+                <td>{{ item.title }}</td>
+                <td>{{ item.kind || '-' }}</td>
+                <td>Dia {{ item.dueDay ?? '-' }}</td>
+                <td>{{ item.defaultAmount | brlCurrency }}</td>
+                <td>{{ item.isActive ? 'Ativa' : 'Inativa' }}</td>
+                <td><button class="btn btn-secondary" type="button" (click)="editTemplate(item)">Editar</button></td>
+              </tr>
+            } @empty {
+              <tr><td colspan="6">Nenhuma conta-modelo cadastrada.</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card-panel">
+      <div class="section-header">
+        <h2>Extrato mensal</h2>
+        <form class="statement-filter" [formGroup]="statementForm" (ngSubmit)="loadStatement()">
+          <input class="input" type="number" min="1" max="12" formControlName="month" />
+          <input class="input" type="number" min="2000" formControlName="year" />
+          <button class="btn btn-secondary" type="submit">Atualizar</button>
+        </form>
+      </div>
+
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Competência</th>
+              <th>Rótulo</th>
+              <th>Previsto</th>
+              <th>Pago</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (line of statement()?.lines ?? []; track $index) {
+              <tr>
+                <td>{{ line.competenceDate | dateOnlyBr }}</td>
+                <td>{{ line.label }}</td>
+                <td>{{ line.expectedAmount | brlCurrency }}</td>
+                <td>{{ line.paidAmount | brlCurrency }}</td>
+                <td>{{ line.status || '-' }}</td>
+              </tr>
+            } @empty {
+              <tr><td colspan="5">Nenhum lançamento no período informado.</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+  }
+
+  @if (activeTab() === 'historico') {
+    <section class="cards-grid">
+      <article class="card-panel">
+        <h2>Novo histórico</h2>
+        <form class="grid-form compact-form" [formGroup]="historyForm" (ngSubmit)="submitHistory()">
+          <div class="field field--full">
+            <label class="field__label">Descrição</label>
+            <textarea class="textarea" rows="4" formControlName="content"></textarea>
+          </div>
+          <div class="field">
+            <label class="field__label">Ocorrido em</label>
+            <input class="input" formControlName="occurredAtUtc" appDateTimeBrInput />
+          </div>
+          <div class="actions">
+            <button class="btn btn-primary" type="submit">Salvar</button>
+          </div>
+        </form>
+      </article>
+
+      <article class="card-panel">
+        <h2>Novo anexo</h2>
+        <form class="grid-form compact-form" [formGroup]="attachmentForm" (ngSubmit)="submitAttachment()">
+          <div class="field">
+            <label class="field__label">Categoria</label>
+            <input class="input" formControlName="category" />
+          </div>
+          <div class="field">
+            <label class="field__label">Título</label>
+            <input class="input" formControlName="title" />
+          </div>
+          <div class="field field--full">
+            <label class="field__label">URL / Localização</label>
+            <input class="input" formControlName="resourceLocation" />
+          </div>
+          <div class="field">
+            <label class="field__label">Data de referência</label>
+            <input class="input" formControlName="referenceDateUtc" appDateTimeBrInput />
+          </div>
+          <div class="field field--full">
+            <label class="field__label">Observações</label>
+            <textarea class="textarea" rows="3" formControlName="notes"></textarea>
+          </div>
+          <div class="actions">
+            <button class="btn btn-primary" type="submit">Salvar</button>
+          </div>
+        </form>
+      </article>
+    </section>
+
+    <section class="card-panel">
+      <h2>Entradas de histórico</h2>
+      <ul class="timeline">
+        @for (item of historyEntries(); track item.id) {
+          <li>
+            <strong>{{ item.occurredAtUtc | dateOnlyBr }}</strong>
+            <p>{{ item.content }}</p>
+          </li>
+        } @empty {
+          <li>Nenhum histórico cadastrado.</li>
+        }
+      </ul>
+    </section>
+
+    <section class="card-panel">
+      <h2>Anexos</h2>
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Título</th>
+              <th>Categoria</th>
+              <th>Referência</th>
+              <th>Link</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of attachments(); track item.id) {
+              <tr>
+                <td>{{ item.title }}</td>
+                <td>{{ item.category || '-' }}</td>
+                <td>{{ item.referenceDateUtc ? (item.referenceDateUtc | dateOnlyBr) : '-' }}</td>
+                <td><a [href]="item.resourceLocation || '#'" target="_blank" rel="noreferrer">Abrir</a></td>
+              </tr>
+            } @empty {
+              <tr><td colspan="4">Nenhum anexo cadastrado.</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+  }
+
+  @if (activeTab() === 'locacoes') {
+    <section class="card-panel">
+      <div class="section-header">
+        <h2>Histórico de locações</h2>
+        <button class="btn btn-primary" type="button" (click)="newLease()">Nova locação</button>
+      </div>
+
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Locatário</th>
+              <th>Período</th>
+              <th>Aluguel</th>
+              <th>Status</th>
+              <th>Pagamento</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of leaseHistory(); track item.id) {
+              <tr>
+                <td>{{ item.tenantName }}</td>
+                <td>{{ item.startDate | dateOnlyBr }} - {{ item.endDate ? (item.endDate | dateOnlyBr) : 'Em aberto' }}</td>
+                <td>{{ item.monthlyRent | brlCurrency }}</td>
+                <td>{{ item.status }}</td>
+                <td>Dia {{ item.paymentDay ?? '-' }}</td>
+                <td class="row-actions">
+                  <button class="btn btn-secondary" type="button" (click)="editLease(item.id)">Editar</button>
+                  @if (item.status === 'ACTIVE') {
+                    <button class="btn btn-secondary" type="button" (click)="closeLease(item.id)">Encerrar hoje</button>
+                  }
+                </td>
+              </tr>
+            } @empty {
+              <tr><td colspan="6">Nenhuma locação vinculada.</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+  }
+}

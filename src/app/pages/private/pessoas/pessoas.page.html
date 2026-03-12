@@ -1,0 +1,89 @@
+<app-page-header
+  title="Pessoas"
+  subtitle="Cadastro genérico para proprietários, administradores, fiadores e demais partes"
+  [breadcrumbs]="[{ label: 'Dashboard', route: '/app/dashboard' }, { label: 'Pessoas' }]"
+  actionLabel="Adicionar nova"
+  actionRoute="/app/pessoas/new"
+/>
+
+<section class="card-panel">
+  <div class="list-toolbar list-toolbar--stack">
+    <h2>Listagem</h2>
+    <div class="filters">
+      <label class="toolbar-field">
+        <span class="toolbar-label">Buscar</span>
+        <input class="input search" [value]="search()" (input)="onSearchInput(($any($event.target)).value)" placeholder="Nome, documento, email ou telefone" />
+      </label>
+
+      <label class="toolbar-field">
+        <span class="toolbar-label">Tipo</span>
+        <input class="input" [value]="kind()" (input)="onKindInput(($any($event.target)).value)" placeholder="Ex.: OWNER, ADMINISTRATOR" />
+      </label>
+
+      <label class="toolbar-field toolbar-field--compact">
+        <span class="toolbar-label">Status</span>
+        <select class="select" [value]="activeFilter()" (change)="onActiveChange(($any($event.target)).value)">
+          <option value="all">Todos</option>
+          <option value="active">Ativos</option>
+          <option value="inactive">Inativos</option>
+        </select>
+      </label>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Nome</th>
+          <th>Tipo</th>
+          <th>Documento</th>
+          <th>Email</th>
+          <th>Telefone</th>
+          <th>Status</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (isLoading()) {
+          @for (i of [1,2,3,4,5]; track i) {
+            <tr>
+              <td colspan="7"><div class="skeleton-row"></div></td>
+            </tr>
+          }
+        } @else {
+          @for (item of items(); track item.id) {
+            <tr>
+              <td>{{ item.name || '-' }}</td>
+              <td>{{ item.kind || '-' }}</td>
+              <td>{{ item.documentNumber | cpfCnpj }}</td>
+              <td>{{ item.email || '-' }}</td>
+              <td>{{ item.phone | phoneBr }}</td>
+              <td><span class="status" [class.off]="!item.isActive">{{ item.isActive ? 'Ativa' : 'Inativa' }}</span></td>
+              <td class="actions-col">
+                <button class="btn btn-secondary" type="button" (click)="toggleRowMenu($event, item.id)">...</button>
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <app-table-pagination
+    [page]="page()"
+    [pageSize]="pageSize()"
+    [totalItems]="totalItems()"
+    [totalPages]="totalPages()"
+    [loading]="isLoading()"
+    (pageChange)="onPageChange($event)"
+    (pageSizeChange)="onPageSizeChange($event)"
+  />
+</section>
+
+@if (activeMenuItem(); as item) {
+  <button class="menu-overlay" type="button" (click)="closeRowMenu()" aria-label="Fechar menu de ações"></button>
+  <div class="menu-popover menu-popover--floating" [style.left.px]="menuPosition().x" [style.top.px]="menuPosition().y">
+    <a [routerLink]="['/app/pessoas', item.id, 'edit']" (click)="closeRowMenu()">Editar cadastro</a>
+  </div>
+}

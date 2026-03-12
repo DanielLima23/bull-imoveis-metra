@@ -1,10 +1,10 @@
-﻿<app-page-header title="Relatórios" subtitle="Exportação CSV personalizada" [breadcrumbs]="[{ label: 'Dashboard', route: '/app/dashboard' }, { label: 'Relatórios' }]" />
+<app-page-header title="Relatórios" subtitle="Catálogo dinâmico de exportações do Swagger" [breadcrumbs]="[{ label: 'Dashboard', route: '/app/dashboard' }, { label: 'Relatórios' }]" />
 
 <section class="card-panel">
-  <h2>Filtros</h2>
+  <h2>Parâmetros padrão</h2>
   <form [formGroup]="form" class="filters">
     <label class="field">
-      <span class="field__label">Mes</span>
+      <span class="field__label">Mês</span>
       <input class="input" type="number" min="1" max="12" formControlName="month" />
     </label>
     <label class="field">
@@ -12,11 +12,36 @@
       <input class="input" type="number" min="2000" max="2100" formControlName="year" />
     </label>
   </form>
-
-  <div class="actions">
-    <button class="btn btn-primary" type="button" (click)="downloadFinancial()">Financeiro (CSV)</button>
-    <button class="btn btn-secondary" type="button" (click)="downloadVacancy()">Vacancia (CSV)</button>
-    <button class="btn btn-secondary" type="button" (click)="downloadPendencies()">Pendências (CSV)</button>
-  </div>
 </section>
 
+<section class="reports-grid">
+  @if (loading()) {
+    @for (i of [1,2,3]; track i) {
+      <article class="card-panel">
+        <div class="skeleton-row card-skeleton"></div>
+        <div class="skeleton-row card-skeleton"></div>
+      </article>
+    }
+  } @else {
+    @for (report of normalizedCatalog(); track report.slug) {
+      <article class="card-panel report-card">
+        <div class="report-card__meta">
+          <h2>{{ report.name }}</h2>
+          <p>{{ report.description }}</p>
+        </div>
+        <div class="report-tags">
+          @if (report.requiresMonth) {
+            <span>Mês</span>
+          }
+          @if (report.requiresYear) {
+            <span>Ano</span>
+          }
+          @if (!report.requiresMonth && !report.requiresYear) {
+            <span>Sem parâmetros</span>
+          }
+        </div>
+        <button class="btn btn-primary" type="button" (click)="download(report)">Baixar CSV</button>
+      </article>
+    }
+  }
+</section>

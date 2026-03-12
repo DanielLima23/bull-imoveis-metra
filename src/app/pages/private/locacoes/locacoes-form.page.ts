@@ -1,4 +1,4 @@
-﻿import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Observable, catchError, map, of } from 'rxjs';
@@ -14,14 +14,25 @@ import { PropertyApiService } from '../../../core/services/property-api.service'
 import { TenantApiService } from '../../../core/services/tenant-api.service';
 import { BrlCurrencyInputDirective } from '../../../shared/directives/brl-currency-input.directive';
 import { DateBrInputDirective } from '../../../shared/directives/date-br-input.directive';
+import { CpfCnpjInputDirective } from '../../../shared/directives/cpf-cnpj-input.directive';
+import { PhoneBrInputDirective } from '../../../shared/directives/phone-br-input.directive';
 import { SelectOption } from '../../../shared/models/select-option.model';
 import { ToastService } from '../../../shared/services/toast.service';
+import { normalizeDocument, normalizePhone } from '../../../shared/utils/format.util';
 import { toPropertySelectOption, toTenantSelectOption } from '../../../shared/utils/select-option.util';
 
 @Component({
   selector: 'app-locacoes-form-page',
   standalone: true,
-  imports: [ReactiveFormsModule, PageHeaderComponent, BrlCurrencyInputDirective, DateBrInputDirective, AsyncSearchSelectComponent],
+  imports: [
+    ReactiveFormsModule,
+    PageHeaderComponent,
+    BrlCurrencyInputDirective,
+    DateBrInputDirective,
+    AsyncSearchSelectComponent,
+    CpfCnpjInputDirective,
+    PhoneBrInputDirective
+  ],
   templateUrl: './locacoes-form.page.html',
   styleUrl: './locacoes-form.page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -49,7 +60,7 @@ export class LocacoesFormPage implements OnInit {
 
   readonly propertySelectFetchPage: AsyncSelectFetchPage = (query) =>
     this.propertyApi
-      .list(query.search, '', query.page, query.pageSize, { silent: true })
+      .list({ search: query.search, page: query.page, pageSize: query.pageSize }, { silent: true })
       .pipe(map((result) => this.mapOptionsResult(result, toPropertySelectOption)));
 
   readonly propertySelectFetchById: AsyncSelectFetchById = (id) =>
@@ -77,6 +88,18 @@ export class LocacoesFormPage implements OnInit {
     monthlyRent: [0, [Validators.required, Validators.min(1)]],
     depositAmount: [0],
     status: ['ACTIVE', Validators.required],
+    contractWith: [''],
+    paymentDay: [5],
+    paymentLocation: [''],
+    readjustmentIndex: [''],
+    contractRegistration: [''],
+    insurance: [''],
+    signatureRecognition: [''],
+    optionalContactName: [''],
+    optionalContactPhone: [''],
+    guarantorName: [''],
+    guarantorDocument: [''],
+    guarantorPhone: [''],
     notes: ['']
   });
 
@@ -112,6 +135,18 @@ export class LocacoesFormPage implements OnInit {
           monthlyRent: item.monthlyRent,
           depositAmount: item.depositAmount ?? 0,
           status: item.status,
+          contractWith: item.contractWith ?? '',
+          paymentDay: item.paymentDay ?? 5,
+          paymentLocation: item.paymentLocation ?? '',
+          readjustmentIndex: item.readjustmentIndex ?? '',
+          contractRegistration: item.contractRegistration ?? '',
+          insurance: item.insurance ?? '',
+          signatureRecognition: item.signatureRecognition ?? '',
+          optionalContactName: item.optionalContactName ?? '',
+          optionalContactPhone: item.optionalContactPhone ?? '',
+          guarantorName: item.guarantorName ?? '',
+          guarantorDocument: item.guarantorDocument ?? '',
+          guarantorPhone: item.guarantorPhone ?? '',
           notes: item.notes ?? ''
         });
 
@@ -131,17 +166,32 @@ export class LocacoesFormPage implements OnInit {
     this.submitting.set(true);
     const id = this.id();
     const payload = this.form.getRawValue();
+    const basePayload = {
+      startDate: payload.startDate,
+      endDate: payload.endDate || undefined,
+      monthlyRent: payload.monthlyRent,
+      depositAmount: payload.depositAmount || undefined,
+      contractWith: payload.contractWith || undefined,
+      paymentDay: payload.paymentDay || undefined,
+      paymentLocation: payload.paymentLocation || undefined,
+      readjustmentIndex: payload.readjustmentIndex || undefined,
+      contractRegistration: payload.contractRegistration || undefined,
+      insurance: payload.insurance || undefined,
+      signatureRecognition: payload.signatureRecognition || undefined,
+      optionalContactName: payload.optionalContactName || undefined,
+      optionalContactPhone: normalizePhone(payload.optionalContactPhone) || undefined,
+      guarantorName: payload.guarantorName || undefined,
+      guarantorDocument: normalizeDocument(payload.guarantorDocument) || undefined,
+      guarantorPhone: normalizePhone(payload.guarantorPhone) || undefined,
+      notes: payload.notes || undefined
+    };
 
     if (!id) {
       this.leaseApi
         .create({
+          ...basePayload,
           propertyId: payload.propertyId,
-          tenantId: payload.tenantId,
-          startDate: payload.startDate,
-          endDate: payload.endDate || undefined,
-          monthlyRent: payload.monthlyRent,
-          depositAmount: payload.depositAmount || undefined,
-          notes: payload.notes || undefined
+          tenantId: payload.tenantId
         })
         .subscribe({
           next: () => this.handleSuccess('Locação criada com sucesso.'),
@@ -152,12 +202,8 @@ export class LocacoesFormPage implements OnInit {
 
     this.leaseApi
       .update(id, {
-        startDate: payload.startDate,
-        endDate: payload.endDate || undefined,
-        monthlyRent: payload.monthlyRent,
-        depositAmount: payload.depositAmount || undefined,
-        status: payload.status,
-        notes: payload.notes || undefined
+        ...basePayload,
+        status: payload.status
       })
       .subscribe({
         next: () => this.handleSuccess('Locação atualizada com sucesso.'),
@@ -180,18 +226,17 @@ export class LocacoesFormPage implements OnInit {
       return;
     }
 
-    const payload = this.form.getRawValue();
     const queryParams: Record<string, string> = {
       returnTo: '/app/locacoes/new'
     };
 
-    if (payload.propertyId) {
-      queryParams['propertyId'] = payload.propertyId;
+    if (this.form.getRawValue().propertyId) {
+      queryParams['propertyId'] = this.form.getRawValue().propertyId;
     }
 
-    const leaseReturnTo = this.returnTo();
-    if (leaseReturnTo) {
-      queryParams['leaseReturnTo'] = leaseReturnTo;
+    const returnTo = this.returnTo();
+    if (returnTo) {
+      queryParams['leaseReturnTo'] = returnTo;
     }
 
     void this.router.navigate(['/app/locatarios/new'], { queryParams });
@@ -230,4 +275,3 @@ export class LocacoesFormPage implements OnInit {
     };
   }
 }
-

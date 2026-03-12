@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import { SystemSettingsDto, SystemSettingsUpdateRequest, ThemePresetKey } from '../../../core/models/domain.model';
 import { AuthService } from '../../../core/services/auth.service';
@@ -18,7 +19,7 @@ const DEFAULT_SETTINGS: SystemSettingsUpdateRequest = {
 @Component({
   selector: 'app-configuracoes-page',
   standalone: true,
-  imports: [PageHeaderComponent, ReactiveFormsModule],
+  imports: [PageHeaderComponent, ReactiveFormsModule, RouterLink],
   templateUrl: './configuracoes.page.html',
   styleUrl: './configuracoes.page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush

@@ -1,9 +1,6 @@
-const runtimeApiUrl =
-  typeof window !== 'undefined' && typeof (window as Window & { __env?: { apiUrl?: string } }).__env?.apiUrl === 'string'
-    ? (window as Window & { __env?: { apiUrl?: string } }).__env!.apiUrl!
-    : undefined;
+import { resolveApiUrl } from '../app/core/config/runtime-environment';
 
 export const environment = {
   production: true,
-  apiUrl: runtimeApiUrl ?? 'https://api.example.com/api'
+  apiUrl: resolveApiUrl('https://api.imoveis-metra.dw-softwares.com.br/api')
 };

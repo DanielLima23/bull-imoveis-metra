@@ -7,6 +7,7 @@ type MenuIcon =
   | 'dashboard'
   | 'imoveis'
   | 'locatarios'
+  | 'pessoas'
   | 'locacoes'
   | 'despesas'
   | 'pendencias'
@@ -44,6 +45,7 @@ export class PrivateLayoutComponent {
     { label: 'Dashboard', route: '/app/dashboard', icon: 'dashboard' },
     { label: 'Imóveis', route: '/app/imoveis', icon: 'imoveis' },
     { label: 'Locatários', route: '/app/locatarios', icon: 'locatarios' },
+    { label: 'Pessoas', route: '/app/pessoas', icon: 'pessoas' },
     { label: 'Locações', route: '/app/locacoes', icon: 'locacoes' },
     { label: 'Contas', route: '/app/despesas', icon: 'despesas' },
     { label: 'Pendências', route: '/app/pendencias', icon: 'pendencias' },

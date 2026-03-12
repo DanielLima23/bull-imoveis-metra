@@ -1,35 +1,62 @@
-﻿import { Injectable } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { HttpApiService } from './http-api.service';
 import { LeaseDto, PagedResult } from '../models/domain.model';
 
-export interface LeasePayload {
-  propertyId: string;
-  tenantId: string;
+export interface LeasePayloadBase {
   startDate: string;
   endDate?: string;
   monthlyRent: number;
   depositAmount?: number;
+  contractWith?: string;
+  paymentDay?: number;
+  paymentLocation?: string;
+  readjustmentIndex?: string;
+  contractRegistration?: string;
+  insurance?: string;
+  signatureRecognition?: string;
+  optionalContactName?: string;
+  optionalContactPhone?: string;
+  guarantorName?: string;
+  guarantorDocument?: string;
+  guarantorPhone?: string;
   notes?: string;
+}
+
+export interface LeaseCreatePayload extends LeasePayloadBase {
+  propertyId: string;
+  tenantId: string;
+}
+
+export interface LeaseUpdatePayload extends LeasePayloadBase {
+  status: string;
+}
+
+export interface LeaseListFilters extends Record<string, string | number | boolean | undefined> {
+  propertyId?: string;
+  tenantId?: string;
+  status?: string;
+  page?: number;
+  pageSize?: number;
 }
 
 @Injectable({ providedIn: 'root' })
 export class LeaseApiService {
   constructor(private readonly api: HttpApiService) {}
 
-  list(page = 1, pageSize = 80, propertyId = '', tenantId = '', status = ''): Observable<PagedResult<LeaseDto>> {
-    return this.api.get<PagedResult<LeaseDto>>('/locacoes', { page, pageSize, propertyId, tenantId, status });
+  list(filters: LeaseListFilters = {}): Observable<PagedResult<LeaseDto>> {
+    return this.api.get<PagedResult<LeaseDto>>('/locacoes', filters);
   }
 
   getById(id: string): Observable<LeaseDto> {
     return this.api.get<LeaseDto>(`/locacoes/${id}`);
   }
 
-  create(payload: LeasePayload): Observable<LeaseDto> {
+  create(payload: LeaseCreatePayload): Observable<LeaseDto> {
     return this.api.post<LeaseDto>('/locacoes', payload);
   }
 
-  update(id: string, payload: Omit<LeasePayload, 'propertyId' | 'tenantId'> & { status: string }): Observable<LeaseDto> {
+  update(id: string, payload: LeaseUpdatePayload): Observable<LeaseDto> {
     return this.api.put<LeaseDto>(`/locacoes/${id}`, payload);
   }
 

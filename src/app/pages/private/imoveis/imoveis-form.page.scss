@@ -1,3 +1,15 @@
+.property-form {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.section-title {
+  margin-top: 0.6rem;
+}
+
+.section-title h2 {
+  font-size: 1rem;
+}
+
 .zip-row {
   display: grid;
   grid-template-columns: 1fr auto;
@@ -34,31 +46,8 @@
   color: #a42020;
 }
 
-.auto-legend {
-  grid-column: 1 / -1;
-  margin: -0.2rem 0 0.1rem;
-  font-size: 0.76rem;
-  color: #5f6f86;
-  border-left: 3px solid #8aa2c3;
-  padding-left: 0.45rem;
-}
-
 .auto-filled:disabled {
   font-weight: 600;
-}
-
-.input.ng-invalid.ng-touched:not(:disabled),
-.select.ng-invalid.ng-touched:not(:disabled),
-.textarea.ng-invalid.ng-touched:not(:disabled) {
-  border-color: #ca4040;
-  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.15);
-  background: #fff7f7;
-}
-
-.invalid-submit .input.ng-invalid.ng-touched:not(:disabled),
-.invalid-submit .select.ng-invalid.ng-touched:not(:disabled),
-.invalid-submit .textarea.ng-invalid.ng-touched:not(:disabled) {
-  animation: field-shake 280ms ease-in-out;
 }
 
 .spinner {
@@ -80,31 +69,12 @@
   }
 }
 
-@keyframes field-shake {
-  0% {
-    transform: translateX(0);
+@media (max-width: 960px) {
+  .property-form {
+    grid-template-columns: 1fr;
   }
 
-  25% {
-    transform: translateX(-4px);
-  }
-
-  50% {
-    transform: translateX(4px);
-  }
-
-  75% {
-    transform: translateX(-2px);
-  }
-
-  100% {
-    transform: translateX(0);
-  }
-}
-
-@media (max-width: 760px) {
   .zip-row {
-    grid-column: 1 / -1;
     grid-template-columns: 1fr;
   }
 }

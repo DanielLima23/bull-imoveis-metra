@@ -1,18 +1,30 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { ExpenseDto, ExpenseTypeDto } from '../../../core/models/domain.model';
+import { ExpenseApiService } from '../../../core/services/expense-api.service';
+import { AsyncSearchSelectComponent } from '../../../shared/components/async-search-select/async-search-select.component';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { TablePaginationComponent } from '../../../shared/components/table-pagination/table-pagination.component';
-import { ExpenseApiService } from '../../../core/services/expense-api.service';
-import { ExpenseDto, ExpenseTypeDto } from '../../../core/models/domain.model';
-import { ToastService } from '../../../shared/services/toast.service';
-import { BrlCurrencyPipe } from '../../../shared/pipes/brl-currency.pipe';
+import { BrlCurrencyInputDirective } from '../../../shared/directives/brl-currency-input.directive';
 import { DateOnlyBrPipe } from '../../../shared/pipes/date-only-br.pipe';
+import { BrlCurrencyPipe } from '../../../shared/pipes/brl-currency.pipe';
+import { ToastService } from '../../../shared/services/toast.service';
+import { getFloatingMenuPosition } from '../../../shared/utils/floating-menu.util';
 
 @Component({
   selector: 'app-despesas-page',
   standalone: true,
-  imports: [ReactiveFormsModule, PageHeaderComponent, TablePaginationComponent, BrlCurrencyPipe, DateOnlyBrPipe, RouterLink],
+  imports: [
+    ReactiveFormsModule,
+    PageHeaderComponent,
+    TablePaginationComponent,
+    BrlCurrencyPipe,
+    DateOnlyBrPipe,
+    RouterLink,
+    AsyncSearchSelectComponent,
+    BrlCurrencyInputDirective
+  ],
   templateUrl: './despesas.page.html',
   styleUrl: './despesas.page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -24,22 +36,42 @@ export class DespesasPage implements OnInit {
 
   readonly isLoading = signal(false);
   readonly items = signal<ExpenseDto[]>([]);
+  readonly overdueItems = signal<ExpenseDto[]>([]);
   readonly types = signal<ExpenseTypeDto[]>([]);
   readonly search = signal('');
+  readonly typeFilter = signal('');
+  readonly statusFilter = signal('');
   readonly page = signal(1);
   readonly pageSize = signal(10);
   readonly totalItems = signal(0);
   readonly totalPages = signal(1);
   readonly activeMenuId = signal<string | null>(null);
   readonly menuPosition = signal({ x: 0, y: 0 });
-
   readonly showTypeForm = signal(false);
-  readonly typeSubmitting = signal(false);
+  readonly editingTypeId = signal<string | null>(null);
+  readonly payingExpense = signal<ExpenseDto | null>(null);
+
+  readonly typeOptions = computed(() =>
+    [{ id: '', label: 'Todos' }, ...this.types().map((item) => ({ id: item.id, label: item.name }))]
+  );
+  readonly statusOptions = [
+    { id: '', label: 'Todos' },
+    { id: 'PENDING', label: 'Pendente' },
+    { id: 'PAID', label: 'Paga' },
+    { id: 'CANCELED', label: 'Cancelada' }
+  ];
 
   readonly typeForm = this.fb.nonNullable.group({
     name: ['', Validators.required],
     category: ['', Validators.required],
     isFixedCost: [true]
+  });
+
+  readonly paymentForm = this.fb.nonNullable.group({
+    paidAmount: [0, [Validators.required, Validators.min(0.01)]],
+    paidAtUtc: [new Date().toISOString().slice(0, 16), Validators.required],
+    paidBy: [''],
+    notes: ['']
   });
 
   readonly filtered = computed(() => {
@@ -53,37 +85,49 @@ export class DespesasPage implements OnInit {
     );
   });
 
-  readonly activeMenuItem = computed(() => {
-    const id = this.activeMenuId();
-    if (!id) {
-      return null;
-    }
-
-    return this.items().find((item) => item.id === id) ?? null;
-  });
+  readonly activeMenuItem = computed(() => this.items().find((item) => item.id === this.activeMenuId()) ?? null);
 
   ngOnInit(): void {
     this.loadTypes();
     this.loadExpenses();
+    this.loadOverdue();
   }
 
   loadExpenses(): void {
     this.isLoading.set(true);
-    this.expenseApi.list(this.page(), this.pageSize()).subscribe({
-      next: (result) => {
-        this.items.set(result.items);
-        this.page.set(result.page);
-        this.pageSize.set(result.pageSize);
-        this.totalItems.set(result.totalItems);
-        this.totalPages.set(result.totalPages);
-        this.activeMenuId.set(null);
-        this.isLoading.set(false);
-      },
-      error: () => {
-        this.toast.error('Falha ao carregar despesas.');
-        this.isLoading.set(false);
-      }
+    this.expenseApi
+      .list({
+        expenseTypeId: this.typeFilter() || undefined,
+        status: this.statusFilter() || undefined,
+        page: this.page(),
+        pageSize: this.pageSize()
+      })
+      .subscribe({
+        next: (result) => {
+          this.items.set(result.items);
+          this.page.set(result.page);
+          this.pageSize.set(result.pageSize);
+          this.totalItems.set(result.totalItems);
+          this.totalPages.set(result.totalPages);
+          this.activeMenuId.set(null);
+          this.isLoading.set(false);
+        },
+        error: () => {
+          this.toast.error('Falha ao carregar despesas.');
+          this.isLoading.set(false);
+        }
+      });
+  }
+
+  loadOverdue(): void {
+    this.expenseApi.listOverdue().subscribe({
+      next: (items) => this.overdueItems.set(items),
+      error: () => undefined
     });
+  }
+
+  loadTypes(): void {
+    this.expenseApi.listTypes().subscribe({ next: (types) => this.types.set(types) });
   }
 
   onPageChange(page: number): void {
@@ -105,6 +149,18 @@ export class DespesasPage implements OnInit {
     this.loadExpenses();
   }
 
+  onTypeChange(value: string): void {
+    this.typeFilter.set(value);
+    this.page.set(1);
+    this.loadExpenses();
+  }
+
+  onStatusChange(value: string): void {
+    this.statusFilter.set(value);
+    this.page.set(1);
+    this.loadExpenses();
+  }
+
   toggleRowMenu(event: MouseEvent, id: string): void {
     if (this.activeMenuId() === id) {
       this.closeRowMenu();
@@ -116,19 +172,7 @@ export class DespesasPage implements OnInit {
       return;
     }
 
-    const rect = trigger.getBoundingClientRect();
-    const menuWidth = 230;
-    const menuHeight = 150;
-
-    let x = rect.right - menuWidth;
-    x = Math.max(12, Math.min(x, window.innerWidth - menuWidth - 12));
-
-    let y = rect.bottom + 8;
-    if (y + menuHeight > window.innerHeight - 12) {
-      y = Math.max(12, rect.top - menuHeight - 8);
-    }
-
-    this.menuPosition.set({ x, y });
+    this.menuPosition.set(getFloatingMenuPosition(trigger, 230, 150));
     this.activeMenuId.set(id);
   }
 
@@ -136,45 +180,78 @@ export class DespesasPage implements OnInit {
     this.activeMenuId.set(null);
   }
 
-  loadTypes(): void {
-    this.expenseApi.listTypes().subscribe({ next: (types) => this.types.set(types) });
-  }
-
   toggleTypeForm(): void {
     this.showTypeForm.update((current) => !current);
+    if (!this.showTypeForm()) {
+      this.cancelTypeEdit();
+    }
   }
 
-  createType(): void {
-    if (this.typeForm.invalid || this.typeSubmitting()) {
+  editType(item: ExpenseTypeDto): void {
+    this.showTypeForm.set(true);
+    this.editingTypeId.set(item.id);
+    this.typeForm.reset({
+      name: item.name,
+      category: item.category,
+      isFixedCost: item.isFixedCost
+    });
+  }
+
+  cancelTypeEdit(): void {
+    this.editingTypeId.set(null);
+    this.typeForm.reset({ name: '', category: '', isFixedCost: true });
+  }
+
+  saveType(): void {
+    if (this.typeForm.invalid) {
       this.typeForm.markAllAsTouched();
       return;
     }
 
-    this.typeSubmitting.set(true);
-    this.expenseApi.createType(this.typeForm.getRawValue()).subscribe({
+    const id = this.editingTypeId();
+    const request$ = id ? this.expenseApi.updateType(id, this.typeForm.getRawValue()) : this.expenseApi.createType(this.typeForm.getRawValue());
+
+    request$.subscribe({
       next: () => {
-        this.typeSubmitting.set(false);
-        this.typeForm.reset({ name: '', category: '', isFixedCost: true });
+        this.toast.success(id ? 'Tipo de despesa atualizado.' : 'Tipo de despesa criado.');
+        this.cancelTypeEdit();
         this.showTypeForm.set(false);
-        this.toast.success('Tipo de despesa criado.');
         this.loadTypes();
       },
-      error: () => {
-        this.typeSubmitting.set(false);
-        this.toast.error('Falha ao criar tipo de despesa.');
-      }
+      error: () => this.toast.error('Falha ao salvar tipo de despesa.')
     });
   }
 
-  pay(item: ExpenseDto): void {
-    this.expenseApi.markPaid(item.id).subscribe({
+  openPaymentModal(item: ExpenseDto): void {
+    this.payingExpense.set(item);
+    this.paymentForm.reset({
+      paidAmount: item.totalAmount,
+      paidAtUtc: new Date().toISOString().slice(0, 16),
+      paidBy: '',
+      notes: ''
+    });
+    this.activeMenuId.set(null);
+  }
+
+  closePaymentModal(): void {
+    this.payingExpense.set(null);
+  }
+
+  submitPayment(): void {
+    const expense = this.payingExpense();
+    if (!expense || this.paymentForm.invalid) {
+      this.paymentForm.markAllAsTouched();
+      return;
+    }
+
+    this.expenseApi.markPaid(expense.id, this.paymentForm.getRawValue()).subscribe({
       next: () => {
-        this.toast.success('Despesa marcada como paga.');
-        this.activeMenuId.set(null);
+        this.toast.success('Pagamento registrado.');
+        this.closePaymentModal();
         this.loadExpenses();
+        this.loadOverdue();
       },
-      error: () => this.toast.error('Falha ao atualizar despesa.')
+      error: () => this.toast.error('Falha ao registrar pagamento.')
     });
   }
 }
-

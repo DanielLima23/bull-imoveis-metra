@@ -1,4 +1,4 @@
-﻿import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, map, of } from 'rxjs';
@@ -7,12 +7,12 @@ import {
   AsyncSelectFetchById,
   AsyncSelectFetchPage
 } from '../../../shared/components/async-search-select/async-search-select.component';
-import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { ExpenseTypeDto, PagedResult, PropertyDto } from '../../../core/models/domain.model';
 import { ExpenseApiService } from '../../../core/services/expense-api.service';
 import { PropertyApiService } from '../../../core/services/property-api.service';
 import { BrlCurrencyInputDirective } from '../../../shared/directives/brl-currency-input.directive';
 import { DateBrInputDirective } from '../../../shared/directives/date-br-input.directive';
+import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { SelectOption } from '../../../shared/models/select-option.model';
 import { ToastService } from '../../../shared/services/toast.service';
 import { toPropertySelectOption } from '../../../shared/utils/select-option.util';
@@ -37,12 +37,7 @@ export class DespesasFormPage implements OnInit {
   readonly isEdit = computed(() => !!this.id());
   readonly submitting = signal(false);
   readonly types = signal<ExpenseTypeDto[]>([]);
-  readonly expenseTypeOptions = computed<SelectOption[]>(() =>
-    this.types().map((item) => ({
-      id: item.id,
-      label: item.name
-    }))
-  );
+  readonly expenseTypeOptions = computed<SelectOption[]>(() => this.types().map((item) => ({ id: item.id, label: item.name })));
   readonly frequencyOptions: SelectOption[] = [
     { id: 'ONE_TIME', label: 'Eventual' },
     { id: 'MONTHLY', label: 'Mensal' },
@@ -56,7 +51,7 @@ export class DespesasFormPage implements OnInit {
 
   readonly propertySelectFetchPage: AsyncSelectFetchPage = (query) =>
     this.propertyApi
-      .list(query.search, '', query.page, query.pageSize, { silent: true })
+      .list({ search: query.search, page: query.page, pageSize: query.pageSize }, { silent: true })
       .pipe(map((result) => this.mapOptionsResult(result)));
 
   readonly propertySelectFetchById: AsyncSelectFetchById = (id) =>
@@ -147,8 +142,6 @@ export class DespesasFormPage implements OnInit {
 
     this.expenseApi
       .update(id, {
-        propertyId: payload.propertyId,
-        expenseTypeId: payload.expenseTypeId,
         description: payload.description,
         frequency: payload.frequency,
         dueDate: payload.dueDate,
@@ -187,4 +180,3 @@ export class DespesasFormPage implements OnInit {
     };
   }
 }
-

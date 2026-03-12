@@ -18,12 +18,17 @@ export const PRIVATE_ROUTES: Routes = [
 
       { path: 'imoveis', canActivate: [roleGuard], data: rolesData, loadComponent: () => import('./imoveis/imoveis.page').then((m) => m.ImoveisPage) },
       { path: 'imoveis/new', canActivate: [roleGuard], data: rolesData, loadComponent: () => import('./imoveis/imoveis-form.page').then((m) => m.ImoveisFormPage) },
+      { path: 'imoveis/:id', canActivate: [roleGuard], data: rolesData, loadComponent: () => import('./imoveis/imoveis-detail.page').then((m) => m.ImoveisDetailPage) },
       { path: 'imoveis/:id/edit', canActivate: [roleGuard], data: rolesData, loadComponent: () => import('./imoveis/imoveis-form.page').then((m) => m.ImoveisFormPage) },
       { path: 'imoveis/:id/locatarios', canActivate: [roleGuard], data: rolesData, loadComponent: () => import('./imoveis/imoveis-locatarios.page').then((m) => m.ImoveisLocatariosPage) },
 
       { path: 'locatarios', canActivate: [roleGuard], data: rolesData, loadComponent: () => import('./locatarios/locatarios.page').then((m) => m.LocatariosPage) },
       { path: 'locatarios/new', canActivate: [roleGuard], data: rolesData, loadComponent: () => import('./locatarios/locatarios-form.page').then((m) => m.LocatariosFormPage) },
       { path: 'locatarios/:id/edit', canActivate: [roleGuard], data: rolesData, loadComponent: () => import('./locatarios/locatarios-form.page').then((m) => m.LocatariosFormPage) },
+
+      { path: 'pessoas', canActivate: [roleGuard], data: rolesData, loadComponent: () => import('./pessoas/pessoas.page').then((m) => m.PessoasPage) },
+      { path: 'pessoas/new', canActivate: [roleGuard], data: rolesData, loadComponent: () => import('./pessoas/pessoas-form.page').then((m) => m.PessoasFormPage) },
+      { path: 'pessoas/:id/edit', canActivate: [roleGuard], data: rolesData, loadComponent: () => import('./pessoas/pessoas-form.page').then((m) => m.PessoasFormPage) },
 
       { path: 'locacoes', canActivate: [roleGuard], data: rolesData, loadComponent: () => import('./locacoes/locacoes.page').then((m) => m.LocacoesPage) },
       { path: 'locacoes/new', canActivate: [roleGuard], data: rolesData, loadComponent: () => import('./locacoes/locacoes-form.page').then((m) => m.LocacoesFormPage) },
@@ -47,6 +52,12 @@ export const PRIVATE_ROUTES: Routes = [
 
       { path: 'relatorios', canActivate: [roleGuard], data: rolesData, loadComponent: () => import('./relatorios/relatorios.page').then((m) => m.RelatoriosPage) },
       { path: 'configuracoes', canActivate: [roleGuard], data: rolesData, loadComponent: () => import('./configuracoes/configuracoes.page').then((m) => m.ConfiguracoesPage) },
+      {
+        path: 'configuracoes/importacao-legado',
+        canActivate: [roleGuard],
+        data: rolesData,
+        loadComponent: () => import('./configuracoes/importacao-legado.page').then((m) => m.ImportacaoLegadoPage)
+      },
       { path: '**', redirectTo: 'dashboard' }
     ]
   }
