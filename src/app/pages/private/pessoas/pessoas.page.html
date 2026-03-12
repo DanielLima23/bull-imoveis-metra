@@ -26,15 +26,6 @@
           (valueChange)="onKindChange($event)"
         />
       </label>
-
-      <label class="toolbar-field toolbar-field--compact">
-        <span class="toolbar-label">Status</span>
-        <select class="select" [value]="activeFilter()" (change)="onActiveChange(($any($event.target)).value)">
-          <option value="all">Todos</option>
-          <option value="active">Ativos</option>
-          <option value="inactive">Inativos</option>
-        </select>
-      </label>
     </div>
   </div>
 

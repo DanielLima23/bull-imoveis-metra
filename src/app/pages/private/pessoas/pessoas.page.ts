@@ -28,7 +28,6 @@ export class PessoasPage implements OnInit, OnDestroy {
   readonly items = signal<PartyDto[]>([]);
   readonly search = signal('');
   readonly kind = signal('');
-  readonly activeFilter = signal<'all' | 'active' | 'inactive'>('all');
   readonly page = signal(1);
   readonly pageSize = signal(10);
   readonly totalItems = signal(0);
@@ -52,12 +51,10 @@ export class PessoasPage implements OnInit, OnDestroy {
       this.isLoading.set(true);
     }
 
-    const active = this.activeFilter() === 'all' ? undefined : this.activeFilter() === 'active';
     this.requestSub = this.api
       .list({
         search: this.search().trim(),
         kind: this.kind().trim() || undefined,
-        active,
         page: this.page(),
         pageSize: this.pageSize()
       })
@@ -87,12 +84,6 @@ export class PessoasPage implements OnInit, OnDestroy {
 
   onKindChange(value: string): void {
     this.kind.set(value);
-    this.page.set(1);
-    this.load(false);
-  }
-
-  onActiveChange(value: 'all' | 'active' | 'inactive'): void {
-    this.activeFilter.set(value);
     this.page.set(1);
     this.load(false);
   }
