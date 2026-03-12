@@ -24,7 +24,7 @@
         <span class="toolbar-label">Status</span>
         <app-async-search-select
           [value]="status()"
-          [staticOptions]="propertyStatusOptions"
+          [staticOptions]="propertyStatusFilterOptions"
           [searchable]="false"
           [useFloatingPanel]="true"
           placeholder="Todos"
@@ -70,7 +70,18 @@
               <td>{{ item.title }}</td>
               <td>{{ item.city }}/{{ item.state }}</td>
               <td>{{ item.propertyType | domainLabel:'propertyType' }}</td>
-              <td>{{ item.status | domainLabel:'propertyStatus' }}</td>
+              <td>
+                <div class="status-cell">
+                  <button [attr.class]="'status-tag ' + getStatusTagClass(item)" type="button" (click)="openStatusEditor($event, item)">
+                    {{ getPropertyStatusLabel(item) }}
+                  </button>
+                  @if (getPropertyIdleReasonLabel(item); as idleReasonLabel) {
+                    @if (idleReasonLabel) {
+                      <small class="status-reason">{{ idleReasonLabel }}</small>
+                    }
+                  }
+                </div>
+              </td>
               <td class="actions-col">
                 <button class="btn btn-secondary" type="button" (click)="toggleRowMenu($event, item.id)">...</button>
               </td>
@@ -92,6 +103,45 @@
   />
 </section>
 
+@if (editingStatusProperty(); as item) {
+  <button class="menu-overlay" type="button" (click)="closeStatusEditor()" aria-label="Fechar edição de status"></button>
+  <section class="status-editor card-panel" [style.left.px]="statusEditorPosition().x" [style.top.px]="statusEditorPosition().y">
+    <header class="status-editor__head">
+      <strong>Atualizar status</strong>
+      <span>{{ item.title }}</span>
+    </header>
+
+    <form class="grid-form" [formGroup]="statusEditorForm" (ngSubmit)="submitStatusEditor()">
+      <div class="field field--full">
+        <label class="field__label">Status</label>
+        <app-async-search-select
+          formControlName="status"
+          [staticOptions]="propertyStatusEditOptions"
+          [searchable]="false"
+          [allowClear]="false"
+        />
+      </div>
+
+      @if (shouldShowIdleReason(statusEditorForm.controls.status.value)) {
+        <div class="field field--full">
+          <label class="field__label">Motivo da ociosidade</label>
+          <app-async-search-select
+            formControlName="idleReason"
+            [staticOptions]="propertyIdleReasonOptions"
+            [searchable]="false"
+            [allowClear]="false"
+          />
+        </div>
+      }
+
+      <div class="modal-actions">
+        <button class="btn btn-secondary" type="button" (click)="closeStatusEditor()">Cancelar</button>
+        <button class="btn btn-primary" type="submit">Salvar status</button>
+      </div>
+    </form>
+  </section>
+}
+
 @if (selectedProperty(); as selected) {
   @if (quickModal()) {
     <div class="quick-modal-backdrop" (click)="closeQuickModal()">
@@ -102,7 +152,6 @@
               @case ('rent') { Atualizar valor de referência locativa }
               @case ('expense') { Nova conta para o imóvel }
               @case ('pendency') { Nova pendência do imóvel }
-              @case ('status') { Atualizar status do imóvel }
             }
           </h3>
           <p>{{ selected.title }}</p>
@@ -186,24 +235,6 @@
             </div>
           </form>
         }
-
-        @if (quickModal() === 'status') {
-          <form class="grid-form" [formGroup]="statusQuickForm" (ngSubmit)="submitQuickStatus()">
-            <div class="field">
-              <label class="field__label">Status</label>
-              <app-async-search-select
-                formControlName="status"
-                [staticOptions]="propertyStatusOptions.slice(1)"
-                [searchable]="false"
-                [allowClear]="false"
-              />
-            </div>
-            <div class="modal-actions">
-              <button class="btn btn-secondary" type="button" (click)="closeQuickModal()">Cancelar</button>
-              <button class="btn btn-primary" type="submit">Atualizar</button>
-            </div>
-          </form>
-        }
       </section>
     </div>
   }
@@ -214,7 +245,6 @@
   <div class="menu-popover menu-popover--floating menu-popover--rich" [style.left.px]="menuPosition().x" [style.top.px]="menuPosition().y">
     <button class="menu-action" type="button" (click)="openPropertyDetail(item.id)">Abrir hub do imóvel</button>
     <button class="menu-action" type="button" (click)="openPropertyLeases(item.id)">Locações</button>
-    <button class="menu-action" type="button" (click)="openQuickModal('status', item)">Atualizar status</button>
     <button class="menu-action" type="button" (click)="openQuickModal('rent', item)">Atualizar referência</button>
     <button class="menu-action" type="button" (click)="openQuickModal('expense', item)">Nova conta</button>
     <button class="menu-action" type="button" (click)="openQuickModal('pendency', item)">Nova pendência</button>

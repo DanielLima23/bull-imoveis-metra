@@ -20,8 +20,8 @@ export interface PropertyIdentitySectionPayload {
   state: string;
   zipCode: string;
   propertyType: string;
-  occupancyStatus?: string;
-  assetState?: string;
+  status?: string;
+  idleReason?: string | null;
 }
 
 export interface PropertyDocumentationSectionPayload {
@@ -66,8 +66,8 @@ export interface PropertyUpdatePayload {
 }
 
 export interface PropertyStatusUpdatePayload {
-  occupancyStatus?: string;
-  assetState?: string;
+  status: string;
+  idleReason?: string | null;
 }
 
 export interface PropertyRentReferencePayload {
@@ -102,6 +102,7 @@ export interface PropertyHistoryEntryPayload {
 export interface PropertyListFilters extends Record<string, string | number | boolean | undefined> {
   search?: string;
   status?: string;
+  idleReason?: string;
   occupancyStatus?: string;
   assetState?: string;
   propertyType?: string;

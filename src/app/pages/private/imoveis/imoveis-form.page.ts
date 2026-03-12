@@ -11,8 +11,14 @@ import { SelectOption } from '../../../shared/models/select-option.model';
 import { ToastService } from '../../../shared/services/toast.service';
 import { DateBrInputDirective } from '../../../shared/directives/date-br-input.directive';
 import { BrlCurrencyInputDirective } from '../../../shared/directives/brl-currency-input.directive';
-import { getDomainOptions } from '../../../shared/utils/domain-label.util';
-import { inferPropertyStatus, mapPropertyStatusToPayload } from '../../../shared/utils/property-status.util';
+import {
+  getPropertyIdleReasonOptions,
+  getPropertyStatusOptions,
+  inferPropertyIdleReason,
+  inferPropertyStatus,
+  mapPropertyStatusToPayload,
+  requiresPropertyIdleReason
+} from '../../../shared/utils/property-status.util';
 
 @Component({
   selector: 'app-imoveis-form-page',
@@ -40,7 +46,8 @@ export class ImoveisFormPage implements OnInit {
     { id: 'Comercial', label: 'Comercial' },
     { id: 'Terreno', label: 'Terreno' }
   ];
-  readonly propertyStatusOptions: SelectOption[] = getDomainOptions('propertyStatus');
+  readonly propertyStatusOptions: SelectOption[] = getPropertyStatusOptions();
+  readonly propertyIdleReasonOptions: SelectOption[] = getPropertyIdleReasonOptions(true);
 
   readonly isCepLoading = signal(false);
   readonly cepStatus = signal<'idle' | 'loading' | 'success' | 'error'>('idle');
@@ -63,6 +70,7 @@ export class ImoveisFormPage implements OnInit {
       title: ['', Validators.required],
       propertyType: ['', Validators.required],
       status: ['AVAILABLE', Validators.required],
+      idleReason: [''],
       zipCode: ['', [Validators.required, Validators.minLength(8)]],
       street: ['', Validators.required],
       number: ['', Validators.required],
@@ -100,6 +108,7 @@ export class ImoveisFormPage implements OnInit {
   ngOnInit(): void {
     this.lockAutoAddressFields();
     this.watchZipCode();
+    this.watchStatus();
 
     const id = this.route.snapshot.paramMap.get('id');
     this.id.set(id);
@@ -118,6 +127,7 @@ export class ImoveisFormPage implements OnInit {
             title: item.title,
             propertyType: item.propertyType,
             status: inferPropertyStatus(item),
+            idleReason: inferPropertyIdleReason(item),
             zipCode: formattedZip,
             street: parsedAddress.street,
             number: parsedAddress.number,
@@ -151,12 +161,15 @@ export class ImoveisFormPage implements OnInit {
         });
 
         this.lastLookupCep.set(this.onlyDigits(item.zipCode));
+        this.syncIdleReasonValidator(this.form.controls.identity.controls.status.value);
       },
       error: () => this.toast.error('Falha ao carregar cadastro para edição.')
     });
   }
 
   submit(): void {
+    this.syncIdleReasonValidator(this.form.controls.identity.controls.status.value);
+
     if (this.form.invalid || this.submitting()) {
       this.form.markAllAsTouched();
       return;
@@ -171,13 +184,13 @@ export class ImoveisFormPage implements OnInit {
 
     this.submitting.set(true);
     const addressLine1 = this.composeAddressLine();
-    const statusPayload = mapPropertyStatusToPayload(raw.identity.status);
+    const statusPayload = mapPropertyStatusToPayload(raw.identity.status, raw.identity.idleReason);
     const basePayload: PropertyUpdatePayload = {
       identity: {
         title: raw.identity.title.trim(),
         propertyType: raw.identity.propertyType.trim(),
-        occupancyStatus: statusPayload.occupancyStatus,
-        assetState: statusPayload.assetState,
+        status: statusPayload.status,
+        idleReason: statusPayload.idleReason,
         addressLine1,
         city: raw.identity.city.trim(),
         state: raw.identity.state.trim().toUpperCase(),
@@ -242,6 +255,10 @@ export class ImoveisFormPage implements OnInit {
     void this.router.navigate(['/app/imoveis']);
   }
 
+  shouldShowIdleReason(value?: string | null): boolean {
+    return requiresPropertyIdleReason(value);
+  }
+
   private watchZipCode(): void {
     this.form.controls.identity.controls.zipCode.valueChanges
       .pipe(
@@ -263,6 +280,30 @@ export class ImoveisFormPage implements OnInit {
 
         this.lookupCep(zipDigits);
       });
+  }
+
+  private watchStatus(): void {
+    this.form.controls.identity.controls.status.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((status) => {
+      this.syncIdleReasonValidator(status);
+    });
+
+    this.syncIdleReasonValidator(this.form.controls.identity.controls.status.value);
+  }
+
+  private syncIdleReasonValidator(status?: string | null): void {
+    const idleReasonControl = this.form.controls.identity.controls.idleReason;
+    const isRequired = requiresPropertyIdleReason(status);
+
+    if (isRequired) {
+      idleReasonControl.setValidators([Validators.required]);
+    } else {
+      idleReasonControl.setValidators([]);
+      if (idleReasonControl.value) {
+        idleReasonControl.patchValue('', { emitEvent: false });
+      }
+    }
+
+    idleReasonControl.updateValueAndValidity({ emitEvent: false });
   }
 
   private lockAutoAddressFields(): void {

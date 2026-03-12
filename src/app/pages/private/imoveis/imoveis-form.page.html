@@ -33,6 +33,18 @@
       />
     </div>
 
+    @if (shouldShowIdleReason(form.controls.identity.controls.status.value)) {
+      <div class="field">
+        <label class="field__label">Motivo da ociosidade</label>
+        <app-async-search-select
+          [formControl]="form.controls.identity.controls.idleReason"
+          [staticOptions]="propertyIdleReasonOptions"
+          [searchable]="false"
+          [allowClear]="false"
+        />
+      </div>
+    }
+
     <div class="field field--full">
       <label class="field__label">CEP</label>
       <div class="zip-row">

@@ -1,6 +1,7 @@
-import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subscription } from 'rxjs';
 import { ExpenseTypeDto, PendencyTypeDto, PropertyDto } from '../../../core/models/domain.model';
 import { ExpenseApiService } from '../../../core/services/expense-api.service';
@@ -15,9 +16,16 @@ import { DateTimeBrInputDirective } from '../../../shared/directives/date-time-b
 import { SelectOption } from '../../../shared/models/select-option.model';
 import { DomainLabelPipe } from '../../../shared/pipes/domain-label.pipe';
 import { ToastService } from '../../../shared/services/toast.service';
-import { getDomainOptions } from '../../../shared/utils/domain-label.util';
+import { getDomainLabel, getDomainOptions } from '../../../shared/utils/domain-label.util';
 import { getFloatingMenuPosition } from '../../../shared/utils/floating-menu.util';
-import { inferPropertyStatus, mapPropertyStatusToPayload } from '../../../shared/utils/property-status.util';
+import {
+  getPropertyIdleReasonOptions,
+  getPropertyStatusOptions,
+  inferPropertyIdleReason,
+  inferPropertyStatus,
+  mapPropertyStatusToPayload,
+  requiresPropertyIdleReason
+} from '../../../shared/utils/property-status.util';
 
 @Component({
   selector: 'app-imoveis-page',
@@ -44,6 +52,7 @@ export class ImoveisPage implements OnInit, OnDestroy {
   private readonly toast = inject(ToastService);
   private readonly fb = inject(FormBuilder);
   private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
   private listRequestSub: Subscription | null = null;
 
   readonly isLoading = signal(false);
@@ -59,9 +68,13 @@ export class ImoveisPage implements OnInit, OnDestroy {
 
   readonly activeMenuId = signal<string | null>(null);
   readonly menuPosition = signal({ x: 0, y: 0 });
-  readonly quickModal = signal<'expense' | 'pendency' | 'rent' | 'status' | null>(null);
+  readonly quickModal = signal<'expense' | 'pendency' | 'rent' | null>(null);
   readonly selectedProperty = signal<PropertyDto | null>(null);
+  readonly statusEditorPropertyId = signal<string | null>(null);
+  readonly statusEditorPosition = signal({ x: 0, y: 0 });
+
   readonly activeMenuItem = computed(() => this.items().find((item) => item.id === this.activeMenuId()) ?? null);
+  readonly editingStatusProperty = computed(() => this.items().find((item) => item.id === this.statusEditorPropertyId()) ?? null);
 
   readonly expenseTypes = signal<ExpenseTypeDto[]>([]);
   readonly pendencyTypes = signal<PendencyTypeDto[]>([]);
@@ -72,7 +85,9 @@ export class ImoveisPage implements OnInit, OnDestroy {
       label: `${item.code ? `${item.code} · ` : ''}${item.name}`
     }))
   );
-  readonly propertyStatusOptions = getDomainOptions('propertyStatus', { includeEmptyOption: true, emptyLabel: 'Todos' });
+  readonly propertyStatusFilterOptions = getPropertyStatusOptions(true, 'Todos');
+  readonly propertyStatusEditOptions = getPropertyStatusOptions();
+  readonly propertyIdleReasonOptions = getPropertyIdleReasonOptions(true);
   readonly propertyTypeOptions: SelectOption[] = [
     { id: '', label: 'Todos' },
     { id: 'Casa', label: 'Casa' },
@@ -106,14 +121,16 @@ export class ImoveisPage implements OnInit, OnDestroy {
     effectiveFrom: [new Date().toISOString().slice(0, 10), Validators.required]
   });
 
-  readonly statusQuickForm = this.fb.nonNullable.group({
-    status: ['', Validators.required]
+  readonly statusEditorForm = this.fb.nonNullable.group({
+    status: ['AVAILABLE', Validators.required],
+    idleReason: ['']
   });
 
   ngOnInit(): void {
     this.load();
     this.expenseApi.listTypes().subscribe({ next: (items) => this.expenseTypes.set(items) });
     this.pendencyApi.listTypes().subscribe({ next: (items) => this.pendencyTypes.set(items) });
+    this.watchStatusEditor();
   }
 
   ngOnDestroy(): void {
@@ -211,7 +228,8 @@ export class ImoveisPage implements OnInit, OnDestroy {
       return;
     }
 
-    this.menuPosition.set(getFloatingMenuPosition(trigger, 248, 318));
+    this.closeStatusEditor();
+    this.menuPosition.set(getFloatingMenuPosition(trigger, 248, 272));
     this.activeMenuId.set(propertyId);
   }
 
@@ -229,10 +247,11 @@ export class ImoveisPage implements OnInit, OnDestroy {
     void this.router.navigate(['/app/imoveis', propertyId], { queryParams: { tab: 'locacoes' } });
   }
 
-  openQuickModal(type: 'expense' | 'pendency' | 'rent' | 'status', property: PropertyDto): void {
+  openQuickModal(type: 'expense' | 'pendency' | 'rent', property: PropertyDto): void {
     this.selectedProperty.set(property);
     this.quickModal.set(type);
     this.closeRowMenu();
+    this.closeStatusEditor();
 
     this.expenseQuickForm.reset({
       expenseTypeId: '',
@@ -257,15 +276,64 @@ export class ImoveisPage implements OnInit, OnDestroy {
       amount: property.currentBaseRent ?? 0,
       effectiveFrom: new Date().toISOString().slice(0, 10)
     });
-
-    this.statusQuickForm.reset({
-      status: inferPropertyStatus(property)
-    });
   }
 
   closeQuickModal(): void {
     this.quickModal.set(null);
     this.selectedProperty.set(null);
+  }
+
+  openStatusEditor(event: MouseEvent, property: PropertyDto): void {
+    if (this.statusEditorPropertyId() === property.id) {
+      this.closeStatusEditor();
+      return;
+    }
+
+    const trigger = event.currentTarget as HTMLElement | null;
+    if (!trigger) {
+      return;
+    }
+
+    const status = inferPropertyStatus(property);
+    const idleReason = inferPropertyIdleReason(property);
+
+    this.statusEditorForm.reset({
+      status,
+      idleReason
+    });
+    this.syncIdleReasonValidator(status);
+    this.closeRowMenu();
+
+    this.statusEditorPosition.set(getFloatingMenuPosition(trigger, 320, requiresPropertyIdleReason(status) ? 268 : 212));
+    this.statusEditorPropertyId.set(property.id);
+  }
+
+  closeStatusEditor(): void {
+    this.statusEditorPropertyId.set(null);
+  }
+
+  submitStatusEditor(): void {
+    const property = this.editingStatusProperty();
+    if (!property) {
+      return;
+    }
+
+    const payload = this.statusEditorForm.getRawValue();
+    this.syncIdleReasonValidator(payload.status);
+
+    if (this.statusEditorForm.invalid) {
+      this.statusEditorForm.markAllAsTouched();
+      return;
+    }
+
+    this.propertyApi.updateStatus(property.id, mapPropertyStatusToPayload(payload.status, payload.idleReason)).subscribe({
+      next: () => {
+        this.toast.success('Status do imóvel atualizado.');
+        this.closeStatusEditor();
+        this.load(false);
+      },
+      error: () => this.toast.error('Falha ao atualizar status do imóvel.')
+    });
   }
 
   submitQuickExpense(): void {
@@ -340,22 +408,56 @@ export class ImoveisPage implements OnInit, OnDestroy {
     });
   }
 
-  submitQuickStatus(): void {
-    const property = this.selectedProperty();
-    if (!property || this.statusQuickForm.invalid) {
-      this.statusQuickForm.markAllAsTouched();
-      return;
+  getPropertyStatusLabel(property: PropertyDto): string {
+    return getDomainLabel('propertyStatus', inferPropertyStatus(property));
+  }
+
+  getPropertyIdleReasonLabel(property: PropertyDto): string {
+    return getDomainLabel('propertyIdleReason', inferPropertyIdleReason(property), '');
+  }
+
+  getStatusTagClass(property: PropertyDto): string {
+    switch (inferPropertyStatus(property)) {
+      case 'LEASED':
+        return 'status-tag--leased';
+      case 'INACTIVE':
+        return 'status-tag--inactive';
+      case 'FOR_SALE':
+        return 'status-tag--for-sale';
+      case 'DEMANDS':
+        return 'status-tag--demands';
+      case 'IDLE':
+        return 'status-tag--idle';
+      default:
+        return 'status-tag--available';
+    }
+  }
+
+  shouldShowIdleReason(value?: string | null): boolean {
+    return requiresPropertyIdleReason(value);
+  }
+
+  private watchStatusEditor(): void {
+    this.statusEditorForm.controls.status.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((value) => {
+      this.syncIdleReasonValidator(value);
+    });
+
+    this.syncIdleReasonValidator(this.statusEditorForm.controls.status.value);
+  }
+
+  private syncIdleReasonValidator(status?: string | null): void {
+    const idleReasonControl = this.statusEditorForm.controls.idleReason;
+    const isRequired = requiresPropertyIdleReason(status);
+
+    if (isRequired) {
+      idleReasonControl.setValidators([Validators.required]);
+    } else {
+      idleReasonControl.setValidators([]);
+      if (idleReasonControl.value) {
+        idleReasonControl.patchValue('', { emitEvent: false });
+      }
     }
 
-    const payload = mapPropertyStatusToPayload(this.statusQuickForm.getRawValue().status);
-
-    this.propertyApi.updateStatus(property.id, payload).subscribe({
-      next: () => {
-        this.toast.success('Situação do imóvel atualizada.');
-        this.closeQuickModal();
-        this.load(false);
-      },
-      error: () => this.toast.error('Falha ao atualizar situação do imóvel.')
-    });
+    idleReasonControl.updateValueAndValidity({ emitEvent: false });
   }
 }

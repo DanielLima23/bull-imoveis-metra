@@ -2,6 +2,7 @@ import { SelectOption } from '../models/select-option.model';
 
 export type DomainLabelKey =
   | 'propertyStatus'
+  | 'propertyIdleReason'
   | 'occupancyStatus'
   | 'assetState'
   | 'propertyType'
@@ -19,10 +20,18 @@ type DomainLabelMap = Record<DomainLabelKey, Record<string, string>>;
 
 const DOMAIN_LABELS: DomainLabelMap = {
   propertyStatus: {
-    AVAILABLE: 'Disponível',
+    AVAILABLE: 'Dispon\u00edvel',
     LEASED: 'Alugado',
-    UNAVAILABLE: 'Indisponível',
-    INACTIVE: 'Inativo'
+    INACTIVE: 'Inativo',
+    FOR_SALE: '\u00c0 venda',
+    DEMANDS: 'Demandas',
+    IDLE: 'Ocioso',
+    UNAVAILABLE: 'Demandas'
+  },
+  propertyIdleReason: {
+    RENOVATION: 'Reforma',
+    TERMINATION: 'Rescis\u00e3o',
+    LEGAL_PENDING: 'Pend\u00eancia jur\u00eddica'
   },
   occupancyStatus: {
     VACANT: 'Desocupado',
@@ -31,10 +40,10 @@ const DOMAIN_LABELS: DomainLabelMap = {
     PARTIALLY_OCCUPIED: 'Parcialmente ocupado'
   },
   assetState: {
-    READY: 'Pronto para locação',
-    PREPARATION: 'Em preparação',
-    UNDER_MAINTENANCE: 'Em manutenção',
-    MAINTENANCE: 'Em manutenção',
+    READY: 'Pronto para loca\u00e7\u00e3o',
+    PREPARATION: 'Em prepara\u00e7\u00e3o',
+    UNDER_MAINTENANCE: 'Em manuten\u00e7\u00e3o',
+    MAINTENANCE: 'Em manuten\u00e7\u00e3o',
     BLOCKED: 'Bloqueado'
   },
   propertyType: {
@@ -42,7 +51,7 @@ const DOMAIN_LABELS: DomainLabelMap = {
     APARTAMENTO: 'Apartamento',
     COMERCIAL: 'Comercial',
     TERRENO: 'Terreno',
-    GALPAO: 'Galpão',
+    GALPAO: 'Galp\u00e3o',
     SALA: 'Sala',
     SOBRADO: 'Sobrado'
   },
@@ -71,33 +80,33 @@ const DOMAIN_LABELS: DomainLabelMap = {
   },
   pendencySeverity: {
     LOW: 'Baixa',
-    MEDIUM: 'Média',
+    MEDIUM: 'M\u00e9dia',
     HIGH: 'Alta',
-    CRITICAL: 'Crítica'
+    CRITICAL: 'Cr\u00edtica'
   },
   visitStatus: {
     SCHEDULED: 'Agendada',
     DONE: 'Realizada',
     CANCELED: 'Cancelada',
-    NO_SHOW: 'Não compareceu'
+    NO_SHOW: 'N\u00e3o compareceu'
   },
   maintenanceStatus: {
     OPEN: 'Aberta',
     IN_PROGRESS: 'Em andamento',
-    DONE: 'Concluída',
+    DONE: 'Conclu\u00edda',
     CANCELED: 'Cancelada'
   },
   maintenancePriority: {
     LOW: 'Baixa',
-    MEDIUM: 'Média',
+    MEDIUM: 'M\u00e9dia',
     HIGH: 'Alta',
     URGENT: 'Urgente'
   },
   partyKind: {
-    OWNER: 'Proprietário',
+    OWNER: 'Propriet\u00e1rio',
     ADMINISTRATOR: 'Administrador',
     GUARANTOR: 'Fiador',
-    TENANT: 'Locatário',
+    TENANT: 'Locat\u00e1rio',
     BROKER: 'Corretor',
     LAWYER: 'Advogado',
     LEGAL_REPRESENTATIVE: 'Representante legal',
