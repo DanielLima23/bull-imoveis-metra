@@ -1,17 +1,17 @@
-﻿<app-page-header
+<app-page-header
   [title]="isEdit() ? 'Editar Visita' : 'Nova Visita'"
-  subtitle="Tela única de criação e atualização de visitas"
+  subtitle="Tela Ãºnica de criaÃ§Ã£o e atualizaÃ§Ã£o de visitas"
   [breadcrumbs]="[{ label: 'Painel', route: '/app/dashboard' }, { label: 'Visitas', route: '/app/visitas' }, { label: isEdit() ? 'Editar' : 'Novo' }]"
 />
 
 <section class="card-panel">
   <form class="grid-form" [formGroup]="form" (ngSubmit)="submit()">
     <div class="field">
-      <label class="field__label">Imóvel</label>
+      <label class="field__label">ImÃ³vel</label>
       <app-async-search-select
         formControlName="propertyId"
         placeholder="Selecione"
-        searchPlaceholder="Buscar imóvel..."
+        searchPlaceholder="Buscar imÃ³vel..."
         [pageSize]="15"
         [fetchPage]="propertySelectFetchPage"
         [fetchById]="propertySelectFetchById"
@@ -24,18 +24,40 @@
     </div>
 
     <div class="field">
+      <label class="field__label">Pessoa do contato</label>
+      <app-party-picker-field
+        formControlName="contactPartyId"
+        [allowedKinds]="['PERSON', 'COMPANY', 'OUTRO', 'CORRETOR']"
+        defaultKind="PERSON"
+        placeholder="Selecione o contato"
+        (partyChange)="onContactPartyChange($event)"
+      />
+    </div>
+
+    <div class="field">
       <label class="field__label">Nome do contato</label>
-      <input class="input" formControlName="contactName" placeholder="Informe o nome do contato" />
+      <input class="input" [class.input--locked]="isContactLocked()" formControlName="contactName" [readOnly]="isContactLocked()" placeholder="Informe o nome do contato" />
     </div>
 
     <div class="field">
       <label class="field__label">Telefone</label>
-      <input class="input" formControlName="contactPhone" inputmode="tel" appPhoneBrInput placeholder="(00) 00000-0000" />
+      <input class="input" [class.input--locked]="isContactLocked()" formControlName="contactPhone" [readOnly]="isContactLocked()" inputmode="tel" appPhoneBrInput placeholder="(00) 00000-0000" />
     </div>
 
     <div class="field">
-      <label class="field__label">Responsável</label>
-      <input class="input" formControlName="responsibleName" placeholder="Informe o responsável pelo atendimento" />
+      <label class="field__label">Pessoa responsÃ¡vel</label>
+      <app-party-picker-field
+        formControlName="responsiblePartyId"
+        [allowedKinds]="['PERSON', 'COMPANY', 'OUTRO', 'CORRETOR', 'ADMINISTRADOR', 'PRESTADOR_DE_SERVICO']"
+        defaultKind="PERSON"
+        placeholder="Selecione o responsÃ¡vel"
+        (partyChange)="onResponsiblePartyChange($event)"
+      />
+    </div>
+
+    <div class="field">
+      <label class="field__label">ResponsÃ¡vel</label>
+      <input class="input" [class.input--locked]="isResponsibleLocked()" formControlName="responsibleName" [readOnly]="isResponsibleLocked()" placeholder="Informe o responsÃ¡vel pelo atendimento" />
     </div>
 
     @if (isEdit()) {
@@ -51,8 +73,8 @@
     }
 
     <div class="field field--full">
-      <label class="field__label">Observações</label>
-      <textarea class="textarea" rows="4" formControlName="notes" placeholder="Adicione observações sobre a visita"></textarea>
+      <label class="field__label">ObservaÃ§Ãµes</label>
+      <textarea class="textarea" rows="4" formControlName="notes" placeholder="Adicione observaÃ§Ãµes sobre a visita"></textarea>
     </div>
 
     <div class="actions">
@@ -63,4 +85,3 @@
     </div>
   </form>
 </section>
-

@@ -143,9 +143,17 @@ export function getDomainLabel(domain: DomainLabelKey, value?: string | null, em
     return emptyLabel;
   }
 
-  const normalized = normalizeDomainValue(value);
-  const resolvedKey = DOMAIN_ALIASES[domain]?.[normalized] ?? normalized;
+  const resolvedKey = resolveDomainCode(domain, value) ?? normalizeDomainValue(value);
   return DOMAIN_LABELS[domain][resolvedKey] ?? humanizeDomainValue(value);
+}
+
+export function resolveDomainCode(domain: DomainLabelKey, value?: string | null): string | null {
+  if (!value) {
+    return null;
+  }
+
+  const normalized = normalizeDomainValue(value);
+  return DOMAIN_ALIASES[domain]?.[normalized] ?? normalized;
 }
 
 export function getDomainOptions(domain: DomainLabelKey, config: DomainOptionsConfig = {}): SelectOption[] {

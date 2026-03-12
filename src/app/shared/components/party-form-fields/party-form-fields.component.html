@@ -1,0 +1,46 @@
+<div class="party-form-fields" [class.party-form-fields--compact]="compact()" [formGroup]="form()">
+  <div class="field">
+    <label class="field__label">Tipo</label>
+    <app-async-search-select
+      formControlName="kind"
+      [staticOptions]="kindOptions"
+      [searchable]="false"
+      [allowClear]="false"
+    />
+  </div>
+
+  <div class="field">
+    <label class="field__label">Nome</label>
+    <input class="input" formControlName="name" placeholder="Informe o nome completo" />
+  </div>
+
+  <div class="field">
+    <label class="field__label">Documento</label>
+    <input class="input" formControlName="documentNumber" appCpfCnpjInput placeholder="CPF ou CNPJ" />
+  </div>
+
+  <div class="field">
+    <label class="field__label">E-mail</label>
+    <input class="input" formControlName="email" type="email" placeholder="nome@empresa.com.br" />
+  </div>
+
+  <div class="field">
+    <label class="field__label">Telefone</label>
+    <input class="input" formControlName="phone" appPhoneBrInput placeholder="(00) 00000-0000" />
+  </div>
+
+  @if (showActiveToggle()) {
+    <label class="field checkbox-field">
+      <span class="field__label">Situação</span>
+      <span class="checkbox-inline">
+        <input type="checkbox" formControlName="isActive" />
+        Cadastro ativo
+      </span>
+    </label>
+  }
+
+  <div class="field field--full">
+    <label class="field__label">Observações</label>
+    <textarea class="textarea" rows="4" formControlName="notes" placeholder="Adicione observações sobre a pessoa"></textarea>
+  </div>
+</div>

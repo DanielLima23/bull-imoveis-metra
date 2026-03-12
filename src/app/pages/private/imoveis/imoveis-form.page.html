@@ -150,22 +150,54 @@
 
     <div class="field">
       <label class="field__label">Proprietário</label>
-      <input class="input" [formControl]="form.controls.administration.controls.proprietary" placeholder="Informe o nome do proprietário" />
+      <app-party-picker-field
+        [formControl]="form.controls.administration.controls.proprietaryPartyId"
+        [allowedKinds]="['PROPRIETARIO', 'PERSON', 'COMPANY', 'OUTRO']"
+        defaultKind="PROPRIETARIO"
+        placeholder="Selecione o proprietário"
+        (partyChange)="onProprietaryPartyChange($event)"
+      />
+
+      @if (!form.controls.administration.controls.proprietaryPartyId.value && form.controls.administration.controls.proprietary.value) {
+        <p class="legacy-person-note">Cadastro legado atual: {{ form.controls.administration.controls.proprietary.value }}</p>
+      }
     </div>
 
     <div class="field">
       <label class="field__label">Administrador</label>
-      <input class="input" [formControl]="form.controls.administration.controls.administrator" placeholder="Informe o nome do administrador" />
+      <app-party-picker-field
+        [formControl]="form.controls.administration.controls.administratorPartyId"
+        [allowedKinds]="['ADMINISTRADOR', 'PERSON', 'COMPANY', 'OUTRO']"
+        defaultKind="ADMINISTRADOR"
+        placeholder="Selecione o administrador"
+        (partyChange)="onAdministratorPartyChange($event)"
+      />
+
+      @if (!form.controls.administration.controls.administratorPartyId.value && form.controls.administration.controls.administrator.value) {
+        <p class="legacy-person-note">Cadastro legado atual: {{ form.controls.administration.controls.administrator.value }}</p>
+      }
     </div>
 
     <div class="field">
       <label class="field__label">Telefone do administrador</label>
-      <input class="input" [formControl]="form.controls.administration.controls.administratorPhone" placeholder="(00) 00000-0000" />
+      <input
+        class="input"
+        [class.input--locked]="isAdministratorLocked()"
+        [formControl]="form.controls.administration.controls.administratorPhone"
+        [readOnly]="isAdministratorLocked()"
+        placeholder="(00) 00000-0000"
+      />
     </div>
 
     <div class="field">
       <label class="field__label">E-mail do administrador</label>
-      <input class="input" [formControl]="form.controls.administration.controls.administratorEmail" placeholder="nome@empresa.com.br" />
+      <input
+        class="input"
+        [class.input--locked]="isAdministratorLocked()"
+        [formControl]="form.controls.administration.controls.administratorEmail"
+        [readOnly]="isAdministratorLocked()"
+        placeholder="nome@empresa.com.br"
+      />
     </div>
 
     <div class="field">
@@ -175,7 +207,17 @@
 
     <div class="field">
       <label class="field__label">Advogado</label>
-      <input class="input" [formControl]="form.controls.administration.controls.lawyer" placeholder="Informe o nome do advogado" />
+      <app-party-picker-field
+        [formControl]="form.controls.administration.controls.lawyerPartyId"
+        [allowedKinds]="['ADVOGADO', 'PERSON', 'COMPANY', 'OUTRO']"
+        defaultKind="ADVOGADO"
+        placeholder="Selecione o advogado"
+        (partyChange)="onLawyerPartyChange($event)"
+      />
+
+      @if (!form.controls.administration.controls.lawyerPartyId.value && form.controls.administration.controls.lawyer.value) {
+        <p class="legacy-person-note">Cadastro legado atual: {{ form.controls.administration.controls.lawyer.value }}</p>
+      }
     </div>
 
     <div class="field">

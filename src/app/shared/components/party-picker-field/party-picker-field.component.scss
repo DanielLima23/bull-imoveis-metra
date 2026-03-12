@@ -1,0 +1,108 @@
+:host {
+  display: block;
+}
+
+.party-picker {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.party-picker__controls {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.5rem;
+  align-items: start;
+}
+
+.party-picker__create {
+  min-height: 2.35rem;
+  border: 1px dashed rgba(17, 118, 238, 0.28);
+  border-radius: var(--radius-sm);
+  background: rgba(17, 118, 238, 0.06);
+  color: var(--brand);
+  font-weight: 700;
+  padding: 0.58rem 0.78rem;
+  cursor: pointer;
+  transition: border-color var(--motion-fast), background-color var(--motion-fast), transform var(--motion-fast);
+}
+
+.party-picker__create:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: rgba(17, 118, 238, 0.4);
+  background: rgba(17, 118, 238, 0.1);
+}
+
+.party-picker__create:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.party-picker__summary {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 0.8rem;
+  border: 1px solid rgba(17, 118, 238, 0.12);
+  border-radius: var(--radius-sm);
+  background: linear-gradient(180deg, rgba(17, 118, 238, 0.05), rgba(255, 255, 255, 0.96));
+  padding: 0.62rem 0.72rem;
+}
+
+.party-picker__summary-copy {
+  min-width: 0;
+  display: grid;
+  gap: 0.16rem;
+}
+
+.party-picker__summary-copy strong {
+  font-size: 0.92rem;
+}
+
+.party-picker__summary-copy span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.party-picker__summary-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.56rem;
+}
+
+.party-picker__link {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: var(--brand);
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.party-picker__link:disabled {
+  opacity: 0.58;
+  cursor: not-allowed;
+}
+
+.party-picker__hint {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.party-picker--compact .party-picker__hint {
+  font-size: 0.74rem;
+}
+
+@media (max-width: 760px) {
+  .party-picker__controls,
+  .party-picker__summary {
+    grid-template-columns: 1fr;
+    display: grid;
+  }
+
+  .party-picker__summary-actions {
+    justify-content: start;
+  }
+}

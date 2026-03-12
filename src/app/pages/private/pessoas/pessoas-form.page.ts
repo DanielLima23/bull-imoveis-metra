@@ -1,20 +1,16 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { PartyApiService } from '../../../core/services/party-api.service';
-import { AsyncSearchSelectComponent } from '../../../shared/components/async-search-select/async-search-select.component';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
-import { CpfCnpjInputDirective } from '../../../shared/directives/cpf-cnpj-input.directive';
-import { PhoneBrInputDirective } from '../../../shared/directives/phone-br-input.directive';
-import { SelectOption } from '../../../shared/models/select-option.model';
+import { PartyFormFieldsComponent } from '../../../shared/components/party-form-fields/party-form-fields.component';
+import { createPartyForm, mapPartyFormToPayload, mapPartyFormToUpdatePayload, patchPartyForm } from '../../../shared/forms/party-form';
 import { ToastService } from '../../../shared/services/toast.service';
-import { getDomainOptions } from '../../../shared/utils/domain-label.util';
-import { normalizeDocument, normalizePhone } from '../../../shared/utils/format.util';
 
 @Component({
   selector: 'app-pessoas-form-page',
   standalone: true,
-  imports: [ReactiveFormsModule, PageHeaderComponent, CpfCnpjInputDirective, PhoneBrInputDirective, AsyncSearchSelectComponent],
+  imports: [ReactiveFormsModule, PageHeaderComponent, PartyFormFieldsComponent],
   templateUrl: './pessoas-form.page.html',
   styleUrl: './pessoas-form.page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -29,17 +25,7 @@ export class PessoasFormPage implements OnInit {
   readonly id = signal<string | null>(null);
   readonly isEdit = computed(() => !!this.id());
   readonly submitting = signal(false);
-  readonly kindOptions: SelectOption[] = getDomainOptions('partyKind');
-
-  readonly form = this.fb.nonNullable.group({
-    kind: ['', Validators.required],
-    name: ['', Validators.required],
-    documentNumber: [''],
-    email: ['', Validators.email],
-    phone: [''],
-    notes: [''],
-    isActive: [true]
-  });
+  readonly form = createPartyForm(this.fb);
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -50,18 +36,8 @@ export class PessoasFormPage implements OnInit {
     }
 
     this.api.getById(id).subscribe({
-      next: (item) => {
-        this.form.patchValue({
-          kind: item.kind ?? '',
-          name: item.name ?? '',
-          documentNumber: item.documentNumber ?? '',
-          email: item.email ?? '',
-          phone: item.phone ?? '',
-          notes: item.notes ?? '',
-          isActive: item.isActive
-        });
-      },
-      error: () => this.toast.error('Falha ao carregar pessoa para edição.')
+      next: (item) => patchPartyForm(this.form, item),
+      error: () => this.toast.error('Falha ao carregar pessoa para ediÃ§Ã£o.')
     });
   }
 
@@ -75,24 +51,15 @@ export class PessoasFormPage implements OnInit {
     const id = this.id();
     const payload = this.form.getRawValue();
 
-    const basePayload = {
-      kind: payload.kind.trim(),
-      name: payload.name.trim(),
-      documentNumber: normalizeDocument(payload.documentNumber),
-      email: payload.email.trim() || undefined,
-      phone: normalizePhone(payload.phone),
-      notes: payload.notes.trim() || undefined
-    };
-
     if (!id) {
-      this.api.create(basePayload).subscribe({
+      this.api.create(mapPartyFormToPayload(payload)).subscribe({
         next: () => this.handleSuccess('Pessoa criada com sucesso.'),
         error: () => this.handleError('Falha ao criar pessoa.')
       });
       return;
     }
 
-    this.api.update(id, { ...basePayload, isActive: payload.isActive }).subscribe({
+    this.api.update(id, mapPartyFormToUpdatePayload(payload)).subscribe({
       next: () => this.handleSuccess('Pessoa atualizada com sucesso.'),
       error: () => this.handleError('Falha ao atualizar pessoa.')
     });

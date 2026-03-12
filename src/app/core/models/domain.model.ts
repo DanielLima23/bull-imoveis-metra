@@ -14,11 +14,14 @@ export interface PropertyCharacteristicsSectionDto {
 
 export interface PropertyAdministrationSectionDto {
   proprietary?: string | null;
+  proprietaryPartyId?: string | null;
   administrator?: string | null;
+  administratorPartyId?: string | null;
   administratorPhone?: string | null;
   administratorEmail?: string | null;
   administrateTax?: string | null;
   lawyer?: string | null;
+  lawyerPartyId?: string | null;
   lawyerData?: string | null;
   observation?: string | null;
 }
@@ -38,7 +41,13 @@ export interface PropertyDto {
   motivoOciosidade?: string | null;
   idleReason?: string | null;
   proprietary?: string | null;
+  proprietaryPartyId?: string | null;
   administrator?: string | null;
+  administratorPartyId?: string | null;
+  administratorPhone?: string | null;
+  administratorEmail?: string | null;
+  lawyer?: string | null;
+  lawyerPartyId?: string | null;
   currentBaseRent?: number | null;
   createdAtUtc: string;
   documentation?: PropertyDocumentationSectionDto | null;

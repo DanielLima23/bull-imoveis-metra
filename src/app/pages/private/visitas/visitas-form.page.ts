@@ -1,14 +1,15 @@
-﻿import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, map, of } from 'rxjs';
+import { PartyDto, PagedResult, PropertyDto } from '../../../core/models/domain.model';
 import {
   AsyncSearchSelectComponent,
   AsyncSelectFetchById,
   AsyncSelectFetchPage
 } from '../../../shared/components/async-search-select/async-search-select.component';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
-import { PagedResult, PropertyDto } from '../../../core/models/domain.model';
+import { PartyPickerFieldComponent } from '../../../shared/components/party-picker-field/party-picker-field.component';
 import { PropertyApiService } from '../../../core/services/property-api.service';
 import { VisitApiService } from '../../../core/services/visit-api.service';
 import { DateTimeBrInputDirective } from '../../../shared/directives/date-time-br-input.directive';
@@ -16,13 +17,13 @@ import { PhoneBrInputDirective } from '../../../shared/directives/phone-br-input
 import { SelectOption } from '../../../shared/models/select-option.model';
 import { ToastService } from '../../../shared/services/toast.service';
 import { getDomainOptions } from '../../../shared/utils/domain-label.util';
-import { normalizePhone } from '../../../shared/utils/format.util';
+import { formatPhoneBr, normalizePhone } from '../../../shared/utils/format.util';
 import { toPropertySelectOption } from '../../../shared/utils/select-option.util';
 
 @Component({
   selector: 'app-visitas-form-page',
   standalone: true,
-  imports: [ReactiveFormsModule, PageHeaderComponent, PhoneBrInputDirective, DateTimeBrInputDirective, AsyncSearchSelectComponent],
+  imports: [ReactiveFormsModule, PageHeaderComponent, PhoneBrInputDirective, DateTimeBrInputDirective, AsyncSearchSelectComponent, PartyPickerFieldComponent],
   templateUrl: './visitas-form.page.html',
   styleUrl: './visitas-form.page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -54,8 +55,10 @@ export class VisitasFormPage implements OnInit {
   readonly form = this.fb.nonNullable.group({
     propertyId: ['', Validators.required],
     scheduledAtUtc: [new Date().toISOString().slice(0, 16), Validators.required],
+    contactPartyId: [''],
     contactName: ['', Validators.required],
     contactPhone: [''],
+    responsiblePartyId: [''],
     responsibleName: [''],
     status: ['SCHEDULED', Validators.required],
     notes: ['']
@@ -74,8 +77,10 @@ export class VisitasFormPage implements OnInit {
         this.form.patchValue({
           propertyId: item.propertyId,
           scheduledAtUtc: item.scheduledAtUtc.slice(0, 16),
+          contactPartyId: '',
           contactName: item.contactName,
           contactPhone: item.contactPhone ?? '',
+          responsiblePartyId: '',
           responsibleName: item.responsibleName ?? '',
           status: item.status,
           notes: item.notes ?? ''
@@ -135,6 +140,25 @@ export class VisitasFormPage implements OnInit {
     void this.router.navigate(['/app/visitas']);
   }
 
+  isContactLocked(): boolean {
+    return !!this.form.controls.contactPartyId.value;
+  }
+
+  isResponsibleLocked(): boolean {
+    return !!this.form.controls.responsiblePartyId.value;
+  }
+
+  onContactPartyChange(party: PartyDto | null): void {
+    this.form.patchValue({
+      contactName: party?.name ?? '',
+      contactPhone: formatPhoneBr(party?.phone ?? '')
+    });
+  }
+
+  onResponsiblePartyChange(party: PartyDto | null): void {
+    this.form.controls.responsibleName.setValue(party?.name ?? '');
+  }
+
   private handleSuccess(message: string): void {
     this.submitting.set(false);
     this.toast.success(message);
@@ -153,4 +177,3 @@ export class VisitasFormPage implements OnInit {
     };
   }
 }
-

@@ -3,8 +3,10 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { debounceTime, distinctUntilChanged, finalize, map } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { PartyDto } from '../../../core/models/domain.model';
 import { AsyncSearchSelectComponent } from '../../../shared/components/async-search-select/async-search-select.component';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
+import { PartyPickerFieldComponent } from '../../../shared/components/party-picker-field/party-picker-field.component';
 import { CepService } from '../../../core/services/cep.service';
 import { PropertyApiService, PropertyCreatePayload, PropertyUpdatePayload } from '../../../core/services/property-api.service';
 import { SelectOption } from '../../../shared/models/select-option.model';
@@ -23,7 +25,7 @@ import {
 @Component({
   selector: 'app-imoveis-form-page',
   standalone: true,
-  imports: [ReactiveFormsModule, PageHeaderComponent, AsyncSearchSelectComponent, DateBrInputDirective, BrlCurrencyInputDirective],
+  imports: [ReactiveFormsModule, PageHeaderComponent, AsyncSearchSelectComponent, PartyPickerFieldComponent, DateBrInputDirective, BrlCurrencyInputDirective],
   templateUrl: './imoveis-form.page.html',
   styleUrl: './imoveis-form.page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -93,11 +95,14 @@ export class ImoveisFormPage implements OnInit {
     }),
     administration: this.fb.nonNullable.group({
       proprietary: [''],
+      proprietaryPartyId: [''],
       administrator: [''],
+      administratorPartyId: [''],
       administratorPhone: [''],
       administratorEmail: ['', Validators.email],
       administrateTax: [''],
       lawyer: [''],
+      lawyerPartyId: [''],
       lawyerData: [''],
       observation: ['']
     }),
@@ -150,11 +155,14 @@ export class ImoveisFormPage implements OnInit {
           },
           administration: {
             proprietary: item.administration?.proprietary ?? item.proprietary ?? '',
+            proprietaryPartyId: item.administration?.proprietaryPartyId ?? item.proprietaryPartyId ?? '',
             administrator: item.administration?.administrator ?? item.administrator ?? '',
-            administratorPhone: item.administration?.administratorPhone ?? '',
-            administratorEmail: item.administration?.administratorEmail ?? '',
+            administratorPartyId: item.administration?.administratorPartyId ?? item.administratorPartyId ?? '',
+            administratorPhone: item.administration?.administratorPhone ?? item.administratorPhone ?? '',
+            administratorEmail: item.administration?.administratorEmail ?? item.administratorEmail ?? '',
             administrateTax: item.administration?.administrateTax ?? '',
-            lawyer: item.administration?.lawyer ?? '',
+            lawyer: item.administration?.lawyer ?? item.lawyer ?? '',
+            lawyerPartyId: item.administration?.lawyerPartyId ?? item.lawyerPartyId ?? '',
             lawyerData: item.administration?.lawyerData ?? '',
             observation: item.administration?.observation ?? ''
           }
@@ -210,11 +218,14 @@ export class ImoveisFormPage implements OnInit {
       },
       administration: {
         proprietary: raw.administration.proprietary.trim() || undefined,
+        proprietaryPartyId: raw.administration.proprietaryPartyId.trim() || undefined,
         administrator: raw.administration.administrator.trim() || undefined,
+        administratorPartyId: raw.administration.administratorPartyId.trim() || undefined,
         administratorPhone: raw.administration.administratorPhone.trim() || undefined,
         administratorEmail: raw.administration.administratorEmail.trim() || undefined,
         administrateTax: raw.administration.administrateTax.trim() || undefined,
         lawyer: raw.administration.lawyer.trim() || undefined,
+        lawyerPartyId: raw.administration.lawyerPartyId.trim() || undefined,
         lawyerData: raw.administration.lawyerData.trim() || undefined,
         observation: raw.administration.observation.trim() || undefined
       }
@@ -257,6 +268,26 @@ export class ImoveisFormPage implements OnInit {
 
   shouldShowIdleReason(value?: string | null): boolean {
     return requiresPropertyIdleReason(value);
+  }
+
+  isAdministratorLocked(): boolean {
+    return !!this.form.controls.administration.controls.administratorPartyId.value;
+  }
+
+  onProprietaryPartyChange(party: PartyDto | null): void {
+    this.form.controls.administration.controls.proprietary.setValue(party?.name ?? '');
+  }
+
+  onAdministratorPartyChange(party: PartyDto | null): void {
+    this.form.controls.administration.patchValue({
+      administrator: party?.name ?? '',
+      administratorPhone: party?.phone ?? '',
+      administratorEmail: party?.email ?? ''
+    });
+  }
+
+  onLawyerPartyChange(party: PartyDto | null): void {
+    this.form.controls.administration.controls.lawyer.setValue(party?.name ?? '');
   }
 
   private watchZipCode(): void {

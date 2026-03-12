@@ -1,0 +1,51 @@
+<div class="party-picker" [class.party-picker--compact]="compact()">
+  <div class="party-picker__controls">
+    <app-async-search-select
+      [value]="selectedPartyId()"
+      [fetchPage]="fetchPage"
+      [fetchById]="fetchById"
+      [placeholder]="placeholder()"
+      [allowClear]="false"
+      [compact]="compact()"
+      [useFloatingPanel]="useFloatingPanel()"
+      [floatingZIndex]="180"
+      [disabled]="isDisabled()"
+      (valueChange)="onValueChange($event)"
+    />
+
+    <button class="party-picker__create" type="button" (click)="openCreateModal()" [disabled]="isDisabled()">
+      Cadastrar
+    </button>
+  </div>
+
+  @if (selectedParty(); as party) {
+    <div class="party-picker__summary">
+      <div class="party-picker__summary-copy">
+        <strong>{{ party.name || 'Pessoa sem nome' }}</strong>
+
+        <span>
+          {{ selectedKindLabel() }}
+          @if (selectedDocument()) { · {{ selectedDocument() }} }
+          @if (selectedContact()) { · {{ selectedContact() }} }
+        </span>
+      </div>
+
+      <div class="party-picker__summary-actions">
+        <button class="party-picker__link" type="button" (click)="openSelector()" [disabled]="isDisabled()">Trocar pessoa</button>
+        @if (allowClear()) {
+          <button class="party-picker__link" type="button" (click)="clearSelection()" [disabled]="isDisabled()">Limpar</button>
+        }
+      </div>
+    </div>
+  } @else {
+    <p class="party-picker__hint">Selecione uma pessoa cadastrada ou cadastre uma nova sem sair da tela.</p>
+  }
+</div>
+
+@if (isCreateModalOpen()) {
+  <app-party-quick-create-modal
+    [defaultKind]="defaultKind()"
+    (cancelled)="closeCreateModal()"
+    (created)="handleCreated($event)"
+  />
+}

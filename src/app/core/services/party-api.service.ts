@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { PartyDto, PagedResult } from '../models/domain.model';
-import { HttpApiService } from './http-api.service';
+import { ApiRequestOptions, HttpApiService } from './http-api.service';
 
 export interface PartyPayload {
   kind?: string;
@@ -28,12 +28,12 @@ export interface PartyListFilters extends Record<string, string | number | boole
 export class PartyApiService {
   constructor(private readonly api: HttpApiService) {}
 
-  list(filters: PartyListFilters = {}): Observable<PagedResult<PartyDto>> {
-    return this.api.get<PagedResult<PartyDto>>('/pessoas', filters);
+  list(filters: PartyListFilters = {}, options?: ApiRequestOptions): Observable<PagedResult<PartyDto>> {
+    return this.api.get<PagedResult<PartyDto>>('/pessoas', filters, options);
   }
 
-  getById(id: string): Observable<PartyDto> {
-    return this.api.get<PartyDto>(`/pessoas/${id}`);
+  getById(id: string, options?: ApiRequestOptions): Observable<PartyDto> {
+    return this.api.get<PartyDto>(`/pessoas/${id}`, undefined, options);
   }
 
   create(payload: PartyPayload): Observable<PartyDto> {

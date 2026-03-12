@@ -1,0 +1,25 @@
+<div class="modal-backdrop" (click)="close()">
+  <section class="card-panel quick-create-modal" (click)="$event.stopPropagation()">
+    <header class="quick-create-modal__head">
+      <div>
+        <h3>Nova pessoa</h3>
+        <p>Cadastro rápido sem sair do formulário atual.</p>
+      </div>
+
+      <button class="quick-create-modal__close" type="button" (click)="close()" [disabled]="submitting()" aria-label="Fechar modal">
+        ×
+      </button>
+    </header>
+
+    <form class="grid-form" [formGroup]="form" (ngSubmit)="submit()">
+      <app-party-form-fields [form]="form" [compact]="true" />
+
+      <div class="modal-actions">
+        <button class="btn btn-secondary" type="button" (click)="close()" [disabled]="submitting()">Cancelar</button>
+        <button class="btn btn-primary" type="submit" [disabled]="submitting()">
+          @if (submitting()) { Salvando... } @else { Salvar pessoa }
+        </button>
+      </div>
+    </form>
+  </section>
+</div>

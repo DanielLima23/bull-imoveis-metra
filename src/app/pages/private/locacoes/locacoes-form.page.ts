@@ -2,13 +2,14 @@ import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } 
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Observable, catchError, map, of } from 'rxjs';
+import { LeaseDto, PartyDto, PagedResult } from '../../../core/models/domain.model';
 import {
   AsyncSearchSelectComponent,
   AsyncSelectFetchById,
   AsyncSelectFetchPage
 } from '../../../shared/components/async-search-select/async-search-select.component';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
-import { LeaseDto, PagedResult } from '../../../core/models/domain.model';
+import { PartyPickerFieldComponent } from '../../../shared/components/party-picker-field/party-picker-field.component';
 import { LeaseApiService } from '../../../core/services/lease-api.service';
 import { PropertyApiService } from '../../../core/services/property-api.service';
 import { TenantApiService } from '../../../core/services/tenant-api.service';
@@ -19,7 +20,7 @@ import { PhoneBrInputDirective } from '../../../shared/directives/phone-br-input
 import { SelectOption } from '../../../shared/models/select-option.model';
 import { ToastService } from '../../../shared/services/toast.service';
 import { getDomainOptions } from '../../../shared/utils/domain-label.util';
-import { normalizeDocument, normalizePhone } from '../../../shared/utils/format.util';
+import { formatCpfCnpj, formatPhoneBr, normalizeDocument, normalizePhone } from '../../../shared/utils/format.util';
 import { toPropertySelectOption, toTenantSelectOption } from '../../../shared/utils/select-option.util';
 
 @Component({
@@ -31,6 +32,7 @@ import { toPropertySelectOption, toTenantSelectOption } from '../../../shared/ut
     BrlCurrencyInputDirective,
     DateBrInputDirective,
     AsyncSearchSelectComponent,
+    PartyPickerFieldComponent,
     CpfCnpjInputDirective,
     PhoneBrInputDirective
   ],
@@ -91,8 +93,10 @@ export class LocacoesFormPage implements OnInit {
     contractRegistration: [''],
     insurance: [''],
     signatureRecognition: [''],
+    optionalContactPartyId: [''],
     optionalContactName: [''],
     optionalContactPhone: [''],
+    guarantorPartyId: [''],
     guarantorName: [''],
     guarantorDocument: [''],
     guarantorPhone: [''],
@@ -138,8 +142,10 @@ export class LocacoesFormPage implements OnInit {
           contractRegistration: item.contractRegistration ?? '',
           insurance: item.insurance ?? '',
           signatureRecognition: item.signatureRecognition ?? '',
+          optionalContactPartyId: '',
           optionalContactName: item.optionalContactName ?? '',
           optionalContactPhone: item.optionalContactPhone ?? '',
+          guarantorPartyId: '',
           guarantorName: item.guarantorName ?? '',
           guarantorDocument: item.guarantorDocument ?? '',
           guarantorPhone: item.guarantorPhone ?? '',
@@ -236,6 +242,29 @@ export class LocacoesFormPage implements OnInit {
     }
 
     void this.router.navigate(['/app/locatarios/new'], { queryParams });
+  }
+
+  isOptionalContactLocked(): boolean {
+    return !!this.form.controls.optionalContactPartyId.value;
+  }
+
+  isGuarantorLocked(): boolean {
+    return !!this.form.controls.guarantorPartyId.value;
+  }
+
+  onOptionalContactPartyChange(party: PartyDto | null): void {
+    this.form.patchValue({
+      optionalContactName: party?.name ?? '',
+      optionalContactPhone: formatPhoneBr(party?.phone ?? '')
+    });
+  }
+
+  onGuarantorPartyChange(party: PartyDto | null): void {
+    this.form.patchValue({
+      guarantorName: party?.name ?? '',
+      guarantorDocument: formatCpfCnpj(party?.documentNumber ?? ''),
+      guarantorPhone: formatPhoneBr(party?.phone ?? '')
+    });
   }
 
   private handleSuccess(message: string): void {
