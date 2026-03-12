@@ -24,20 +24,10 @@
     </div>
 
     <div class="field">
-      <label class="field__label">Ocupação</label>
+      <label class="field__label">Status</label>
       <app-async-search-select
-        [formControl]="form.controls.identity.controls.occupancyStatus"
-        [staticOptions]="occupancyStatusOptions"
-        [searchable]="false"
-        [allowClear]="false"
-      />
-    </div>
-
-    <div class="field">
-      <label class="field__label">Estado do ativo</label>
-      <app-async-search-select
-        [formControl]="form.controls.identity.controls.assetState"
-        [staticOptions]="assetStateOptions"
+        [formControl]="form.controls.identity.controls.status"
+        [staticOptions]="propertyStatusOptions"
         [searchable]="false"
         [allowClear]="false"
       />

@@ -43,30 +43,6 @@
           (valueChange)="onPropertyTypeChange($event)"
         />
       </label>
-
-      <label class="toolbar-field">
-        <span class="toolbar-label">Ocupação</span>
-        <app-async-search-select
-          [value]="occupancyStatus()"
-          [staticOptions]="occupancyStatusOptions"
-          [searchable]="false"
-          [useFloatingPanel]="true"
-          placeholder="Todos"
-          (valueChange)="onOccupancyChange($event)"
-        />
-      </label>
-
-      <label class="toolbar-field">
-        <span class="toolbar-label">Estado do ativo</span>
-        <app-async-search-select
-          [value]="assetState()"
-          [staticOptions]="assetStateOptions"
-          [searchable]="false"
-          [useFloatingPanel]="true"
-          placeholder="Todos"
-          (valueChange)="onAssetStateChange($event)"
-        />
-      </label>
     </div>
   </div>
 
@@ -78,8 +54,6 @@
           <th>Cidade</th>
           <th>Tipo</th>
           <th>Status</th>
-          <th>Ocupação</th>
-          <th>Ativo</th>
           <th>Ações</th>
         </tr>
       </thead>
@@ -87,7 +61,7 @@
         @if (isLoading()) {
           @for (i of [1,2,3,4,5,6]; track i) {
             <tr>
-              <td colspan="7"><div class="skeleton-row"></div></td>
+              <td colspan="5"><div class="skeleton-row"></div></td>
             </tr>
           }
         } @else {
@@ -97,8 +71,6 @@
               <td>{{ item.city }}/{{ item.state }}</td>
               <td>{{ item.propertyType | domainLabel:'propertyType' }}</td>
               <td>{{ item.status | domainLabel:'propertyStatus' }}</td>
-              <td>{{ item.occupancyStatus | domainLabel:'occupancyStatus' }}</td>
-              <td>{{ item.assetState | domainLabel:'assetState' }}</td>
               <td class="actions-col">
                 <button class="btn btn-secondary" type="button" (click)="toggleRowMenu($event, item.id)">...</button>
               </td>
@@ -130,7 +102,7 @@
               @case ('rent') { Atualizar valor de referência locativa }
               @case ('expense') { Nova conta para o imóvel }
               @case ('pendency') { Nova pendência do imóvel }
-              @case ('status') { Atualizar ocupação e estado do ativo }
+              @case ('status') { Atualizar status do imóvel }
             }
           </h3>
           <p>{{ selected.title }}</p>
@@ -218,19 +190,10 @@
         @if (quickModal() === 'status') {
           <form class="grid-form" [formGroup]="statusQuickForm" (ngSubmit)="submitQuickStatus()">
             <div class="field">
-              <label class="field__label">Ocupação</label>
+              <label class="field__label">Status</label>
               <app-async-search-select
-                formControlName="occupancyStatus"
-                [staticOptions]="occupancyStatusOptions.slice(1)"
-                [searchable]="false"
-                [allowClear]="false"
-              />
-            </div>
-            <div class="field">
-              <label class="field__label">Estado do ativo</label>
-              <app-async-search-select
-                formControlName="assetState"
-                [staticOptions]="assetStateOptions.slice(1)"
+                formControlName="status"
+                [staticOptions]="propertyStatusOptions.slice(1)"
                 [searchable]="false"
                 [allowClear]="false"
               />
@@ -251,7 +214,7 @@
   <div class="menu-popover menu-popover--floating menu-popover--rich" [style.left.px]="menuPosition().x" [style.top.px]="menuPosition().y">
     <button class="menu-action" type="button" (click)="openPropertyDetail(item.id)">Abrir hub do imóvel</button>
     <button class="menu-action" type="button" (click)="openPropertyLeases(item.id)">Locações</button>
-    <button class="menu-action" type="button" (click)="openQuickModal('status', item)">Atualizar situação</button>
+    <button class="menu-action" type="button" (click)="openQuickModal('status', item)">Atualizar status</button>
     <button class="menu-action" type="button" (click)="openQuickModal('rent', item)">Atualizar referência</button>
     <button class="menu-action" type="button" (click)="openQuickModal('expense', item)">Nova conta</button>
     <button class="menu-action" type="button" (click)="openQuickModal('pendency', item)">Nova pendência</button>

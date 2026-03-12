@@ -17,6 +17,7 @@ import { DomainLabelPipe } from '../../../shared/pipes/domain-label.pipe';
 import { ToastService } from '../../../shared/services/toast.service';
 import { getDomainOptions } from '../../../shared/utils/domain-label.util';
 import { getFloatingMenuPosition } from '../../../shared/utils/floating-menu.util';
+import { inferPropertyStatus, mapPropertyStatusToPayload } from '../../../shared/utils/property-status.util';
 
 @Component({
   selector: 'app-imoveis-page',
@@ -51,8 +52,6 @@ export class ImoveisPage implements OnInit, OnDestroy {
   readonly city = signal('');
   readonly status = signal('');
   readonly propertyType = signal('');
-  readonly occupancyStatus = signal('');
-  readonly assetState = signal('');
   readonly page = signal(1);
   readonly pageSize = signal(10);
   readonly totalItems = signal(0);
@@ -81,8 +80,6 @@ export class ImoveisPage implements OnInit, OnDestroy {
     { id: 'Comercial', label: 'Comercial' },
     { id: 'Terreno', label: 'Terreno' }
   ];
-  readonly occupancyStatusOptions = getDomainOptions('occupancyStatus', { includeEmptyOption: true, emptyLabel: 'Todos' });
-  readonly assetStateOptions = getDomainOptions('assetState', { includeEmptyOption: true, emptyLabel: 'Todos' });
   readonly frequencyOptions = getDomainOptions('expenseFrequency');
 
   readonly expenseQuickForm = this.fb.nonNullable.group({
@@ -110,8 +107,7 @@ export class ImoveisPage implements OnInit, OnDestroy {
   });
 
   readonly statusQuickForm = this.fb.nonNullable.group({
-    occupancyStatus: ['', Validators.required],
-    assetState: ['', Validators.required]
+    status: ['', Validators.required]
   });
 
   ngOnInit(): void {
@@ -137,8 +133,6 @@ export class ImoveisPage implements OnInit, OnDestroy {
           city: this.city().trim() || undefined,
           status: this.status().trim() || undefined,
           propertyType: this.propertyType().trim() || undefined,
-          occupancyStatus: this.occupancyStatus().trim() || undefined,
-          assetState: this.assetState().trim() || undefined,
           page: this.page(),
           pageSize: this.pageSize()
         },
@@ -183,18 +177,6 @@ export class ImoveisPage implements OnInit, OnDestroy {
 
   onPropertyTypeChange(value: string): void {
     this.propertyType.set(value);
-    this.page.set(1);
-    this.load(false);
-  }
-
-  onOccupancyChange(value: string): void {
-    this.occupancyStatus.set(value);
-    this.page.set(1);
-    this.load(false);
-  }
-
-  onAssetStateChange(value: string): void {
-    this.assetState.set(value);
     this.page.set(1);
     this.load(false);
   }
@@ -277,8 +259,7 @@ export class ImoveisPage implements OnInit, OnDestroy {
     });
 
     this.statusQuickForm.reset({
-      occupancyStatus: property.occupancyStatus ?? '',
-      assetState: property.assetState ?? ''
+      status: inferPropertyStatus(property)
     });
   }
 
@@ -366,7 +347,9 @@ export class ImoveisPage implements OnInit, OnDestroy {
       return;
     }
 
-    this.propertyApi.updateStatus(property.id, this.statusQuickForm.getRawValue()).subscribe({
+    const payload = mapPropertyStatusToPayload(this.statusQuickForm.getRawValue().status);
+
+    this.propertyApi.updateStatus(property.id, payload).subscribe({
       next: () => {
         this.toast.success('Situação do imóvel atualizada.');
         this.closeQuickModal();

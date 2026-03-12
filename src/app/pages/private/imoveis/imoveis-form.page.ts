@@ -12,6 +12,7 @@ import { ToastService } from '../../../shared/services/toast.service';
 import { DateBrInputDirective } from '../../../shared/directives/date-br-input.directive';
 import { BrlCurrencyInputDirective } from '../../../shared/directives/brl-currency-input.directive';
 import { getDomainOptions } from '../../../shared/utils/domain-label.util';
+import { inferPropertyStatus, mapPropertyStatusToPayload } from '../../../shared/utils/property-status.util';
 
 @Component({
   selector: 'app-imoveis-form-page',
@@ -39,8 +40,7 @@ export class ImoveisFormPage implements OnInit {
     { id: 'Comercial', label: 'Comercial' },
     { id: 'Terreno', label: 'Terreno' }
   ];
-  readonly occupancyStatusOptions: SelectOption[] = getDomainOptions('occupancyStatus');
-  readonly assetStateOptions: SelectOption[] = getDomainOptions('assetState');
+  readonly propertyStatusOptions: SelectOption[] = getDomainOptions('propertyStatus');
 
   readonly isCepLoading = signal(false);
   readonly cepStatus = signal<'idle' | 'loading' | 'success' | 'error'>('idle');
@@ -62,8 +62,7 @@ export class ImoveisFormPage implements OnInit {
     identity: this.fb.nonNullable.group({
       title: ['', Validators.required],
       propertyType: ['', Validators.required],
-      occupancyStatus: ['', Validators.required],
-      assetState: ['', Validators.required],
+      status: ['AVAILABLE', Validators.required],
       zipCode: ['', [Validators.required, Validators.minLength(8)]],
       street: ['', Validators.required],
       number: ['', Validators.required],
@@ -118,8 +117,7 @@ export class ImoveisFormPage implements OnInit {
           identity: {
             title: item.title,
             propertyType: item.propertyType,
-            occupancyStatus: item.occupancyStatus ?? '',
-            assetState: item.assetState ?? '',
+            status: inferPropertyStatus(item),
             zipCode: formattedZip,
             street: parsedAddress.street,
             number: parsedAddress.number,
@@ -173,12 +171,13 @@ export class ImoveisFormPage implements OnInit {
 
     this.submitting.set(true);
     const addressLine1 = this.composeAddressLine();
+    const statusPayload = mapPropertyStatusToPayload(raw.identity.status);
     const basePayload: PropertyUpdatePayload = {
       identity: {
         title: raw.identity.title.trim(),
         propertyType: raw.identity.propertyType.trim(),
-        occupancyStatus: raw.identity.occupancyStatus.trim(),
-        assetState: raw.identity.assetState.trim(),
+        occupancyStatus: statusPayload.occupancyStatus,
+        assetState: statusPayload.assetState,
         addressLine1,
         city: raw.identity.city.trim(),
         state: raw.identity.state.trim().toUpperCase(),
