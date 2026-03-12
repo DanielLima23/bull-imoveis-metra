@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { PartyDto } from '../../../core/models/domain.model';
@@ -6,18 +6,15 @@ import { PartyApiService } from '../../../core/services/party-api.service';
 import { AsyncSearchSelectComponent } from '../../../shared/components/async-search-select/async-search-select.component';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { TablePaginationComponent } from '../../../shared/components/table-pagination/table-pagination.component';
-import { CpfCnpjPipe } from '../../../shared/pipes/cpf-cnpj.pipe';
 import { DomainLabelPipe } from '../../../shared/pipes/domain-label.pipe';
-import { PhoneBrPipe } from '../../../shared/pipes/phone-br.pipe';
 import { ToastService } from '../../../shared/services/toast.service';
 import { SelectOption } from '../../../shared/models/select-option.model';
 import { getDomainOptions } from '../../../shared/utils/domain-label.util';
-import { getFloatingMenuPosition } from '../../../shared/utils/floating-menu.util';
 
 @Component({
   selector: 'app-pessoas-page',
   standalone: true,
-  imports: [PageHeaderComponent, TablePaginationComponent, RouterLink, CpfCnpjPipe, PhoneBrPipe, AsyncSearchSelectComponent, DomainLabelPipe],
+  imports: [PageHeaderComponent, TablePaginationComponent, RouterLink, AsyncSearchSelectComponent, DomainLabelPipe],
   templateUrl: './pessoas.page.html',
   styleUrl: './pessoas.page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -36,11 +33,10 @@ export class PessoasPage implements OnInit, OnDestroy {
   readonly pageSize = signal(10);
   readonly totalItems = signal(0);
   readonly totalPages = signal(1);
-  readonly activeMenuId = signal<string | null>(null);
-  readonly menuPosition = signal({ x: 0, y: 0 });
+  readonly deletingPerson = signal<PartyDto | null>(null);
+  readonly isDeleting = signal(false);
   readonly kindOptions: SelectOption[] = getDomainOptions('partyKind', { includeEmptyOption: true, emptyLabel: 'Todos' });
-
-  readonly activeMenuItem = computed(() => this.items().find((item) => item.id === this.activeMenuId()) ?? null);
+  readonly columnCount = 3;
 
   ngOnInit(): void {
     this.load();
@@ -72,7 +68,6 @@ export class PessoasPage implements OnInit, OnDestroy {
           this.pageSize.set(result.pageSize);
           this.totalItems.set(result.totalItems);
           this.totalPages.set(result.totalPages);
-          this.activeMenuId.set(null);
           this.isLoading.set(false);
           this.requestSub = null;
         },
@@ -121,22 +116,46 @@ export class PessoasPage implements OnInit, OnDestroy {
     this.load();
   }
 
-  toggleRowMenu(event: MouseEvent, id: string): void {
-    if (this.activeMenuId() === id) {
-      this.closeRowMenu();
-      return;
-    }
-
-    const trigger = event.currentTarget as HTMLElement | null;
-    if (!trigger) {
-      return;
-    }
-
-    this.menuPosition.set(getFloatingMenuPosition(trigger, 220, 116));
-    this.activeMenuId.set(id);
+  openDeleteDialog(item: PartyDto): void {
+    this.deletingPerson.set(item);
   }
 
-  closeRowMenu(): void {
-    this.activeMenuId.set(null);
+  closeDeleteDialog(): void {
+    if (this.isDeleting()) {
+      return;
+    }
+
+    this.deletingPerson.set(null);
+  }
+
+  confirmDelete(): void {
+    const item = this.deletingPerson();
+    if (!item || this.isDeleting()) {
+      return;
+    }
+
+    this.isDeleting.set(true);
+    this.api
+      .update(item.id, {
+        kind: item.kind ?? undefined,
+        name: item.name ?? undefined,
+        documentNumber: item.documentNumber ?? undefined,
+        email: item.email ?? undefined,
+        phone: item.phone ?? undefined,
+        notes: item.notes ?? undefined,
+        isActive: false
+      })
+      .subscribe({
+        next: () => {
+          this.isDeleting.set(false);
+          this.deletingPerson.set(null);
+          this.toast.success('Pessoa inativada com sucesso.');
+          this.load(false);
+        },
+        error: () => {
+          this.isDeleting.set(false);
+          this.toast.error('Falha ao excluir pessoa.');
+        }
+      });
   }
 }

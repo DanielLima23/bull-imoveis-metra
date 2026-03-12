@@ -44,10 +44,6 @@
         <tr>
           <th>Nome</th>
           <th>Tipo</th>
-          <th>Documento</th>
-          <th>E-mail</th>
-          <th>Telefone</th>
-          <th>Status</th>
           <th>Ações</th>
         </tr>
       </thead>
@@ -55,7 +51,7 @@
         @if (isLoading()) {
           @for (i of [1,2,3,4,5]; track i) {
             <tr>
-              <td colspan="7"><div class="skeleton-row"></div></td>
+              <td [attr.colspan]="columnCount"><div class="skeleton-row"></div></td>
             </tr>
           }
         } @else {
@@ -63,13 +59,44 @@
             <tr>
               <td>{{ item.name || '-' }}</td>
               <td>{{ item.kind | domainLabel:'partyKind' }}</td>
-              <td>{{ item.documentNumber | cpfCnpj }}</td>
-              <td>{{ item.email || '-' }}</td>
-              <td>{{ item.phone | phoneBr }}</td>
-              <td><span class="status" [class.off]="!item.isActive">{{ item.isActive ? 'Ativo' : 'Inativo' }}</span></td>
               <td class="actions-col">
-                <button class="btn btn-secondary" type="button" (click)="toggleRowMenu($event, item.id)">...</button>
+                <div class="row-actions">
+                  <a
+                    class="icon-action icon-action--edit"
+                    [routerLink]="['/app/pessoas', item.id, 'edit']"
+                    aria-label="Editar pessoa"
+                    title="Editar pessoa"
+                    data-tooltip="Editar pessoa"
+                  >
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="m14 3 7 7-4 4-7-7z" />
+                      <path d="M3 21h6l8-8-6-6-8 8z" />
+                    </svg>
+                  </a>
+
+                  <button
+                    class="icon-action icon-action--delete"
+                    type="button"
+                    aria-label="Excluir pessoa"
+                    [attr.title]="item.isActive ? 'Excluir pessoa' : 'Pessoa já inativa'"
+                    [attr.data-tooltip]="item.isActive ? 'Excluir pessoa' : 'Pessoa já inativa'"
+                    [disabled]="!item.isActive"
+                    (click)="openDeleteDialog(item)"
+                  >
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M4 7h16" />
+                      <path d="M9 7V4h6v3" />
+                      <path d="M7 7v13h10V7" />
+                      <path d="M10 11v6" />
+                      <path d="M14 11v6" />
+                    </svg>
+                  </button>
+                </div>
               </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td [attr.colspan]="columnCount">Nenhuma pessoa encontrada.</td>
             </tr>
           }
         }
@@ -88,9 +115,24 @@
   />
 </section>
 
-@if (activeMenuItem(); as item) {
-  <button class="menu-overlay" type="button" (click)="closeRowMenu()" aria-label="Fechar menu de ações"></button>
-  <div class="menu-popover menu-popover--floating" [style.left.px]="menuPosition().x" [style.top.px]="menuPosition().y">
-    <a [routerLink]="['/app/pessoas', item.id, 'edit']" (click)="closeRowMenu()">Editar cadastro</a>
+@if (deletingPerson(); as item) {
+  <div class="modal-backdrop" (click)="closeDeleteDialog()">
+    <section class="card-panel confirm-modal" (click)="$event.stopPropagation()">
+      <header class="confirm-modal__head">
+        <h3>Excluir pessoa</h3>
+        <p>{{ item.name || 'Pessoa sem nome' }}</p>
+      </header>
+
+      <p class="confirm-modal__text">
+        Esta ação vai inativar o cadastro da pessoa. Ela deixará de aparecer nas listagens ativas, mas continuará registrada no sistema.
+      </p>
+
+      <div class="modal-actions">
+        <button class="btn btn-secondary" type="button" (click)="closeDeleteDialog()" [disabled]="isDeleting()">Cancelar</button>
+        <button class="btn btn-danger" type="button" (click)="confirmDelete()" [disabled]="isDeleting()">
+          @if (isDeleting()) { Excluindo... } @else { Confirmar exclusão }
+        </button>
+      </div>
+    </section>
   </div>
 }
