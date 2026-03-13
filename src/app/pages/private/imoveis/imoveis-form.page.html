@@ -4,210 +4,257 @@
   [breadcrumbs]="[{ label: 'Painel', route: '/app/dashboard' }, { label: 'Imóveis', route: '/app/imoveis' }, { label: isEdit() ? 'Editar' : 'Novo' }]"
 />
 
-<section class="card-panel">
-  <form class="grid-form property-form" [formGroup]="form" (ngSubmit)="submit()">
-    <div class="field field--full section-title"><h2>Identidade</h2></div>
+<section class="property-form-shell">
+  <form class="property-form" [formGroup]="form" (ngSubmit)="submit()">
+    <article class="card-panel section-card">
+      <header class="section-card__head">
+        <div>
+          <span class="section-card__eyebrow">Dados básicos</span>
+          <h2>Identidade</h2>
+        </div>
+        <p>Defina o tipo, o status e o endereço principal do imóvel.</p>
+      </header>
 
-    <div class="field">
-      <label class="field__label">Título</label>
-      <input class="input" [formControl]="form.controls.identity.controls.title" placeholder="Ex.: Apartamento 101" />
-    </div>
+      <div class="grid-form section-grid">
+        <div class="field">
+          <label class="field__label">Título</label>
+          <input class="input" [formControl]="form.controls.identity.controls.title" placeholder="Ex.: Apartamento 101" />
+        </div>
 
-    <div class="field">
-      <label class="field__label">Tipo do imóvel</label>
-      <app-async-search-select
-        [formControl]="form.controls.identity.controls.propertyType"
-        [staticOptions]="propertyTypeOptions"
-        [searchable]="false"
-        [allowClear]="false"
-      />
-    </div>
+        <div class="field">
+          <label class="field__label">Tipo do imóvel</label>
+          <app-async-search-select
+            [formControl]="form.controls.identity.controls.propertyType"
+            [staticOptions]="propertyTypeOptions"
+            [searchable]="false"
+            [allowClear]="false"
+          />
+        </div>
 
-    <div class="field">
-      <label class="field__label">Status</label>
-      <app-async-search-select
-        [formControl]="form.controls.identity.controls.status"
-        [staticOptions]="propertyStatusOptions"
-        [searchable]="false"
-        [allowClear]="false"
-      />
-    </div>
+        <div class="field">
+          <label class="field__label">Status</label>
+          <app-async-search-select
+            [formControl]="form.controls.identity.controls.status"
+            [staticOptions]="propertyStatusOptions"
+            [searchable]="false"
+            [allowClear]="false"
+          />
+        </div>
 
-    @if (shouldShowIdleReason(form.controls.identity.controls.status.value)) {
-      <div class="field">
-        <label class="field__label">Motivo da ociosidade</label>
-        <app-async-search-select
-          [formControl]="form.controls.identity.controls.idleReason"
-          [staticOptions]="propertyIdleReasonOptions"
-          [searchable]="false"
-          [allowClear]="false"
-        />
+        @if (shouldShowIdleReason(form.controls.identity.controls.status.value)) {
+          <div class="field">
+            <label class="field__label">Motivo da ociosidade</label>
+            <app-async-search-select
+              [formControl]="form.controls.identity.controls.idleReason"
+              [staticOptions]="propertyIdleReasonOptions"
+              [searchable]="false"
+              [allowClear]="false"
+            />
+          </div>
+        }
+
+        <div class="field field--full">
+          <label class="field__label">CEP</label>
+          <div class="zip-row">
+            <input class="input" [formControl]="form.controls.identity.controls.zipCode" inputmode="numeric" placeholder="00000-000" />
+            <button class="btn btn-secondary" type="button" (click)="searchCep()" [disabled]="isCepLoading()">Buscar CEP</button>
+          </div>
+        </div>
+
+        <p class="cep-feedback" [class.loading]="isCepLoading()" [class.success]="cepStatus() === 'success'" [class.error]="cepStatus() === 'error'">
+          @if (isCepLoading()) {
+            <span class="spinner" aria-hidden="true"></span>
+          }
+          <span>{{ cepStatusText() }}</span>
+        </p>
+
+        <div class="field">
+          <label class="field__label">Rua</label>
+          <input class="input auto-filled" [formControl]="form.controls.identity.controls.street" placeholder="Rua preenchida pelo CEP" />
+        </div>
+
+        <div class="field">
+          <label class="field__label">Número</label>
+          <input class="input" [formControl]="form.controls.identity.controls.number" placeholder="Ex.: 123" />
+        </div>
+
+        <div class="field">
+          <label class="field__label">Complemento</label>
+          <input class="input" [formControl]="form.controls.identity.controls.complement" placeholder="Ex.: Apto 12, Bloco B" />
+        </div>
+
+        <div class="field">
+          <label class="field__label">Bairro</label>
+          <input class="input auto-filled" [formControl]="form.controls.identity.controls.district" placeholder="Bairro preenchido pelo CEP" />
+        </div>
+
+        <div class="field">
+          <label class="field__label">Cidade</label>
+          <input class="input auto-filled" [formControl]="form.controls.identity.controls.city" placeholder="Cidade preenchida pelo CEP" />
+        </div>
+
+        <div class="field">
+          <label class="field__label">UF</label>
+          <input class="input auto-filled uf" [formControl]="form.controls.identity.controls.state" placeholder="UF" />
+        </div>
+
+        @if (!isEdit()) {
+          <div class="field">
+            <label class="field__label">Valor locativo inicial</label>
+            <input class="input" formControlName="initialRentAmount" appBrlCurrencyInput placeholder="R$ 0,00" />
+          </div>
+
+          <div class="field">
+            <label class="field__label">Vigência do valor inicial</label>
+            <input class="input" formControlName="initialRentEffectiveFrom" appDateBrInput placeholder="dd/mm/aaaa" />
+          </div>
+        }
       </div>
-    }
+    </article>
 
-    <div class="field field--full">
-      <label class="field__label">CEP</label>
-      <div class="zip-row">
-        <input class="input" [formControl]="form.controls.identity.controls.zipCode" inputmode="numeric" placeholder="00000-000" />
-        <button class="btn btn-secondary" type="button" (click)="searchCep()" [disabled]="isCepLoading()">Buscar CEP</button>
+    <article class="card-panel section-card">
+      <header class="section-card__head">
+        <div>
+          <span class="section-card__eyebrow">Registros</span>
+          <h2>Documentação</h2>
+        </div>
+        <p>Guarde aqui os principais dados documentais do imóvel.</p>
+      </header>
+
+      <div class="grid-form section-grid">
+        <div class="field">
+          <label class="field__label">Registro</label>
+          <input class="input" [formControl]="form.controls.documentation.controls.registration" placeholder="Informe o número do registro" />
+        </div>
+
+        <div class="field">
+          <label class="field__label">Escritura</label>
+          <input class="input" [formControl]="form.controls.documentation.controls.scripture" placeholder="Informe a escritura" />
+        </div>
+
+        <div class="field">
+          <label class="field__label">Certidão</label>
+          <input class="input" [formControl]="form.controls.documentation.controls.registrationCertification" placeholder="Informe a certidão" />
+        </div>
       </div>
-    </div>
+    </article>
 
-    <p class="cep-feedback" [class.loading]="isCepLoading()" [class.success]="cepStatus() === 'success'" [class.error]="cepStatus() === 'error'">
-      @if (isCepLoading()) {
-        <span class="spinner" aria-hidden="true"></span>
-      }
-      <span>{{ cepStatusText() }}</span>
-    </p>
+    <article class="card-panel section-card">
+      <header class="section-card__head">
+        <div>
+          <span class="section-card__eyebrow">Estrutura</span>
+          <h2>Características</h2>
+        </div>
+        <p>Marque os diferenciais e o estado atual de ocupação.</p>
+      </header>
 
-    <div class="field">
-      <label class="field__label">Rua</label>
-      <input class="input auto-filled" [formControl]="form.controls.identity.controls.street" placeholder="Rua preenchida pelo CEP" />
-    </div>
+      <div class="grid-form section-grid">
+        <div class="field">
+          <label class="field__label">Número de quartos</label>
+          <input class="input" type="number" [formControl]="form.controls.characteristics.controls.numOfRooms" placeholder="Ex.: 3" />
+        </div>
 
-    <div class="field">
-      <label class="field__label">Número</label>
-      <input class="input" [formControl]="form.controls.identity.controls.number" placeholder="Ex.: 123" />
-    </div>
+        <div class="field">
+          <label class="field__label">Desocupado desde</label>
+          <input class="input" [formControl]="form.controls.characteristics.controls.unoccupiedSince" appDateBrInput placeholder="dd/mm/aaaa" />
+        </div>
 
-    <div class="field">
-      <label class="field__label">Complemento</label>
-      <input class="input" [formControl]="form.controls.identity.controls.complement" placeholder="Ex.: Apto 12, Bloco B" />
-    </div>
+        <div class="field field--full">
+          <label class="field__label">Diferenciais</label>
+          <div class="feature-toggles">
+            <label class="checkbox-inline feature-toggle">
+              <input type="checkbox" [formControl]="form.controls.characteristics.controls.cleaningIncluded" />
+              Limpeza incluída
+            </label>
 
-    <div class="field">
-      <label class="field__label">Bairro</label>
-      <input class="input auto-filled" [formControl]="form.controls.identity.controls.district" placeholder="Bairro preenchido pelo CEP" />
-    </div>
+            <label class="checkbox-inline feature-toggle">
+              <input type="checkbox" [formControl]="form.controls.characteristics.controls.elevator" />
+              Elevador
+            </label>
 
-    <div class="field">
-      <label class="field__label">Cidade</label>
-      <input class="input auto-filled" [formControl]="form.controls.identity.controls.city" placeholder="Cidade preenchida pelo CEP" />
-    </div>
-
-    <div class="field">
-      <label class="field__label">UF</label>
-      <input class="input auto-filled uf" [formControl]="form.controls.identity.controls.state" placeholder="UF" />
-    </div>
-
-    @if (!isEdit()) {
-      <div class="field">
-        <label class="field__label">Valor locativo inicial</label>
-        <input class="input" formControlName="initialRentAmount" appBrlCurrencyInput placeholder="R$ 0,00" />
+            <label class="checkbox-inline feature-toggle">
+              <input type="checkbox" [formControl]="form.controls.characteristics.controls.garage" />
+              Garagem
+            </label>
+          </div>
+        </div>
       </div>
+    </article>
 
-      <div class="field">
-        <label class="field__label">Vigência do valor inicial</label>
-        <input class="input" formControlName="initialRentEffectiveFrom" appDateBrInput placeholder="dd/mm/aaaa" />
+    <article class="card-panel section-card">
+      <header class="section-card__head">
+        <div>
+          <span class="section-card__eyebrow">Responsáveis</span>
+          <h2>Administração</h2>
+        </div>
+        <p>Vincule as pessoas responsáveis e registre observações administrativas.</p>
+      </header>
+
+      <div class="grid-form section-grid">
+        <div class="field">
+          <label class="field__label">Proprietário</label>
+          <app-party-picker-field
+            [formControl]="form.controls.administration.controls.proprietaryPartyId"
+            [allowedKinds]="['PROPRIETARIO', 'PERSON', 'COMPANY', 'OUTRO']"
+            defaultKind="PROPRIETARIO"
+            placeholder="Selecione o proprietário"
+            (partyChange)="onProprietaryPartyChange($event)"
+          />
+
+          @if (!form.controls.administration.controls.proprietaryPartyId.value && form.controls.administration.controls.proprietary.value) {
+            <p class="legacy-person-note">Cadastro legado atual: {{ form.controls.administration.controls.proprietary.value }}</p>
+          }
+        </div>
+
+        <div class="field">
+          <label class="field__label">Administrador</label>
+          <app-party-picker-field
+            [formControl]="form.controls.administration.controls.administratorPartyId"
+            [allowedKinds]="['ADMINISTRADOR', 'PERSON', 'COMPANY', 'OUTRO']"
+            defaultKind="ADMINISTRADOR"
+            placeholder="Selecione o administrador"
+            (partyChange)="onAdministratorPartyChange($event)"
+          />
+
+          @if (!form.controls.administration.controls.administratorPartyId.value && form.controls.administration.controls.administrator.value) {
+            <p class="legacy-person-note">Cadastro legado atual: {{ form.controls.administration.controls.administrator.value }}</p>
+          }
+        </div>
+
+        <div class="field">
+          <label class="field__label">Taxa administrativa</label>
+          <input class="input" [formControl]="form.controls.administration.controls.administrateTax" placeholder="Ex.: 10%" />
+        </div>
+
+        <div class="field">
+          <label class="field__label">Advogado</label>
+          <app-party-picker-field
+            [formControl]="form.controls.administration.controls.lawyerPartyId"
+            [allowedKinds]="['ADVOGADO', 'PERSON', 'COMPANY', 'OUTRO']"
+            defaultKind="ADVOGADO"
+            placeholder="Selecione o advogado"
+            (partyChange)="onLawyerPartyChange($event)"
+          />
+
+          @if (!form.controls.administration.controls.lawyerPartyId.value && form.controls.administration.controls.lawyer.value) {
+            <p class="legacy-person-note">Cadastro legado atual: {{ form.controls.administration.controls.lawyer.value }}</p>
+          }
+        </div>
+
+        <div class="field field--full">
+          <label class="field__label">Observações</label>
+          <textarea class="textarea" rows="4" [formControl]="form.controls.administration.controls.observation" placeholder="Adicione observações relevantes sobre o imóvel"></textarea>
+        </div>
       </div>
-    }
+    </article>
 
-    <div class="field field--full section-title"><h2>Documentação</h2></div>
-
-    <div class="field">
-      <label class="field__label">Registro</label>
-      <input class="input" [formControl]="form.controls.documentation.controls.registration" placeholder="Informe o número do registro" />
-    </div>
-
-    <div class="field">
-      <label class="field__label">Escritura</label>
-      <input class="input" [formControl]="form.controls.documentation.controls.scripture" placeholder="Informe a escritura" />
-    </div>
-
-    <div class="field">
-      <label class="field__label">Certidão</label>
-      <input class="input" [formControl]="form.controls.documentation.controls.registrationCertification" placeholder="Informe a certidão" />
-    </div>
-
-    <div class="field field--full section-title"><h2>Características</h2></div>
-
-    <div class="field">
-      <label class="field__label">Número de quartos</label>
-      <input class="input" type="number" [formControl]="form.controls.characteristics.controls.numOfRooms" placeholder="Ex.: 3" />
-    </div>
-
-    <div class="field">
-      <label class="field__label">Desocupado desde</label>
-      <input class="input" [formControl]="form.controls.characteristics.controls.unoccupiedSince" appDateBrInput placeholder="dd/mm/aaaa" />
-    </div>
-
-    <label class="checkbox-inline">
-      <input type="checkbox" [formControl]="form.controls.characteristics.controls.cleaningIncluded" />
-      Limpeza incluída
-    </label>
-
-    <label class="checkbox-inline">
-      <input type="checkbox" [formControl]="form.controls.characteristics.controls.elevator" />
-      Elevador
-    </label>
-
-    <label class="checkbox-inline">
-      <input type="checkbox" [formControl]="form.controls.characteristics.controls.garage" />
-      Garagem
-    </label>
-
-    <div class="field field--full section-title"><h2>Administração</h2></div>
-
-    <div class="field">
-      <label class="field__label">Proprietário</label>
-      <app-party-picker-field
-        [formControl]="form.controls.administration.controls.proprietaryPartyId"
-        [allowedKinds]="['PROPRIETARIO', 'PERSON', 'COMPANY', 'OUTRO']"
-        defaultKind="PROPRIETARIO"
-        placeholder="Selecione o proprietário"
-        (partyChange)="onProprietaryPartyChange($event)"
-      />
-
-      @if (!form.controls.administration.controls.proprietaryPartyId.value && form.controls.administration.controls.proprietary.value) {
-        <p class="legacy-person-note">Cadastro legado atual: {{ form.controls.administration.controls.proprietary.value }}</p>
-      }
-    </div>
-
-    <div class="field">
-      <label class="field__label">Administrador</label>
-      <app-party-picker-field
-        [formControl]="form.controls.administration.controls.administratorPartyId"
-        [allowedKinds]="['ADMINISTRADOR', 'PERSON', 'COMPANY', 'OUTRO']"
-        defaultKind="ADMINISTRADOR"
-        placeholder="Selecione o administrador"
-        (partyChange)="onAdministratorPartyChange($event)"
-      />
-
-      @if (!form.controls.administration.controls.administratorPartyId.value && form.controls.administration.controls.administrator.value) {
-        <p class="legacy-person-note">Cadastro legado atual: {{ form.controls.administration.controls.administrator.value }}</p>
-      }
-    </div>
-
-    <div class="field">
-      <label class="field__label">Taxa administrativa</label>
-      <input class="input" [formControl]="form.controls.administration.controls.administrateTax" placeholder="Ex.: 10%" />
-    </div>
-
-    <div class="field">
-      <label class="field__label">Advogado</label>
-      <app-party-picker-field
-        [formControl]="form.controls.administration.controls.lawyerPartyId"
-        [allowedKinds]="['ADVOGADO', 'PERSON', 'COMPANY', 'OUTRO']"
-        defaultKind="ADVOGADO"
-        placeholder="Selecione o advogado"
-        (partyChange)="onLawyerPartyChange($event)"
-      />
-
-      @if (!form.controls.administration.controls.lawyerPartyId.value && form.controls.administration.controls.lawyer.value) {
-        <p class="legacy-person-note">Cadastro legado atual: {{ form.controls.administration.controls.lawyer.value }}</p>
-      }
-    </div>
-
-    <div class="field field--full">
-      <label class="field__label">Observações</label>
-      <textarea class="textarea" rows="4" [formControl]="form.controls.administration.controls.observation" placeholder="Adicione observações relevantes sobre o imóvel"></textarea>
-    </div>
-
-    <div class="actions">
-      <button class="btn btn-secondary" type="button" (click)="back()">Cancelar</button>
-      <button class="btn btn-primary" type="submit" [disabled]="submitting()">
-        @if (submitting()) { Salvando... } @else { Salvar cadastro }
-      </button>
+    <div class="card-panel property-form__actions">
+      <div class="actions">
+        <button class="btn btn-secondary" type="button" (click)="back()">Cancelar</button>
+        <button class="btn btn-primary" type="submit" [disabled]="submitting()">
+          @if (submitting()) { Salvando... } @else { Salvar cadastro }
+        </button>
+      </div>
     </div>
   </form>
 </section>
