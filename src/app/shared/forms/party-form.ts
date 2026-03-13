@@ -1,5 +1,6 @@
 import { FormBuilder, Validators } from '@angular/forms';
 import { PartyDto } from '../../core/models/domain.model';
+import { resolveDomainCode } from '../utils/domain-label.util';
 import { normalizeDocument, normalizePhone } from '../utils/format.util';
 
 export interface PartyFormInitialValue {
@@ -8,20 +9,35 @@ export interface PartyFormInitialValue {
   documentNumber?: string;
   email?: string;
   phone?: string;
+  oab?: string;
   notes?: string;
   isActive?: boolean;
 }
 
 export function createPartyForm(fb: FormBuilder, initial: PartyFormInitialValue = {}) {
-  return fb.nonNullable.group({
+  const form = fb.nonNullable.group({
     kind: [initial.kind ?? '', Validators.required],
     name: [initial.name ?? '', Validators.required],
     documentNumber: [initial.documentNumber ?? ''],
     email: [initial.email ?? '', Validators.email],
     phone: [initial.phone ?? ''],
+    oab: [initial.oab ?? ''],
     notes: [initial.notes ?? ''],
     isActive: [initial.isActive ?? true]
   });
+
+  // Keep OAB aligned with the backend rule that only lawyers persist it.
+  form.controls.kind.valueChanges.subscribe((kind) => {
+    if (!isLawyerPartyKind(kind) && form.controls.oab.value) {
+      form.controls.oab.setValue('', { emitEvent: false });
+    }
+  });
+
+  if (!isLawyerPartyKind(form.controls.kind.value) && form.controls.oab.value) {
+    form.controls.oab.setValue('', { emitEvent: false });
+  }
+
+  return form;
 }
 
 export type PartyFormGroup = ReturnType<typeof createPartyForm>;
@@ -33,6 +49,7 @@ export interface PartyPayloadValue {
   documentNumber?: string;
   email?: string;
   phone?: string;
+  oab?: string;
   notes?: string;
 }
 
@@ -47,6 +64,7 @@ export function patchPartyForm(form: PartyFormGroup, party: Partial<PartyDto>): 
     documentNumber: party.documentNumber ?? '',
     email: party.email ?? '',
     phone: party.phone ?? '',
+    oab: party.oab ?? '',
     notes: party.notes ?? '',
     isActive: party.isActive ?? true
   });
@@ -59,6 +77,7 @@ export function mapPartyFormToPayload(value: PartyFormValue): PartyPayloadValue 
     documentNumber: normalizeDocument(value.documentNumber) || undefined,
     email: value.email.trim() || undefined,
     phone: normalizePhone(value.phone) || undefined,
+    oab: isLawyerPartyKind(value.kind) ? value.oab.trim() || undefined : undefined,
     notes: value.notes.trim() || undefined
   };
 }
@@ -68,4 +87,8 @@ export function mapPartyFormToUpdatePayload(value: PartyFormValue): PartyUpdateP
     ...mapPartyFormToPayload(value),
     isActive: value.isActive
   };
+}
+
+export function isLawyerPartyKind(kind?: string | null): boolean {
+  return resolveDomainCode('partyKind', kind) === 'ADVOGADO';
 }

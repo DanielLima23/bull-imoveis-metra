@@ -29,6 +29,13 @@
     <input class="input" formControlName="phone" appPhoneBrInput placeholder="(00) 00000-0000" />
   </div>
 
+  @if (shouldShowOab()) {
+    <div class="field">
+      <label class="field__label">OAB</label>
+      <input class="input" formControlName="oab" placeholder="Informe o nÃºmero da OAB" />
+    </div>
+  }
+
   @if (showActiveToggle()) {
     <label class="field checkbox-field">
       <span class="field__label">Situação</span>

@@ -65,6 +65,7 @@ export class PartyPickerFieldComponent implements ControlValueAccessor, OnDestro
   readonly isDisabled = computed(() => this.disabled() || this.controlDisabled());
   readonly selectedKindLabel = computed(() => getDomainLabel('partyKind', this.selectedParty()?.kind, ''));
   readonly selectedDocument = computed(() => formatCpfCnpj(this.selectedParty()?.documentNumber));
+  readonly selectedOab = computed(() => this.selectedParty()?.oab?.trim() ?? '');
   readonly selectedContact = computed(() => {
     const party = this.selectedParty();
     if (!party) {

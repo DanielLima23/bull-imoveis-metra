@@ -9,6 +9,7 @@ export interface PartyPayload {
   documentNumber?: string;
   email?: string;
   phone?: string;
+  oab?: string;
   notes?: string;
 }
 

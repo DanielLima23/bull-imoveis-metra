@@ -43,12 +43,9 @@ export interface PropertyAdministrationSectionPayload {
   proprietaryPartyId?: string | null;
   administrator?: string;
   administratorPartyId?: string | null;
-  administratorPhone?: string;
-  administratorEmail?: string;
   administrateTax?: string;
   lawyer?: string;
   lawyerPartyId?: string | null;
-  lawyerData?: string;
   observation?: string;
 }
 

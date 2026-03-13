@@ -98,12 +98,9 @@ export class ImoveisFormPage implements OnInit {
       proprietaryPartyId: [''],
       administrator: [''],
       administratorPartyId: [''],
-      administratorPhone: [''],
-      administratorEmail: ['', Validators.email],
       administrateTax: [''],
       lawyer: [''],
       lawyerPartyId: [''],
-      lawyerData: [''],
       observation: ['']
     }),
     initialRentAmount: [0],
@@ -158,12 +155,9 @@ export class ImoveisFormPage implements OnInit {
             proprietaryPartyId: item.administration?.proprietaryPartyId ?? item.proprietaryPartyId ?? '',
             administrator: item.administration?.administrator ?? item.administrator ?? '',
             administratorPartyId: item.administration?.administratorPartyId ?? item.administratorPartyId ?? '',
-            administratorPhone: item.administration?.administratorPhone ?? item.administratorPhone ?? '',
-            administratorEmail: item.administration?.administratorEmail ?? item.administratorEmail ?? '',
             administrateTax: item.administration?.administrateTax ?? '',
             lawyer: item.administration?.lawyer ?? item.lawyer ?? '',
             lawyerPartyId: item.administration?.lawyerPartyId ?? item.lawyerPartyId ?? '',
-            lawyerData: item.administration?.lawyerData ?? '',
             observation: item.administration?.observation ?? ''
           }
         });
@@ -221,12 +215,9 @@ export class ImoveisFormPage implements OnInit {
         proprietaryPartyId: raw.administration.proprietaryPartyId.trim() || undefined,
         administrator: raw.administration.administrator.trim() || undefined,
         administratorPartyId: raw.administration.administratorPartyId.trim() || undefined,
-        administratorPhone: raw.administration.administratorPhone.trim() || undefined,
-        administratorEmail: raw.administration.administratorEmail.trim() || undefined,
         administrateTax: raw.administration.administrateTax.trim() || undefined,
         lawyer: raw.administration.lawyer.trim() || undefined,
         lawyerPartyId: raw.administration.lawyerPartyId.trim() || undefined,
-        lawyerData: raw.administration.lawyerData.trim() || undefined,
         observation: raw.administration.observation.trim() || undefined
       }
     };
@@ -270,20 +261,12 @@ export class ImoveisFormPage implements OnInit {
     return requiresPropertyIdleReason(value);
   }
 
-  isAdministratorLocked(): boolean {
-    return !!this.form.controls.administration.controls.administratorPartyId.value;
-  }
-
   onProprietaryPartyChange(party: PartyDto | null): void {
     this.form.controls.administration.controls.proprietary.setValue(party?.name ?? '');
   }
 
   onAdministratorPartyChange(party: PartyDto | null): void {
-    this.form.controls.administration.patchValue({
-      administrator: party?.name ?? '',
-      administratorPhone: party?.phone ?? '',
-      administratorEmail: party?.email ?? ''
-    });
+    this.form.controls.administration.controls.administrator.setValue(party?.name ?? '');
   }
 
   onLawyerPartyChange(party: PartyDto | null): void {

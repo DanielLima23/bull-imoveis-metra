@@ -27,7 +27,8 @@ export function toTenantSelectOption(item: TenantDto): SelectOption {
 export function toPartySelectOption(item: PartyDto): SelectOption {
   const doc = formatCpfCnpj(item.documentNumber);
   const kindLabel = getDomainLabel('partyKind', item.kind, '');
-  const subtitle = [kindLabel, doc].filter((value) => !!value).join(' · ');
+  const oab = item.oab?.trim() ? `OAB ${item.oab.trim()}` : '';
+  const subtitle = [kindLabel, doc, oab].filter((value) => !!value).join(' · ');
 
   return {
     id: item.id,

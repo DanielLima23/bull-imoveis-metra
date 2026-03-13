@@ -17,12 +17,9 @@ export interface PropertyAdministrationSectionDto {
   proprietaryPartyId?: string | null;
   administrator?: string | null;
   administratorPartyId?: string | null;
-  administratorPhone?: string | null;
-  administratorEmail?: string | null;
   administrateTax?: string | null;
   lawyer?: string | null;
   lawyerPartyId?: string | null;
-  lawyerData?: string | null;
   observation?: string | null;
 }
 
@@ -44,8 +41,6 @@ export interface PropertyDto {
   proprietaryPartyId?: string | null;
   administrator?: string | null;
   administratorPartyId?: string | null;
-  administratorPhone?: string | null;
-  administratorEmail?: string | null;
   lawyer?: string | null;
   lawyerPartyId?: string | null;
   currentBaseRent?: number | null;
@@ -381,6 +376,7 @@ export interface PartyDto {
   documentNumber?: string | null;
   email?: string | null;
   phone?: string | null;
+  oab?: string | null;
   notes?: string | null;
   isActive: boolean;
   createdAtUtc: string;

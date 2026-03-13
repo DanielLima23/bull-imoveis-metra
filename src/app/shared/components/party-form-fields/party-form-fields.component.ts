@@ -4,7 +4,7 @@ import { AsyncSearchSelectComponent } from '../async-search-select/async-search-
 import { CpfCnpjInputDirective } from '../../directives/cpf-cnpj-input.directive';
 import { PhoneBrInputDirective } from '../../directives/phone-br-input.directive';
 import { SelectOption } from '../../models/select-option.model';
-import { PartyFormGroup } from '../../forms/party-form';
+import { isLawyerPartyKind, PartyFormGroup } from '../../forms/party-form';
 import { getDomainOptions } from '../../utils/domain-label.util';
 
 @Component({
@@ -20,4 +20,8 @@ export class PartyFormFieldsComponent {
   readonly showActiveToggle = input(false);
   readonly compact = input(false);
   readonly kindOptions: SelectOption[] = getDomainOptions('partyKind');
+
+  shouldShowOab(): boolean {
+    return isLawyerPartyKind(this.form().controls.kind.value);
+  }
 }

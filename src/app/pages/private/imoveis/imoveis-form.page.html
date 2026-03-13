@@ -179,28 +179,6 @@
     </div>
 
     <div class="field">
-      <label class="field__label">Telefone do administrador</label>
-      <input
-        class="input"
-        [class.input--locked]="isAdministratorLocked()"
-        [formControl]="form.controls.administration.controls.administratorPhone"
-        [readOnly]="isAdministratorLocked()"
-        placeholder="(00) 00000-0000"
-      />
-    </div>
-
-    <div class="field">
-      <label class="field__label">E-mail do administrador</label>
-      <input
-        class="input"
-        [class.input--locked]="isAdministratorLocked()"
-        [formControl]="form.controls.administration.controls.administratorEmail"
-        [readOnly]="isAdministratorLocked()"
-        placeholder="nome@empresa.com.br"
-      />
-    </div>
-
-    <div class="field">
       <label class="field__label">Taxa administrativa</label>
       <input class="input" [formControl]="form.controls.administration.controls.administrateTax" placeholder="Ex.: 10%" />
     </div>
@@ -218,11 +196,6 @@
       @if (!form.controls.administration.controls.lawyerPartyId.value && form.controls.administration.controls.lawyer.value) {
         <p class="legacy-person-note">Cadastro legado atual: {{ form.controls.administration.controls.lawyer.value }}</p>
       }
-    </div>
-
-    <div class="field">
-      <label class="field__label">Dados do advogado</label>
-      <input class="input" [formControl]="form.controls.administration.controls.lawyerData" placeholder="OAB, contato ou observações" />
     </div>
 
     <div class="field field--full">
