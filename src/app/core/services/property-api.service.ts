@@ -32,7 +32,6 @@ export interface PropertyDocumentationSectionPayload {
 
 export interface PropertyCharacteristicsSectionPayload {
   numOfRooms?: number;
-  cleaningIncluded?: boolean;
   elevator?: boolean;
   garage?: boolean;
   unoccupiedSince?: string;

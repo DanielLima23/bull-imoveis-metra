@@ -53,6 +53,11 @@
           </div>
 
           <div>
+            <span>Limpeza</span>
+            <strong>{{ lease.cleaningIncluded ? 'Inclusa' : 'Não inclusa' }}</strong>
+          </div>
+
+          <div>
             <span>Criado em</span>
             <strong>{{ lease.createdAtUtc | dateOnlyBr }}</strong>
           </div>
@@ -179,6 +184,14 @@
         <div class="field field--span-2">
           <label class="field__label">Reconhecimento de firma</label>
           <input class="input" formControlName="signatureRecognition" placeholder="Informe o reconhecimento de firma" />
+        </div>
+
+        <div class="field field--full">
+          <label class="field__label">Serviços inclusos</label>
+          <label class="checkbox-inline">
+            <input type="checkbox" formControlName="cleaningIncluded" />
+            Limpeza inclusa na locação
+          </label>
         </div>
       </div>
     </article>

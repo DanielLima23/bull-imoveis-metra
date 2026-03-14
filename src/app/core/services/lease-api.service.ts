@@ -20,6 +20,7 @@ export interface LeasePayloadBase {
   guarantorName?: string;
   guarantorDocument?: string;
   guarantorPhone?: string;
+  cleaningIncluded?: boolean;
   notes?: string;
 }
 

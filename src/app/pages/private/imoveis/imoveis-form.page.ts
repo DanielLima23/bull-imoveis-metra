@@ -89,7 +89,6 @@ export class ImoveisFormPage implements OnInit {
     }),
     characteristics: this.fb.nonNullable.group({
       numOfRooms: [0],
-      cleaningIncluded: [false],
       elevator: [false],
       garage: [false],
       unoccupiedSince: ['']
@@ -147,7 +146,6 @@ export class ImoveisFormPage implements OnInit {
           },
           characteristics: {
             numOfRooms: item.characteristics?.numOfRooms ?? 0,
-            cleaningIncluded: !!item.characteristics?.cleaningIncluded,
             elevator: !!item.characteristics?.elevator,
             garage: !!item.characteristics?.garage,
             unoccupiedSince: item.characteristics?.unoccupiedSince ?? ''
@@ -212,7 +210,6 @@ export class ImoveisFormPage implements OnInit {
       },
       characteristics: {
         numOfRooms: raw.characteristics.numOfRooms || undefined,
-        cleaningIncluded: raw.characteristics.cleaningIncluded,
         elevator: raw.characteristics.elevator,
         garage: raw.characteristics.garage,
         unoccupiedSince: raw.characteristics.unoccupiedSince || undefined

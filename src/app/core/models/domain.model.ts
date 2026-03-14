@@ -6,7 +6,6 @@ export interface PropertyDocumentationSectionDto {
 
 export interface PropertyCharacteristicsSectionDto {
   numOfRooms?: number | null;
-  cleaningIncluded?: boolean | null;
   elevator?: boolean | null;
   garage?: boolean | null;
   unoccupiedSince?: string | null;
@@ -189,6 +188,7 @@ export interface LeaseDto {
   guarantorName?: string | null;
   guarantorDocument?: string | null;
   guarantorPhone?: string | null;
+  cleaningIncluded?: boolean | null;
   notes?: string | null;
   createdAtUtc: string;
 }
