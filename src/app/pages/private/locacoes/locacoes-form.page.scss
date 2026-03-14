@@ -63,6 +63,12 @@
   align-self: end;
 }
 
+.legacy-person-note {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
 .input--locked {
   background: linear-gradient(180deg, #f7fbff, #f1f7ff);
   font-weight: 600;

@@ -154,19 +154,16 @@
           <input class="input" type="number" [formControl]="form.controls.characteristics.controls.numOfRooms" placeholder="Ex.: 3" />
         </div>
 
-        <div class="field">
-          <label class="field__label">Desocupado desde</label>
-          <input class="input" [formControl]="form.controls.characteristics.controls.unoccupiedSince" appDateBrInput placeholder="dd/mm/aaaa" />
-        </div>
+        @if (shouldShowUnoccupiedSince(form.controls.identity.controls.status.value)) {
+          <div class="field">
+            <label class="field__label">Desocupado desde</label>
+            <input class="input" [formControl]="form.controls.characteristics.controls.unoccupiedSince" appDateBrInput placeholder="dd/mm/aaaa" />
+          </div>
+        }
 
         <div class="field field--full">
           <label class="field__label">Diferenciais</label>
           <div class="feature-toggles">
-            <label class="checkbox-inline feature-toggle">
-              <input type="checkbox" [formControl]="form.controls.characteristics.controls.cleaningIncluded" />
-              Limpeza incluída
-            </label>
-
             <label class="checkbox-inline feature-toggle">
               <input type="checkbox" [formControl]="form.controls.characteristics.controls.elevator" />
               Elevador

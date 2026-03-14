@@ -3,7 +3,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { debounceTime, distinctUntilChanged, finalize, map } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { PartyDto } from '../../../core/models/domain.model';
+import { LeaseDto, PartyDto } from '../../../core/models/domain.model';
 import { AsyncSearchSelectComponent } from '../../../shared/components/async-search-select/async-search-select.component';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { PartyPickerFieldComponent } from '../../../shared/components/party-picker-field/party-picker-field.component';
@@ -50,6 +50,7 @@ export class ImoveisFormPage implements OnInit {
   ];
   readonly propertyStatusOptions: SelectOption[] = getPropertyStatusOptions();
   readonly propertyIdleReasonOptions: SelectOption[] = getPropertyIdleReasonOptions(true);
+  readonly lastLeaseEndDate = signal('');
 
   readonly isCepLoading = signal(false);
   readonly cepStatus = signal<'idle' | 'loading' | 'success' | 'error'>('idle');
@@ -116,6 +117,7 @@ export class ImoveisFormPage implements OnInit {
     this.id.set(id);
 
     if (!id) {
+      this.syncUnoccupiedSinceField(this.form.controls.identity.controls.status.value);
       return;
     }
 
@@ -164,6 +166,11 @@ export class ImoveisFormPage implements OnInit {
 
         this.lastLookupCep.set(this.onlyDigits(item.zipCode));
         this.syncIdleReasonValidator(this.form.controls.identity.controls.status.value);
+        this.syncUnoccupiedSinceField(this.form.controls.identity.controls.status.value);
+
+        if (!this.isLeasedStatus(inferPropertyStatus(item))) {
+          this.loadLastLeaseEndDate(id);
+        }
       },
       error: () => this.toast.error('Falha ao carregar cadastro para edição.')
     });
@@ -261,6 +268,10 @@ export class ImoveisFormPage implements OnInit {
     return requiresPropertyIdleReason(value);
   }
 
+  shouldShowUnoccupiedSince(value?: string | null): boolean {
+    return !this.isLeasedStatus(value);
+  }
+
   onProprietaryPartyChange(party: PartyDto | null): void {
     this.form.controls.administration.controls.proprietary.setValue(party?.name ?? '');
   }
@@ -299,9 +310,11 @@ export class ImoveisFormPage implements OnInit {
   private watchStatus(): void {
     this.form.controls.identity.controls.status.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((status) => {
       this.syncIdleReasonValidator(status);
+      this.syncUnoccupiedSinceField(status);
     });
 
     this.syncIdleReasonValidator(this.form.controls.identity.controls.status.value);
+    this.syncUnoccupiedSinceField(this.form.controls.identity.controls.status.value);
   }
 
   private syncIdleReasonValidator(status?: string | null): void {
@@ -318,6 +331,34 @@ export class ImoveisFormPage implements OnInit {
     }
 
     idleReasonControl.updateValueAndValidity({ emitEvent: false });
+  }
+
+  private syncUnoccupiedSinceField(status?: string | null): void {
+    const control = this.form.controls.characteristics.controls.unoccupiedSince;
+
+    if (this.isLeasedStatus(status)) {
+      if (control.value) {
+        control.patchValue('', { emitEvent: false });
+      }
+      return;
+    }
+
+    if (this.lastLeaseEndDate()) {
+      control.patchValue(this.lastLeaseEndDate(), { emitEvent: false });
+    }
+  }
+
+  private loadLastLeaseEndDate(propertyId: string): void {
+    this.api.getLeaseHistory(propertyId, { silent: true }).subscribe({
+      next: (leases) => {
+        const lastEndedLease = this.resolveLastEndedLease(leases);
+        this.lastLeaseEndDate.set(lastEndedLease?.endDate ?? '');
+        this.syncUnoccupiedSinceField(this.form.controls.identity.controls.status.value);
+      },
+      error: () => {
+        this.lastLeaseEndDate.set('');
+      }
+    });
   }
 
   private lockAutoAddressFields(): void {
@@ -406,5 +447,15 @@ export class ImoveisFormPage implements OnInit {
   private handleError(message: string): void {
     this.submitting.set(false);
     this.toast.error(message);
+  }
+
+  private isLeasedStatus(status?: string | null): boolean {
+    return String(status ?? '').trim().toUpperCase() === 'LEASED';
+  }
+
+  private resolveLastEndedLease(leases: LeaseDto[]): LeaseDto | null {
+    return [...leases]
+      .filter((lease) => !!lease.endDate)
+      .sort((left, right) => String(right.endDate).localeCompare(String(left.endDate)))[0] ?? null;
   }
 }

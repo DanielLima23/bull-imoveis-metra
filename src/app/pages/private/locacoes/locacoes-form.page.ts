@@ -15,7 +15,6 @@ import { PropertyApiService } from '../../../core/services/property-api.service'
 import { TenantApiService } from '../../../core/services/tenant-api.service';
 import { BrlCurrencyInputDirective } from '../../../shared/directives/brl-currency-input.directive';
 import { DateBrInputDirective } from '../../../shared/directives/date-br-input.directive';
-import { CpfCnpjInputDirective } from '../../../shared/directives/cpf-cnpj-input.directive';
 import { PhoneBrInputDirective } from '../../../shared/directives/phone-br-input.directive';
 import { SelectOption } from '../../../shared/models/select-option.model';
 import { ToastService } from '../../../shared/services/toast.service';
@@ -33,7 +32,6 @@ import { toPropertySelectOption, toTenantSelectOption } from '../../../shared/ut
     DateBrInputDirective,
     AsyncSearchSelectComponent,
     PartyPickerFieldComponent,
-    CpfCnpjInputDirective,
     PhoneBrInputDirective
   ],
   templateUrl: './locacoes-form.page.html',
@@ -248,10 +246,6 @@ export class LocacoesFormPage implements OnInit {
     return !!this.form.controls.optionalContactPartyId.value;
   }
 
-  isGuarantorLocked(): boolean {
-    return !!this.form.controls.guarantorPartyId.value;
-  }
-
   onOptionalContactPartyChange(party: PartyDto | null): void {
     this.form.patchValue({
       optionalContactName: party?.name ?? '',
@@ -265,6 +259,17 @@ export class LocacoesFormPage implements OnInit {
       guarantorDocument: formatCpfCnpj(party?.documentNumber ?? ''),
       guarantorPhone: formatPhoneBr(party?.phone ?? '')
     });
+  }
+
+  guarantorSnapshotSummary(): string {
+    return [
+      this.form.controls.guarantorName.value,
+      this.form.controls.guarantorDocument.value,
+      this.form.controls.guarantorPhone.value
+    ]
+      .map((value) => value.trim())
+      .filter((value) => !!value)
+      .join(' · ');
   }
 
   private handleSuccess(message: string): void {
