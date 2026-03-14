@@ -13,7 +13,7 @@ export interface ApiRequestOptions {
 export class HttpApiService {
   constructor(private readonly http: HttpClient) {}
 
-  get<T>(path: string, params?: Record<string, string | number | boolean | undefined | null>, options?: ApiRequestOptions): Observable<T> {
+  get<T>(path: string, params?: Record<string, string | number | boolean | string[] | undefined | null>, options?: ApiRequestOptions): Observable<T> {
     return this.http
       .get<ApiResponse<T>>(`${environment.apiUrl}${path}`, {
         params: this.removeEmpty(params) as Record<string, string>,
@@ -47,12 +47,23 @@ export class HttpApiService {
     return context;
   }
 
-  private removeEmpty(params?: Record<string, string | number | boolean | undefined | null>): Record<string, string> | undefined {
+  private removeEmpty(params?: Record<string, string | number | boolean | string[] | undefined | null>): Record<string, string | string[]> | undefined {
     if (!params) {
       return undefined;
     }
 
-    const entries = Object.entries(params).filter(([, value]) => value !== undefined && value !== null && value !== '');
-    return Object.fromEntries(entries.map(([key, value]) => [key, String(value)]));
+    const entries = Object.entries(params).filter(([, value]) => {
+      if (Array.isArray(value)) {
+        return value.length > 0;
+      }
+      return value !== undefined && value !== null && value !== '';
+    });
+    
+    return Object.fromEntries(entries.map(([key, value]) => {
+      if (Array.isArray(value)) {
+        return [key, value];
+      }
+      return [key, String(value)];
+    }));
   }
 }

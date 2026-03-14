@@ -76,12 +76,13 @@ export class PartyPickerFieldComponent implements ControlValueAccessor, OnDestro
     return party.phone ? formatPhoneBr(party.phone) : party.email || '';
   });
 
-  readonly fetchPage: AsyncSelectFetchPage = (query) =>
-    this.api
+  readonly fetchPage: AsyncSelectFetchPage = (query) => {
+    const kindFilter = this.resolveApiKindFilter();
+    return this.api
       .list(
         {
           search: query.search,
-          kind: this.resolveApiKindFilter(),
+          kind: kindFilter,
           active: true,
           page: query.page,
           pageSize: query.pageSize
@@ -89,6 +90,7 @@ export class PartyPickerFieldComponent implements ControlValueAccessor, OnDestro
         { silent: true }
       )
       .pipe(map((result) => this.mapOptionsResult(result)));
+  };
 
   readonly fetchById: AsyncSelectFetchById = (id) =>
     this.api.getById(id, { silent: true }).pipe(
@@ -232,11 +234,21 @@ export class PartyPickerFieldComponent implements ControlValueAccessor, OnDestro
     };
   }
 
-  private resolveApiKindFilter(): string | undefined {
+  private resolveApiKindFilter(): string | string[] | undefined {
     const kinds = (this.allowedKinds() ?? [])
       .map((kind) => resolveDomainCode('partyKind', kind))
       .filter((kind): kind is string => !!kind);
 
-    return kinds.length > 0 ? kinds.join(',') : undefined;
+    if (kinds.length === 0) {
+      return undefined;
+    }
+    
+    // Se há apenas um tipo, retorna como string
+    if (kinds.length === 1) {
+      return kinds[0];
+    }
+    
+    // Se há múltiplos tipos, retorna como array
+    return kinds;
   }
 }

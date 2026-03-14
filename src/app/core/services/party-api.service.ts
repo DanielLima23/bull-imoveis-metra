@@ -17,9 +17,9 @@ export interface PartyUpdatePayload extends PartyPayload {
   isActive: boolean;
 }
 
-export interface PartyListFilters extends Record<string, string | number | boolean | undefined> {
+export interface PartyListFilters extends Record<string, string | number | boolean | string[] | undefined> {
   search?: string;
-  kind?: string;
+  kind?: string | string[];
   active?: boolean;
   page?: number;
   pageSize?: number;
