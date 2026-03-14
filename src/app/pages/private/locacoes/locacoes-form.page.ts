@@ -14,11 +14,8 @@ import { LeaseApiService } from '../../../core/services/lease-api.service';
 import { PropertyApiService } from '../../../core/services/property-api.service';
 import { TenantApiService } from '../../../core/services/tenant-api.service';
 import { BrlCurrencyInputDirective } from '../../../shared/directives/brl-currency-input.directive';
-import { CpfCnpjInputDirective } from '../../../shared/directives/cpf-cnpj-input.directive';
 import { DateBrInputDirective } from '../../../shared/directives/date-br-input.directive';
-import { PhoneBrInputDirective } from '../../../shared/directives/phone-br-input.directive';
 import { SelectOption } from '../../../shared/models/select-option.model';
-import { BrlCurrencyPipe } from '../../../shared/pipes/brl-currency.pipe';
 import { DateOnlyBrPipe } from '../../../shared/pipes/date-only-br.pipe';
 import { DomainLabelPipe } from '../../../shared/pipes/domain-label.pipe';
 import { ToastService } from '../../../shared/services/toast.service';
@@ -36,11 +33,8 @@ import { toPropertySelectOption, toTenantSelectOption } from '../../../shared/ut
     DateBrInputDirective,
     AsyncSearchSelectComponent,
     PartyPickerFieldComponent,
-    CpfCnpjInputDirective,
-    BrlCurrencyPipe,
     DateOnlyBrPipe,
-    DomainLabelPipe,
-    PhoneBrInputDirective
+    DomainLabelPipe
   ],
   templateUrl: './locacoes-form.page.html',
   styleUrl: './locacoes-form.page.scss',
@@ -253,10 +247,6 @@ export class LocacoesFormPage implements OnInit {
     void this.router.navigate(['/app/locatarios/new'], { queryParams });
   }
 
-  isOptionalContactLocked(): boolean {
-    return !!this.form.controls.optionalContactPartyId.value;
-  }
-
   onOptionalContactPartyChange(party: PartyDto | null): void {
     this.form.patchValue({
       optionalContactName: party?.name ?? '',
@@ -270,6 +260,13 @@ export class LocacoesFormPage implements OnInit {
       guarantorDocument: formatCpfCnpj(party?.documentNumber ?? ''),
       guarantorPhone: formatPhoneBr(party?.phone ?? '')
     });
+  }
+
+  optionalContactSnapshotSummary(): string {
+    return [this.form.controls.optionalContactName.value, this.form.controls.optionalContactPhone.value]
+      .map((value) => value.trim())
+      .filter((value) => !!value)
+      .join(' · ');
   }
 
   guarantorSnapshotSummary(): string {

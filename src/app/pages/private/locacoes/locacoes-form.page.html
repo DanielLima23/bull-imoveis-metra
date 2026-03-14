@@ -33,23 +33,8 @@
           </div>
 
           <div>
-            <span>Aluguel mensal</span>
-            <strong>{{ lease.monthlyRent | brlCurrency }}</strong>
-          </div>
-
-          <div>
             <span>Início</span>
             <strong>{{ lease.startDate | dateOnlyBr }}</strong>
-          </div>
-
-          <div>
-            <span>Encerramento</span>
-            <strong>{{ lease.endDate | dateOnlyBr:'Em aberto' }}</strong>
-          </div>
-
-          <div>
-            <span>Dia de pagamento</span>
-            <strong>{{ lease.paymentDay ?? '-' }}</strong>
           </div>
 
           <div>
@@ -202,7 +187,7 @@
           <span class="section-card__eyebrow">Garantias</span>
           <h2>Contato adicional e fiador</h2>
         </div>
-        <p>Vincule pessoas de apoio e complemente os dados de contato e garantia.</p>
+        <p>Vincule as pessoas de apoio pelo seletor e use o resumo automático do cadastro selecionado.</p>
       </header>
 
       <div class="grid-form section-grid">
@@ -217,31 +202,8 @@
           />
         </div>
 
-        <div class="field">
-          <label class="field__label">Nome do contato</label>
-          <input
-            class="input"
-            [class.input--locked]="isOptionalContactLocked()"
-            formControlName="optionalContactName"
-            [readOnly]="isOptionalContactLocked()"
-            placeholder="Informe o nome do contato"
-          />
-        </div>
-
-        <div class="field">
-          <label class="field__label">Telefone do contato</label>
-          <input
-            class="input"
-            [class.input--locked]="isOptionalContactLocked()"
-            formControlName="optionalContactPhone"
-            [readOnly]="isOptionalContactLocked()"
-            appPhoneBrInput
-            placeholder="(00) 00000-0000"
-          />
-        </div>
-
-        @if (isOptionalContactLocked()) {
-          <p class="support-note">Os dados do contato adicional foram preenchidos automaticamente a partir da pessoa vinculada.</p>
+        @if (!form.controls.optionalContactPartyId.value && optionalContactSnapshotSummary(); as optionalContactSummary) {
+          <p class="support-note">Contato adicional atual salvo no contrato: {{ optionalContactSummary }}</p>
         }
 
         <div class="field field--span-2">
@@ -255,23 +217,8 @@
           />
         </div>
 
-        <div class="field">
-          <label class="field__label">Nome do fiador</label>
-          <input class="input" formControlName="guarantorName" placeholder="Informe o nome do fiador" />
-        </div>
-
-        <div class="field">
-          <label class="field__label">Documento do fiador</label>
-          <input class="input" formControlName="guarantorDocument" appCpfCnpjInput placeholder="CPF ou CNPJ do fiador" />
-        </div>
-
-        <div class="field field--span-2">
-          <label class="field__label">Telefone do fiador</label>
-          <input class="input" formControlName="guarantorPhone" appPhoneBrInput placeholder="(00) 00000-0000" />
-        </div>
-
-        @if (guarantorSnapshotSummary(); as guarantorSummary) {
-          <p class="support-note">Resumo atual do fiador: {{ guarantorSummary }}</p>
+        @if (!form.controls.guarantorPartyId.value && guarantorSnapshotSummary(); as guarantorSummary) {
+          <p class="support-note">Fiador atual salvo no contrato: {{ guarantorSummary }}</p>
         }
       </div>
     </article>
