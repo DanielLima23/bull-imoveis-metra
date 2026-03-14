@@ -12,6 +12,7 @@ import { AsyncSearchSelectComponent } from '../../../shared/components/async-sea
 import { FlowGuidanceModalComponent } from '../../../shared/components/flow-guidance-modal/flow-guidance-modal.component';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { PartyPickerFieldComponent } from '../../../shared/components/party-picker-field/party-picker-field.component';
+import { PartyQuickCreateModalComponent } from '../../../shared/components/party-quick-create-modal/party-quick-create-modal.component';
 import { CepService } from '../../../core/services/cep.service';
 import { PropertyApiService, PropertyCreatePayload, PropertyUpdatePayload } from '../../../core/services/property-api.service';
 import { SelectOption } from '../../../shared/models/select-option.model';
@@ -35,6 +36,7 @@ import {
     PageHeaderComponent,
     AsyncSearchSelectComponent,
     PartyPickerFieldComponent,
+    PartyQuickCreateModalComponent,
     DateBrInputDirective,
     BrlCurrencyInputDirective,
     FlowGuidanceModalComponent
@@ -61,6 +63,9 @@ export class ImoveisFormPage implements OnInit {
   readonly id = signal<string | null>(null);
   readonly isEdit = computed(() => !!this.id());
   readonly submitting = signal(false);
+  readonly isProprietaryCreateModalOpen = signal(false);
+  readonly isAdministratorCreateModalOpen = signal(false);
+  readonly isLawyerCreateModalOpen = signal(false);
   readonly propertyTypeOptions: SelectOption[] = [
     { id: 'Casa', label: 'Casa' },
     { id: 'Apartamento', label: 'Apartamento' },
@@ -287,7 +292,45 @@ export class ImoveisFormPage implements OnInit {
   }
 
   navigateToPartyRegistration(): void {
-    void this.router.navigate(['/app/pessoas/new']);
+    this.isProprietaryCreateModalOpen.set(true);
+  }
+
+  openAdministratorCreateModal(): void {
+    this.isAdministratorCreateModalOpen.set(true);
+  }
+
+  openLawyerCreateModal(): void {
+    this.isLawyerCreateModalOpen.set(true);
+  }
+
+  closeProprietaryCreateModal(): void {
+    this.isProprietaryCreateModalOpen.set(false);
+  }
+
+  closeAdministratorCreateModal(): void {
+    this.isAdministratorCreateModalOpen.set(false);
+  }
+
+  closeLawyerCreateModal(): void {
+    this.isLawyerCreateModalOpen.set(false);
+  }
+
+  handleProprietaryCreated(party: PartyDto): void {
+    this.isProprietaryCreateModalOpen.set(false);
+    this.form.controls.administration.controls.proprietaryPartyId.setValue(party.id);
+    this.onProprietaryPartyChange(party);
+  }
+
+  handleAdministratorCreated(party: PartyDto): void {
+    this.isAdministratorCreateModalOpen.set(false);
+    this.form.controls.administration.controls.administratorPartyId.setValue(party.id);
+    this.onAdministratorPartyChange(party);
+  }
+
+  handleLawyerCreated(party: PartyDto): void {
+    this.isLawyerCreateModalOpen.set(false);
+    this.form.controls.administration.controls.lawyerPartyId.setValue(party.id);
+    this.onLawyerPartyChange(party);
   }
 
   closeFlowGuidanceModal(): void {

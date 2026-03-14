@@ -205,12 +205,13 @@
         </div>
 
         <div class="field">
-          <label class="field__label">Administrador</label>
+          <label class="field__label field__label--clickable" (click)="openAdministratorCreateModal()">+ Administrador</label>
           <app-party-picker-field
             [formControl]="form.controls.administration.controls.administratorPartyId"
             [allowedKinds]="['ADMINISTRADOR', 'PERSON', 'COMPANY', 'OUTRO']"
             defaultKind="ADMINISTRADOR"
             placeholder="Selecione o administrador"
+            [showCreateButton]="false"
             (partyChange)="onAdministratorPartyChange($event)"
           />
 
@@ -225,12 +226,13 @@
         </div>
 
         <div class="field">
-          <label class="field__label">Advogado</label>
+          <label class="field__label field__label--clickable" (click)="openLawyerCreateModal()">+ Advogado</label>
           <app-party-picker-field
             [formControl]="form.controls.administration.controls.lawyerPartyId"
             [allowedKinds]="['ADVOGADO', 'PERSON', 'COMPANY', 'OUTRO']"
             defaultKind="ADVOGADO"
             placeholder="Selecione o advogado"
+            [showCreateButton]="false"
             (partyChange)="onLawyerPartyChange($event)"
           />
 
@@ -256,6 +258,30 @@
     </div>
   </form>
 </section>
+
+@if (isProprietaryCreateModalOpen()) {
+  <app-party-quick-create-modal
+    defaultKind="PROPRIETARIO"
+    (cancelled)="closeProprietaryCreateModal()"
+    (created)="handleProprietaryCreated($event)"
+  />
+}
+
+@if (isAdministratorCreateModalOpen()) {
+  <app-party-quick-create-modal
+    defaultKind="ADMINISTRADOR"
+    (cancelled)="closeAdministratorCreateModal()"
+    (created)="handleAdministratorCreated($event)"
+  />
+}
+
+@if (isLawyerCreateModalOpen()) {
+  <app-party-quick-create-modal
+    defaultKind="ADVOGADO"
+    (cancelled)="closeLawyerCreateModal()"
+    (created)="handleLawyerCreated($event)"
+  />
+}
 
 @if (flowGuidanceModal(); as modal) {
   <app-flow-guidance-modal
