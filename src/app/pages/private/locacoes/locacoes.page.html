@@ -5,22 +5,10 @@
   actionLabel="Adicionar nova"
   actionRoute="/app/locacoes/new"
   [actionQueryParams]="createLeaseQueryParams()"
-  [actionClass]="guideVisualsEnabled() && guideMode() === 'activate-lease' ? 'page-header__action--guided' : ''"
+  [actionClass]="shouldHighlightCreateAction() ? 'page-header__action--guided' : ''"
 />
 
-@if (guideBanner(); as guide) {
-  <section class="card-panel guide-banner">
-    <div class="guide-banner__content">
-      <span class="guide-banner__eyebrow">Modo guiado</span>
-      <h2>{{ guide.title }}</h2>
-      <p>{{ guide.message }}</p>
-    </div>
-
-    <button class="btn btn-secondary guide-banner__dismiss" type="button" (click)="dismissGuide()">Dispensar</button>
-  </section>
-}
-
-<section class="card-panel" data-guide-filters [class.guide-target]="guideVisualsEnabled()">
+<section class="card-panel" data-guide-filters [class.guide-target]="shouldHighlightFilters()">
   <div class="list-toolbar list-toolbar--stack">
     <h2>Filtros</h2>
     <div class="filters">
@@ -81,7 +69,7 @@
           }
         } @else {
           @for (item of leases(); track item.id) {
-            <tr [class.guide-row]="isLeaseHighlighted(item.id)" [attr.data-guide-lease-row]="item.id">
+            <tr [class.guide-row]="shouldHighlightLeaseRow(item.id)">
               <td>{{ item.propertyTitle }}</td>
               <td>{{ item.tenantName }}</td>
               <td>{{ item.startDate | dateOnlyBr }} - {{ item.endDate ? (item.endDate | dateOnlyBr) : 'Em aberto' }}</td>
@@ -92,7 +80,7 @@
                 <button
                   class="btn btn-secondary"
                   type="button"
-                  [class.guide-row__action]="isLeaseActionHighlighted(item.id)"
+                  [class.guide-row__action]="shouldHighlightLeaseAction(item.id)"
                   [attr.data-guide-lease-action]="item.id"
                   (click)="toggleRowMenu($event, item.id)"
                 >
@@ -122,17 +110,19 @@
   <div class="menu-popover menu-popover--floating" [style.left.px]="menuPosition().x" [style.top.px]="menuPosition().y">
     <a [routerLink]="['/app/locacoes', item.id, 'edit']" (click)="closeRowMenu()">Editar contrato</a>
     @if (item.status === 'ACTIVE') {
-      <button type="button" (click)="openCloseModal(item)">Encerrar locacao</button>
+      <button type="button" [class.guide-menu-action]="shouldHighlightCloseLeaseAction(item.id)" [attr.data-guide-close-lease]="item.id" (click)="openCloseModal(item)">
+        Encerrar locacao
+      </button>
     }
   </div>
 }
 
 @if (closingLease(); as lease) {
   <div class="modal-backdrop" (click)="closeCloseModal()">
-    <section class="card-panel close-modal" (click)="$event.stopPropagation()">
+    <section class="card-panel close-modal" data-guide-close-modal (click)="$event.stopPropagation()">
       <header>
         <h3>Encerrar locacao</h3>
-        <p>{{ lease.propertyTitle }} · {{ lease.tenantName }}</p>
+        <p>{{ lease.propertyTitle }} - {{ lease.tenantName }}</p>
       </header>
 
       <form class="grid-form" [formGroup]="closeForm" (ngSubmit)="submitCloseLease()">
@@ -148,4 +138,49 @@
       </form>
     </section>
   </div>
+}
+
+@if (guideOverlayVisible() && guideStepContent(); as guide) {
+  <section class="guide-overlay" aria-live="polite">
+    @if (guideSpotlight(); as spotlight) {
+      <div class="guide-overlay__scrim guide-overlay__scrim--top" [style.height.px]="spotlight.top"></div>
+      <div class="guide-overlay__scrim guide-overlay__scrim--left" [style.top.px]="spotlight.top" [style.width.px]="spotlight.left" [style.height.px]="spotlight.height"></div>
+      <div
+        class="guide-overlay__scrim guide-overlay__scrim--right"
+        [style.top.px]="spotlight.top"
+        [style.left.px]="spotlight.left + spotlight.width"
+        [style.height.px]="spotlight.height"
+      ></div>
+      <div class="guide-overlay__scrim guide-overlay__scrim--bottom" [style.top.px]="spotlight.top + spotlight.height"></div>
+      <div class="guide-overlay__spotlight" [style.top.px]="spotlight.top" [style.left.px]="spotlight.left" [style.width.px]="spotlight.width" [style.height.px]="spotlight.height">
+        <span class="guide-overlay__label">Faça isso</span>
+      </div>
+    } @else {
+      <div class="guide-overlay__scrim guide-overlay__scrim--full"></div>
+    }
+
+    @if (guideCoachPosition(); as coachPosition) {
+      <article class="card-panel guide-coach" [class.guide-coach--above]="coachPosition.placement === 'above'" [style.top.px]="coachPosition.top" [style.left.px]="coachPosition.left">
+        <div class="guide-coach__eyebrow">Passo {{ guide.index }} de {{ guide.total }}</div>
+        <h2>{{ guide.title }}</h2>
+        <p>{{ guide.message }}</p>
+
+        @if (guide.hint) {
+          <p class="guide-coach__hint">{{ guide.hint }}</p>
+        }
+
+        <div class="guide-coach__actions">
+          @if (guide.showBack) {
+            <button class="btn btn-secondary" type="button" (click)="onGuideBack()">Voltar</button>
+          }
+
+          <button class="btn btn-secondary" type="button" (click)="dismissGuide()">Fechar guia</button>
+
+          @if (guide.primaryActionLabel) {
+            <button class="btn btn-primary" type="button" (click)="onGuidePrimaryAction()">{{ guide.primaryActionLabel }}</button>
+          }
+        </div>
+      </article>
+    }
+  </section>
 }

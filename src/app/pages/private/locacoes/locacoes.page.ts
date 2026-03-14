@@ -1,8 +1,8 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, Params, RouterLink } from '@angular/router';
-import { catchError, map, of } from 'rxjs';
+import { ActivatedRoute, Params, Router, RouterLink } from '@angular/router';
+import { catchError, fromEvent, map, of } from 'rxjs';
 import {
   AsyncSearchSelectComponent,
   AsyncSelectFetchById,
@@ -10,7 +10,7 @@ import {
 } from '../../../shared/components/async-search-select/async-search-select.component';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { TablePaginationComponent } from '../../../shared/components/table-pagination/table-pagination.component';
-import { LeaseDto, PagedResult, PropertyDto, TenantDto } from '../../../core/models/domain.model';
+import { LeaseDto, PagedResult } from '../../../core/models/domain.model';
 import { LeaseApiService } from '../../../core/services/lease-api.service';
 import { PropertyApiService } from '../../../core/services/property-api.service';
 import { SystemSettingsService } from '../../../core/services/system-settings.service';
@@ -26,6 +26,30 @@ import { getDomainOptions } from '../../../shared/utils/domain-label.util';
 import { toPropertySelectOption, toTenantSelectOption } from '../../../shared/utils/select-option.util';
 
 type LeaseGuideMode = 'activate-lease' | 'close-active-lease';
+type LeaseGuideStep = 'filters' | 'create' | 'actions' | 'close-action' | 'close-form';
+
+interface GuideSpotlight {
+  top: number;
+  left: number;
+  width: number;
+  height: number;
+}
+
+interface GuideCoachPosition {
+  top: number;
+  left: number;
+  placement: 'above' | 'below';
+}
+
+interface GuideStepContent {
+  index: number;
+  total: number;
+  title: string;
+  message: string;
+  hint?: string;
+  primaryActionLabel?: string;
+  showBack: boolean;
+}
 
 @Component({
   selector: 'app-locacoes-page',
@@ -50,6 +74,7 @@ export class LocacoesPage implements OnInit {
   private readonly propertyApi = inject(PropertyApiService);
   private readonly tenantApi = inject(TenantApiService);
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly settingsService = inject(SystemSettingsService);
   private readonly toast = inject(ToastService);
   private readonly fb = inject(FormBuilder);
@@ -69,31 +94,109 @@ export class LocacoesPage implements OnInit {
   readonly menuPosition = signal({ x: 0, y: 0 });
   readonly closingLease = signal<LeaseDto | null>(null);
   readonly guideMode = signal<LeaseGuideMode | null>(null);
+  readonly guideStep = signal<LeaseGuideStep | null>(null);
   readonly guideDismissed = signal(false);
   readonly guideFallbackMessage = signal('');
   readonly highlightedLeaseId = signal<string | null>(null);
+  readonly guideSpotlight = signal<GuideSpotlight | null>(null);
+  readonly guideCoachPosition = signal<GuideCoachPosition | null>(null);
   readonly guidedFlowsEnabled = this.settingsService.guidedFlowsEnabled;
 
   readonly activeMenuItem = computed(() => this.leases().find((item) => item.id === this.activeMenuId()) ?? null);
   readonly guideVisualsEnabled = computed(() => this.guidedFlowsEnabled() && !!this.guideMode() && !this.guideDismissed());
-  readonly guideBanner = computed(() => {
-    if (!this.guideVisualsEnabled()) {
+  readonly guideOverlayVisible = computed(() => this.guideVisualsEnabled() && !!this.guideStep());
+  readonly guideStepContent = computed<GuideStepContent | null>(() => {
+    if (!this.guideOverlayVisible()) {
       return null;
     }
 
-    if (this.guideMode() === 'activate-lease') {
+    const mode = this.guideMode();
+    const step = this.guideStep();
+    if (!mode || !step) {
+      return null;
+    }
+
+    if (mode === 'activate-lease') {
+      if (step === 'filters') {
+        return {
+          index: 1,
+          total: 2,
+          title: 'Confira as locacoes deste imovel',
+          message: 'Os filtros ja foram preparados para voce visualizar o imovel correto antes de cadastrar um contrato.',
+          hint: 'Quando estiver pronto, avance para o cadastro da nova locacao.',
+          primaryActionLabel: 'Continuar',
+          showBack: false
+        };
+      }
+
       return {
-        title: 'Como ativar o fluxo de locacao deste imovel',
+        index: 2,
+        total: 2,
+        title: 'Cadastre a nova locacao',
+        message: 'Agora use o botao destacado "Adicionar nova" para abrir o cadastro com o imovel ja preenchido.',
+        hint: 'Voce pode clicar no destaque ou usar o atalho abaixo.',
+        primaryActionLabel: 'Abrir cadastro',
+        showBack: true
+      };
+    }
+
+    if (step === 'filters' && !this.highlightedLeaseId()) {
+      return {
+        index: 1,
+        total: 1,
+        title: 'Nao encontramos uma locacao ativa na lista',
         message:
-          'Revise as locacoes vinculadas a este imovel. Se ainda nao existir um contrato ativo, use "Adicionar nova" para cadastrar a locacao.'
+          this.guideFallbackMessage() ||
+          'Confira se a locacao correta esta ativa ou cadastre um novo contrato antes de tentar alterar o status do imovel.',
+        hint: 'Voce pode fechar o guia e revisar a lista manualmente.',
+        showBack: false
+      };
+    }
+
+    if (step === 'filters') {
+      return {
+        index: 1,
+        total: 4,
+        title: 'A lista ja foi filtrada para voce',
+        message: 'Este passo mostra apenas as locacoes do imovel certo. Agora vamos abrir a locacao ativa.',
+        hint: 'Clique em continuar para focar na locacao que precisa ser encerrada.',
+        primaryActionLabel: 'Continuar',
+        showBack: false
+      };
+    }
+
+    if (step === 'actions') {
+      return {
+        index: 2,
+        total: 4,
+        title: 'Abra as acoes da locacao destacada',
+        message: 'Use o botao de acoes da linha destacada para encontrar a opcao de encerramento.',
+        hint: 'Voce pode clicar no destaque ou usar o atalho abaixo.',
+        primaryActionLabel: 'Abrir menu',
+        showBack: true
+      };
+    }
+
+    if (step === 'close-action') {
+      return {
+        index: 3,
+        total: 4,
+        title: 'Escolha encerrar locacao',
+        message: 'No menu aberto, clique em "Encerrar locacao" para seguir para o formulario final.',
+        hint: 'Se preferir, use o atalho abaixo para abrir o encerramento.',
+        primaryActionLabel: 'Abrir encerramento',
+        showBack: true
       };
     }
 
     return {
-      title: 'Como encerrar a locacao ativa deste imovel',
-      message:
-        this.guideFallbackMessage() ||
-        'Localize a locacao ativa destacada e use o menu de acoes da linha para encerrar o contrato antes de alterar o status do imovel.'
+      index: 4,
+      total: 4,
+      title: 'Conclua o encerramento',
+      message: 'Preencha a data de encerramento no formulario destacado e confirme a operacao.',
+      hint: 'Depois disso, o status do imovel podera ser alterado.',
+      primaryActionLabel: 'Fechar guia',
+      showBack: false
     };
   });
   readonly createLeaseQueryParams = computed<Params | null>(() => {
@@ -150,8 +253,16 @@ export class LocacoesPage implements OnInit {
       this.highlightedLeaseId.set(null);
       this.activeMenuId.set(null);
       this.closingLease.set(null);
+      this.guideSpotlight.set(null);
+      this.guideCoachPosition.set(null);
+      this.guideStep.set(guideMode ? 'filters' : null);
       this.load();
     });
+
+    if (typeof window !== 'undefined') {
+      fromEvent(window, 'resize').pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.updateGuideOverlayFromDom(false));
+      fromEvent(window, 'scroll').pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.updateGuideOverlayFromDom(false));
+    }
   }
 
   load(showLoading = true): void {
@@ -195,6 +306,8 @@ export class LocacoesPage implements OnInit {
           this.toast.error('Falha ao carregar locacoes.');
           this.isLoading.set(false);
           this.highlightedLeaseId.set(null);
+          this.guideSpotlight.set(null);
+          this.guideCoachPosition.set(null);
         }
       });
   }
@@ -238,45 +351,136 @@ export class LocacoesPage implements OnInit {
 
   dismissGuide(): void {
     this.guideDismissed.set(true);
-    this.guideFallbackMessage.set('');
-    this.highlightedLeaseId.set(null);
+    this.guideStep.set(null);
+    this.guideSpotlight.set(null);
+    this.guideCoachPosition.set(null);
   }
 
-  toggleRowMenu(event: MouseEvent, id: string): void {
-    if (this.activeMenuId() === id) {
-      this.closeRowMenu();
+  onGuidePrimaryAction(): void {
+    const step = this.guideStep();
+    const mode = this.guideMode();
+    if (!step || !mode) {
       return;
     }
 
+    if (mode === 'activate-lease') {
+      if (step === 'filters') {
+        this.setGuideStep('create');
+        return;
+      }
+
+      this.navigateToCreateLease();
+      return;
+    }
+
+    if (step === 'filters') {
+      if (this.highlightedLeaseId()) {
+        this.setGuideStep('actions');
+      }
+      return;
+    }
+
+    if (step === 'actions') {
+      this.openGuideActionMenu();
+      return;
+    }
+
+    if (step === 'close-action') {
+      this.openGuideCloseModal();
+      return;
+    }
+
+    this.dismissGuide();
+  }
+
+  onGuideBack(): void {
+    const step = this.guideStep();
+    if (!step) {
+      return;
+    }
+
+    if (step === 'create') {
+      this.setGuideStep('filters');
+      return;
+    }
+
+    if (step === 'actions') {
+      this.setGuideStep('filters');
+      return;
+    }
+
+    if (step === 'close-action') {
+      this.activeMenuId.set(null);
+      this.setGuideStep('actions');
+    }
+  }
+
+  shouldHighlightFilters(): boolean {
+    return this.guideOverlayVisible() && this.guideStep() === 'filters';
+  }
+
+  shouldHighlightCreateAction(): boolean {
+    return this.guideOverlayVisible() && this.guideStep() === 'create';
+  }
+
+  shouldHighlightLeaseRow(leaseId: string): boolean {
+    return (
+      this.highlightedLeaseId() === leaseId &&
+      this.guideOverlayVisible() &&
+      (this.guideStep() === 'actions' || this.guideStep() === 'close-action')
+    );
+  }
+
+  shouldHighlightLeaseAction(leaseId: string): boolean {
+    return this.highlightedLeaseId() === leaseId && this.guideOverlayVisible() && this.guideStep() === 'actions';
+  }
+
+  shouldHighlightCloseLeaseAction(leaseId: string): boolean {
+    return this.highlightedLeaseId() === leaseId && this.guideOverlayVisible() && this.guideStep() === 'close-action';
+  }
+
+  toggleRowMenu(event: MouseEvent, id: string): void {
     const trigger = event.currentTarget as HTMLElement | null;
     if (!trigger) {
       return;
     }
 
-    this.menuPosition.set(getFloatingMenuPosition(trigger, 236, 150));
-    this.activeMenuId.set(id);
+    this.toggleRowMenuFromTrigger(trigger, id);
   }
 
   closeRowMenu(): void {
     this.activeMenuId.set(null);
+
+    if (this.guideOverlayVisible() && this.guideStep() === 'close-action') {
+      this.setGuideStep('actions');
+      return;
+    }
+
+    this.queueGuideOverlaySync(false);
   }
 
   openCloseModal(lease: LeaseDto): void {
     this.closingLease.set(lease);
     this.closeForm.reset({ endDate: new Date().toISOString().slice(0, 10) });
     this.activeMenuId.set(null);
+
+    if (this.guideOverlayVisible() && this.highlightedLeaseId() === lease.id && this.guideMode() === 'close-active-lease') {
+      this.setGuideStep('close-form');
+      return;
+    }
+
+    this.queueGuideOverlaySync(false);
   }
 
   closeCloseModal(): void {
     this.closingLease.set(null);
-  }
 
-  isLeaseHighlighted(leaseId: string): boolean {
-    return this.highlightedLeaseId() === leaseId && this.guideVisualsEnabled() && this.guideMode() === 'close-active-lease';
-  }
+    if (this.guideOverlayVisible() && this.guideStep() === 'close-form' && this.guideMode() === 'close-active-lease') {
+      this.setGuideStep('actions');
+      return;
+    }
 
-  isLeaseActionHighlighted(leaseId: string): boolean {
-    return this.isLeaseHighlighted(leaseId);
+    this.queueGuideOverlaySync(false);
   }
 
   submitCloseLease(): void {
@@ -290,6 +494,7 @@ export class LocacoesPage implements OnInit {
       next: () => {
         this.toast.success('Locacao encerrada.');
         this.closeCloseModal();
+        this.dismissGuide();
         this.load(false);
       },
       error: () => this.toast.error('Falha ao encerrar locacao.')
@@ -297,17 +502,17 @@ export class LocacoesPage implements OnInit {
   }
 
   private syncGuideTargets(): void {
-    if (!this.guideVisualsEnabled()) {
-      this.guideFallbackMessage.set('');
+    if (!this.guideMode()) {
       this.highlightedLeaseId.set(null);
+      this.guideSpotlight.set(null);
+      this.guideCoachPosition.set(null);
       return;
     }
 
-    this.guideFallbackMessage.set('');
-
     if (this.guideMode() === 'activate-lease') {
       this.highlightedLeaseId.set(null);
-      this.queueGuideFocus('[data-guide-filters]');
+      this.guideFallbackMessage.set('');
+      this.queueGuideOverlaySync(true);
       return;
     }
 
@@ -320,12 +525,200 @@ export class LocacoesPage implements OnInit {
       this.guideFallbackMessage.set(
         'Nenhuma locacao ativa desse imovel apareceu na lista atual. Confira os filtros ou cadastre o contrato correto antes de tentar alterar o status do imovel.'
       );
-      this.queueGuideFocus('[data-guide-filters]');
+      if (this.guideStep() && this.guideStep() !== 'filters') {
+        this.guideStep.set('filters');
+      }
+      this.queueGuideOverlaySync(true);
       return;
     }
 
     this.highlightedLeaseId.set(highlightedLease.id);
-    this.queueGuideFocus(`[data-guide-lease-row="${highlightedLease.id}"]`);
+    this.guideFallbackMessage.set('');
+    this.queueGuideOverlaySync(true);
+  }
+
+  private navigateToCreateLease(): void {
+    const queryParams = this.createLeaseQueryParams() ?? undefined;
+    void this.router.navigate(['/app/locacoes/new'], { queryParams });
+  }
+
+  private openGuideActionMenu(): void {
+    const leaseId = this.highlightedLeaseId();
+    if (!leaseId || typeof document === 'undefined') {
+      return;
+    }
+
+    const trigger = document.querySelector<HTMLElement>(`[data-guide-lease-action="${leaseId}"]`);
+    if (!trigger) {
+      return;
+    }
+
+    this.toggleRowMenuFromTrigger(trigger, leaseId);
+  }
+
+  private openGuideCloseModal(): void {
+    const leaseId = this.highlightedLeaseId();
+    if (!leaseId) {
+      return;
+    }
+
+    const lease = this.leases().find((item) => item.id === leaseId);
+    if (!lease) {
+      return;
+    }
+
+    this.openCloseModal(lease);
+  }
+
+  private toggleRowMenuFromTrigger(trigger: HTMLElement, id: string): void {
+    if (this.activeMenuId() === id) {
+      this.closeRowMenu();
+      return;
+    }
+
+    this.menuPosition.set(getFloatingMenuPosition(trigger, 236, 150));
+    this.activeMenuId.set(id);
+
+    if (this.guideOverlayVisible() && this.guideMode() === 'close-active-lease' && this.highlightedLeaseId() === id && this.guideStep() === 'actions') {
+      this.setGuideStep('close-action');
+      return;
+    }
+
+    this.queueGuideOverlaySync(false);
+  }
+
+  private setGuideStep(step: LeaseGuideStep): void {
+    this.guideStep.set(step);
+    this.queueGuideOverlaySync(true);
+  }
+
+  private queueGuideOverlaySync(ensureVisible: boolean): void {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    window.setTimeout(() => this.updateGuideOverlayFromDom(ensureVisible), 80);
+  }
+
+  private updateGuideOverlayFromDom(ensureVisible: boolean): void {
+    if (!this.guideOverlayVisible()) {
+      this.guideSpotlight.set(null);
+      this.guideCoachPosition.set(null);
+      return;
+    }
+
+    const selector = this.getGuideTargetSelector();
+    if (!selector || typeof document === 'undefined') {
+      this.guideSpotlight.set(null);
+      this.guideCoachPosition.set(this.getCenteredCoachPosition());
+      return;
+    }
+
+    const target = document.querySelector<HTMLElement>(selector);
+    if (!target) {
+      this.handleMissingGuideTarget();
+      return;
+    }
+
+    if (ensureVisible) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'nearest' });
+      window.setTimeout(() => this.updateGuideOverlayFromDom(false), 140);
+      return;
+    }
+
+    const padding = 12;
+    const rect = target.getBoundingClientRect();
+    const maxWidth = Math.max(0, window.innerWidth - 24);
+    const maxHeight = Math.max(0, window.innerHeight - 24);
+    const width = Math.min(maxWidth, rect.width + padding * 2);
+    const height = Math.min(maxHeight, rect.height + padding * 2);
+    const spotlight: GuideSpotlight = {
+      top: Math.max(12, Math.min(rect.top - padding, window.innerHeight - height - 12)),
+      left: Math.max(12, Math.min(rect.left - padding, window.innerWidth - width - 12)),
+      width,
+      height
+    };
+
+    this.guideSpotlight.set(spotlight);
+    this.guideCoachPosition.set(this.computeGuideCoachPosition(spotlight));
+  }
+
+  private handleMissingGuideTarget(): void {
+    const step = this.guideStep();
+
+    if (step === 'close-action' || step === 'close-form') {
+      this.guideStep.set('actions');
+      this.queueGuideOverlaySync(true);
+      return;
+    }
+
+    if (step === 'create') {
+      this.guideStep.set('filters');
+      this.queueGuideOverlaySync(true);
+      return;
+    }
+
+    this.guideSpotlight.set(null);
+    this.guideCoachPosition.set(this.getCenteredCoachPosition());
+  }
+
+  private getGuideTargetSelector(): string | null {
+    const step = this.guideStep();
+    const leaseId = this.highlightedLeaseId();
+
+    switch (step) {
+      case 'filters':
+        return '[data-guide-filters]';
+      case 'create':
+        return '.page-header__action--guided';
+      case 'actions':
+        return leaseId ? `[data-guide-lease-action="${leaseId}"]` : null;
+      case 'close-action':
+        return leaseId ? `[data-guide-close-lease="${leaseId}"]` : null;
+      case 'close-form':
+        return '[data-guide-close-modal]';
+      default:
+        return null;
+    }
+  }
+
+  private computeGuideCoachPosition(spotlight: GuideSpotlight): GuideCoachPosition {
+    if (typeof window === 'undefined') {
+      return { top: 24, left: 24, placement: 'below' };
+    }
+
+    const cardWidth = Math.min(380, window.innerWidth - 32);
+    const estimatedHeight = 240;
+    const gap = 18;
+    const preferredLeft = spotlight.left + spotlight.width / 2 - cardWidth / 2;
+    const left = Math.max(16, Math.min(preferredLeft, window.innerWidth - cardWidth - 16));
+
+    if (spotlight.top + spotlight.height + gap + estimatedHeight <= window.innerHeight - 16) {
+      return {
+        top: spotlight.top + spotlight.height + gap,
+        left,
+        placement: 'below'
+      };
+    }
+
+    return {
+      top: Math.max(16, spotlight.top - estimatedHeight - gap),
+      left,
+      placement: 'above'
+    };
+  }
+
+  private getCenteredCoachPosition(): GuideCoachPosition {
+    if (typeof window === 'undefined') {
+      return { top: 24, left: 24, placement: 'below' };
+    }
+
+    const cardWidth = Math.min(380, window.innerWidth - 32);
+    return {
+      top: Math.max(24, window.innerHeight / 2 - 120),
+      left: Math.max(16, (window.innerWidth - cardWidth) / 2),
+      placement: 'below'
+    };
   }
 
   private buildReturnToUrl(): string {
@@ -360,17 +753,6 @@ export class LocacoesPage implements OnInit {
 
   private parseGuideMode(value: string | null): LeaseGuideMode | null {
     return value === 'activate-lease' || value === 'close-active-lease' ? value : null;
-  }
-
-  private queueGuideFocus(selector: string): void {
-    if (typeof document === 'undefined') {
-      return;
-    }
-
-    window.setTimeout(() => {
-      const target = document.querySelector<HTMLElement>(selector);
-      target?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }, 80);
   }
 
   private normalizeStatus(value?: string | null): string {
