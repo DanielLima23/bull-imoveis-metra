@@ -286,6 +286,10 @@ export class ImoveisFormPage implements OnInit {
     void this.router.navigate(['/app/imoveis']);
   }
 
+  navigateToPartyRegistration(): void {
+    void this.router.navigate(['/app/pessoas/new']);
+  }
+
   closeFlowGuidanceModal(): void {
     this.flowGuidanceModal.set(null);
   }

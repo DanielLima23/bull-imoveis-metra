@@ -189,12 +189,13 @@
 
       <div class="grid-form section-grid">
         <div class="field">
-          <label class="field__label">Proprietário</label>
+          <label class="field__label field__label--clickable" (click)="navigateToPartyRegistration()">+ Proprietário</label>
           <app-party-picker-field
             [formControl]="form.controls.administration.controls.proprietaryPartyId"
             [allowedKinds]="['PROPRIETARIO', 'PERSON', 'COMPANY', 'OUTRO']"
             defaultKind="PROPRIETARIO"
             placeholder="Selecione o proprietário"
+            [showCreateButton]="false"
             (partyChange)="onProprietaryPartyChange($event)"
           />
 

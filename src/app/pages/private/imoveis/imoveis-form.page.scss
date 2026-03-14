@@ -143,6 +143,15 @@
   }
 }
 
+.field__label--clickable {
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.field__label--clickable:hover {
+  color: var(--brand);
+}
+
 @media (max-width: 960px) {
   .section-grid {
     grid-template-columns: 1fr;

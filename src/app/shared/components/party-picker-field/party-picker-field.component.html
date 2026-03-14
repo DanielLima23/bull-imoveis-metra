@@ -13,9 +13,11 @@
       (valueChange)="onValueChange($event)"
     />
 
-    <button class="party-picker__create" type="button" (click)="openCreateModal()" [disabled]="isDisabled()">
-      Cadastrar
-    </button>
+    @if (showCreateButton()) {
+      <button class="party-picker__create" type="button" (click)="openCreateModal()" [disabled]="isDisabled()">
+        Cadastrar
+      </button>
+    }
   </div>
 
   @if (selectedParty(); as party) {

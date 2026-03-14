@@ -55,6 +55,7 @@ export class PartyPickerFieldComponent implements ControlValueAccessor, OnDestro
   readonly compact = input(false);
   readonly allowClear = input(true);
   readonly useFloatingPanel = input(true);
+  readonly showCreateButton = input(true);
 
   readonly partyChange = output<PartyDto | null>();
 
