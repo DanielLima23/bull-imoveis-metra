@@ -19,7 +19,7 @@
   </div>
 
   @if (actionLabel() && actionRoute()) {
-    <a class="btn btn-primary page-header__action" [routerLink]="actionRoute()" [queryParams]="actionQueryParams()">
+    <a [class]="'btn btn-primary page-header__action ' + actionClass()" [routerLink]="actionRoute()" [queryParams]="actionQueryParams()">
       {{ actionLabel() }}
     </a>
   }

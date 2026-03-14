@@ -1,11 +1,16 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Params, Router, RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { PropertyDto } from '../../../core/models/domain.model';
 import { PropertyApiService } from '../../../core/services/property-api.service';
+import {
+  PropertyStatusTransitionResult,
+  PropertyStatusTransitionService
+} from '../../../core/services/property-status-transition.service';
 import { AsyncSearchSelectComponent } from '../../../shared/components/async-search-select/async-search-select.component';
+import { FlowGuidanceModalComponent } from '../../../shared/components/flow-guidance-modal/flow-guidance-modal.component';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { TablePaginationComponent } from '../../../shared/components/table-pagination/table-pagination.component';
 import { BrlCurrencyInputDirective } from '../../../shared/directives/brl-currency-input.directive';
@@ -35,19 +40,25 @@ import {
     BrlCurrencyInputDirective,
     DateBrInputDirective,
     AsyncSearchSelectComponent,
-    DomainLabelPipe
+    DomainLabelPipe,
+    FlowGuidanceModalComponent
   ],
+  providers: [PropertyStatusTransitionService],
   templateUrl: './imoveis.page.html',
   styleUrl: './imoveis.page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ImoveisPage implements OnInit, OnDestroy {
   private readonly propertyApi = inject(PropertyApiService);
+  private readonly propertyStatusTransition = inject(PropertyStatusTransitionService);
   private readonly toast = inject(ToastService);
   private readonly fb = inject(FormBuilder);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
   private listRequestSub: Subscription | null = null;
+  private statusSelectionToken = 0;
+  private restoringStatusEditorSelection = false;
+  private statusEditorStableSelection = { status: 'AVAILABLE', idleReason: '' };
 
   readonly isLoading = signal(false);
   readonly items = signal<PropertyDto[]>([]);
@@ -65,6 +76,7 @@ export class ImoveisPage implements OnInit, OnDestroy {
   readonly rentModalProperty = signal<PropertyDto | null>(null);
   readonly statusEditorPropertyId = signal<string | null>(null);
   readonly statusEditorPosition = signal({ x: 0, y: 0 });
+  readonly flowGuidanceModal = signal<{ title: string; message: string; queryParams: Params } | null>(null);
 
   readonly activeMenuItem = computed(() => this.items().find((item) => item.id === this.activeMenuId()) ?? null);
   readonly editingStatusProperty = computed(() => this.items().find((item) => item.id === this.statusEditorPropertyId()) ?? null);
@@ -247,11 +259,16 @@ export class ImoveisPage implements OnInit, OnDestroy {
     const status = inferPropertyStatus(property);
     const idleReason = inferPropertyIdleReason(property);
 
-    this.statusEditorForm.reset({
-      status,
-      idleReason
-    });
+    this.statusEditorForm.reset(
+      {
+        status,
+        idleReason
+      },
+      { emitEvent: false }
+    );
     this.syncIdleReasonValidator(status);
+    this.statusEditorStableSelection = { status, idleReason };
+    this.statusSelectionToken += 1;
     this.closeRowMenu();
     this.closeRentModal();
 
@@ -261,6 +278,20 @@ export class ImoveisPage implements OnInit, OnDestroy {
 
   closeStatusEditor(): void {
     this.statusEditorPropertyId.set(null);
+  }
+
+  closeFlowGuidanceModal(): void {
+    this.flowGuidanceModal.set(null);
+  }
+
+  navigateFromFlowGuidanceModal(): void {
+    const modal = this.flowGuidanceModal();
+    if (!modal) {
+      return;
+    }
+
+    this.flowGuidanceModal.set(null);
+    void this.router.navigate(['/app/locacoes'], { queryParams: modal.queryParams });
   }
 
   submitStatusEditor(): void {
@@ -335,7 +366,27 @@ export class ImoveisPage implements OnInit, OnDestroy {
 
   private watchStatusEditor(): void {
     this.statusEditorForm.controls.status.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((value) => {
+      if (this.restoringStatusEditorSelection) {
+        return;
+      }
+
       this.syncIdleReasonValidator(value);
+      this.handleStatusEditorSelectionChange(value);
+    });
+
+    this.statusEditorForm.controls.idleReason.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((value) => {
+      if (this.restoringStatusEditorSelection) {
+        return;
+      }
+
+      if (this.normalizeStatus(this.statusEditorForm.controls.status.value) !== this.normalizeStatus(this.statusEditorStableSelection.status)) {
+        return;
+      }
+
+      this.statusEditorStableSelection = {
+        ...this.statusEditorStableSelection,
+        idleReason: value
+      };
     });
 
     this.syncIdleReasonValidator(this.statusEditorForm.controls.status.value);
@@ -361,5 +412,85 @@ export class ImoveisPage implements OnInit, OnDestroy {
     this.closeRowMenu();
     this.closeStatusEditor();
     this.closeRentModal();
+  }
+
+  private handleStatusEditorSelectionChange(nextStatus: string): void {
+    const property = this.editingStatusProperty();
+    if (!property) {
+      return;
+    }
+
+    const currentSelection = { ...this.statusEditorStableSelection };
+    if (this.normalizeStatus(nextStatus) === this.normalizeStatus(currentSelection.status)) {
+      return;
+    }
+
+    const token = ++this.statusSelectionToken;
+    this.propertyStatusTransition.validateTransition(property.id, currentSelection.status, nextStatus).subscribe((result) => {
+      if (token !== this.statusSelectionToken) {
+        return;
+      }
+
+      if (result === 'allowed') {
+        this.statusEditorStableSelection = {
+          status: nextStatus,
+          idleReason: this.statusEditorForm.controls.idleReason.value
+        };
+        return;
+      }
+
+      this.restoreStatusEditorSelection(currentSelection);
+      this.openBlockedStatusModal(property, result);
+    });
+  }
+
+  private restoreStatusEditorSelection(selection: { status: string; idleReason: string }): void {
+    this.restoringStatusEditorSelection = true;
+    this.statusEditorForm.patchValue(
+      {
+        status: selection.status,
+        idleReason: selection.idleReason
+      },
+      { emitEvent: false }
+    );
+    this.restoringStatusEditorSelection = false;
+    this.syncIdleReasonValidator(selection.status);
+    this.statusEditorStableSelection = selection;
+  }
+
+  private openBlockedStatusModal(property: PropertyDto, result: PropertyStatusTransitionResult): void {
+    this.closeStatusEditor();
+
+    if (result === 'blocked_requires_active_lease') {
+      this.flowGuidanceModal.set({
+        title: 'Para marcar este imovel como alugado',
+        message: 'E necessario existir uma locacao ativa vinculada a este imovel antes de definir o status como alugado.',
+        queryParams: {
+          propertyId: property.id,
+          guideMode: 'activate-lease'
+        }
+      });
+      return;
+    }
+
+    this.flowGuidanceModal.set({
+      title: 'Para alterar o status deste imovel',
+      message: 'Existe uma locacao ativa vinculada a este imovel. Encerre o contrato antes de alterar o status manualmente.',
+      queryParams: {
+        propertyId: property.id,
+        status: 'ACTIVE',
+        guideMode: 'close-active-lease'
+      }
+    });
+  }
+
+  private normalizeStatus(value?: string | null): string {
+    return String(value ?? '')
+      .trim()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/\s+/g, '_')
+      .replace(/-/g, '_')
+      .toUpperCase();
   }
 }

@@ -13,7 +13,8 @@ const DEFAULT_SETTINGS: SystemSettingsUpdateRequest = {
   brandName: 'Imóveis Hub',
   brandShortName: 'IH',
   themePreset: 'AURORA_LIGHT',
-  enableAnimations: true
+  enableAnimations: true,
+  enableGuidedFlows: false
 };
 
 @Component({
@@ -42,7 +43,8 @@ export class ConfiguracoesPage implements OnInit, OnDestroy {
     brandName: ['', [Validators.required, Validators.maxLength(120)]],
     brandShortName: ['', [Validators.required, Validators.maxLength(8)]],
     themePreset: ['AURORA_LIGHT' as ThemePresetKey, [Validators.required]],
-    enableAnimations: [true]
+    enableAnimations: [true],
+    enableGuidedFlows: [false]
   });
 
   constructor() {
@@ -88,7 +90,7 @@ export class ConfiguracoesPage implements OnInit, OnDestroy {
           this.form.reset(normalized, { emitEvent: false });
           this.form.markAsPristine();
           this.settingsService.applyPreview(normalized);
-          this.toast.success('Tema e personalizacoes salvos com sucesso.');
+          this.toast.success('Configuracoes salvas com sucesso.');
         },
         error: () => {
           this.toast.error('Falha ao salvar personalizacoes.');
@@ -158,7 +160,8 @@ export class ConfiguracoesPage implements OnInit, OnDestroy {
       brandName: (settings.brandName || DEFAULT_SETTINGS.brandName).trim(),
       brandShortName: (settings.brandShortName || DEFAULT_SETTINGS.brandShortName).trim().toUpperCase(),
       themePreset: this.presetByKey(settings.themePreset).key,
-      enableAnimations: settings.enableAnimations
+      enableAnimations: settings.enableAnimations,
+      enableGuidedFlows: !!settings.enableGuidedFlows
     };
   }
 
@@ -169,7 +172,8 @@ export class ConfiguracoesPage implements OnInit, OnDestroy {
       brandName: raw.brandName.trim(),
       brandShortName: raw.brandShortName.trim().toUpperCase(),
       themePreset: this.presetByKey(raw.themePreset).key,
-      enableAnimations: !!raw.enableAnimations
+      enableAnimations: !!raw.enableAnimations,
+      enableGuidedFlows: !!raw.enableGuidedFlows
     };
   }
 }

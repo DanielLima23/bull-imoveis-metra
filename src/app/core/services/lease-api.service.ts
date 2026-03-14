@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { HttpApiService } from './http-api.service';
+import { ApiRequestOptions, HttpApiService } from './http-api.service';
 import { LeaseDto, PagedResult } from '../models/domain.model';
 
 export interface LeasePayloadBase {
@@ -45,8 +45,8 @@ export interface LeaseListFilters extends Record<string, string | number | boole
 export class LeaseApiService {
   constructor(private readonly api: HttpApiService) {}
 
-  list(filters: LeaseListFilters = {}): Observable<PagedResult<LeaseDto>> {
-    return this.api.get<PagedResult<LeaseDto>>('/locacoes', filters);
+  list(filters: LeaseListFilters = {}, options?: ApiRequestOptions): Observable<PagedResult<LeaseDto>> {
+    return this.api.get<PagedResult<LeaseDto>>('/locacoes', filters, options);
   }
 
   getById(id: string): Observable<LeaseDto> {

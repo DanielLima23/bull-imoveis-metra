@@ -21,6 +21,12 @@
   text-decoration: none;
 }
 
+.page-header__action--guided {
+  position: relative;
+  box-shadow: 0 0 0 4px rgba(17, 118, 238, 0.16), 0 16px 28px rgba(17, 118, 238, 0.22);
+  animation: guided-pulse 1.8s ease-in-out infinite;
+}
+
 .breadcrumb {
   display: flex;
   flex-wrap: wrap;
@@ -48,5 +54,18 @@
 
   .page-header__action {
     text-align: center;
+  }
+}
+
+@keyframes guided-pulse {
+  0%,
+  100% {
+    transform: translateY(0);
+    box-shadow: 0 0 0 4px rgba(17, 118, 238, 0.16), 0 16px 28px rgba(17, 118, 238, 0.22);
+  }
+
+  50% {
+    transform: translateY(-1px);
+    box-shadow: 0 0 0 7px rgba(17, 118, 238, 0.09), 0 18px 30px rgba(17, 118, 238, 0.18);
   }
 }

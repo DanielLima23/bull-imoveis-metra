@@ -1,0 +1,13 @@
+<div class="flow-guidance-modal__backdrop" (click)="closed.emit()">
+  <section class="card-panel flow-guidance-modal" (click)="$event.stopPropagation()" role="dialog" aria-modal="true" [attr.aria-label]="title()">
+    <header class="flow-guidance-modal__head">
+      <h3>{{ title() }}</h3>
+      <p>{{ message() }}</p>
+    </header>
+
+    <footer class="flow-guidance-modal__actions">
+      <button class="btn btn-secondary" type="button" (click)="closed.emit()">{{ secondaryActionLabel() }}</button>
+      <button class="btn btn-primary" type="button" (click)="primaryAction.emit()">{{ primaryActionLabel() }}</button>
+    </footer>
+  </section>
+</div>

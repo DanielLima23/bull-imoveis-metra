@@ -1,6 +1,7 @@
-import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
-import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ActivatedRoute, Params, RouterLink } from '@angular/router';
 import { catchError, map, of } from 'rxjs';
 import {
   AsyncSearchSelectComponent,
@@ -12,6 +13,7 @@ import { TablePaginationComponent } from '../../../shared/components/table-pagin
 import { LeaseDto, PagedResult, PropertyDto, TenantDto } from '../../../core/models/domain.model';
 import { LeaseApiService } from '../../../core/services/lease-api.service';
 import { PropertyApiService } from '../../../core/services/property-api.service';
+import { SystemSettingsService } from '../../../core/services/system-settings.service';
 import { TenantApiService } from '../../../core/services/tenant-api.service';
 import { ToastService } from '../../../shared/services/toast.service';
 import { BrlCurrencyPipe } from '../../../shared/pipes/brl-currency.pipe';
@@ -22,6 +24,8 @@ import { SelectOption } from '../../../shared/models/select-option.model';
 import { getFloatingMenuPosition } from '../../../shared/utils/floating-menu.util';
 import { getDomainOptions } from '../../../shared/utils/domain-label.util';
 import { toPropertySelectOption, toTenantSelectOption } from '../../../shared/utils/select-option.util';
+
+type LeaseGuideMode = 'activate-lease' | 'close-active-lease';
 
 @Component({
   selector: 'app-locacoes-page',
@@ -45,8 +49,12 @@ export class LocacoesPage implements OnInit {
   private readonly leaseApi = inject(LeaseApiService);
   private readonly propertyApi = inject(PropertyApiService);
   private readonly tenantApi = inject(TenantApiService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly settingsService = inject(SystemSettingsService);
   private readonly toast = inject(ToastService);
   private readonly fb = inject(FormBuilder);
+  private readonly destroyRef = inject(DestroyRef);
+  private loadRequestToken = 0;
 
   readonly isLoading = signal(false);
   readonly leases = signal<LeaseDto[]>([]);
@@ -60,8 +68,45 @@ export class LocacoesPage implements OnInit {
   readonly activeMenuId = signal<string | null>(null);
   readonly menuPosition = signal({ x: 0, y: 0 });
   readonly closingLease = signal<LeaseDto | null>(null);
+  readonly guideMode = signal<LeaseGuideMode | null>(null);
+  readonly guideDismissed = signal(false);
+  readonly guideFallbackMessage = signal('');
+  readonly highlightedLeaseId = signal<string | null>(null);
+  readonly guidedFlowsEnabled = this.settingsService.guidedFlowsEnabled;
 
   readonly activeMenuItem = computed(() => this.leases().find((item) => item.id === this.activeMenuId()) ?? null);
+  readonly guideVisualsEnabled = computed(() => this.guidedFlowsEnabled() && !!this.guideMode() && !this.guideDismissed());
+  readonly guideBanner = computed(() => {
+    if (!this.guideVisualsEnabled()) {
+      return null;
+    }
+
+    if (this.guideMode() === 'activate-lease') {
+      return {
+        title: 'Como ativar o fluxo de locacao deste imovel',
+        message:
+          'Revise as locacoes vinculadas a este imovel. Se ainda nao existir um contrato ativo, use "Adicionar nova" para cadastrar a locacao.'
+      };
+    }
+
+    return {
+      title: 'Como encerrar a locacao ativa deste imovel',
+      message:
+        this.guideFallbackMessage() ||
+        'Localize a locacao ativa destacada e use o menu de acoes da linha para encerrar o contrato antes de alterar o status do imovel.'
+    };
+  });
+  readonly createLeaseQueryParams = computed<Params | null>(() => {
+    const propertyId = this.propertyId().trim();
+    if (this.guideMode() !== 'activate-lease' || !propertyId) {
+      return null;
+    }
+
+    return {
+      propertyId,
+      returnTo: this.buildReturnToUrl()
+    };
+  });
   readonly statusOptions: SelectOption[] = getDomainOptions('leaseStatus', { includeEmptyOption: true, emptyLabel: 'Todos' });
 
   readonly propertySelectFetchPage: AsyncSelectFetchPage = (query) =>
@@ -91,24 +136,48 @@ export class LocacoesPage implements OnInit {
   });
 
   ngOnInit(): void {
-    this.load();
+    this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
+      const guideMode = this.parseGuideMode(params.get('guideMode'));
+      const status = guideMode === 'close-active-lease' ? params.get('status')?.trim() || 'ACTIVE' : params.get('status')?.trim() || '';
+
+      this.propertyId.set(params.get('propertyId')?.trim() || '');
+      this.tenantId.set(params.get('tenantId')?.trim() || '');
+      this.status.set(status);
+      this.page.set(1);
+      this.guideMode.set(guideMode);
+      this.guideDismissed.set(false);
+      this.guideFallbackMessage.set('');
+      this.highlightedLeaseId.set(null);
+      this.activeMenuId.set(null);
+      this.closingLease.set(null);
+      this.load();
+    });
   }
 
   load(showLoading = true): void {
+    const requestToken = ++this.loadRequestToken;
+
     if (showLoading) {
       this.isLoading.set(true);
     }
 
     this.leaseApi
-      .list({
-        propertyId: this.propertyId() || undefined,
-        tenantId: this.tenantId() || undefined,
-        status: this.status() || undefined,
-        page: this.page(),
-        pageSize: this.pageSize()
-      })
+      .list(
+        {
+          propertyId: this.propertyId() || undefined,
+          tenantId: this.tenantId() || undefined,
+          status: this.status() || undefined,
+          page: this.page(),
+          pageSize: this.pageSize()
+        },
+        showLoading ? undefined : { silent: true }
+      )
       .subscribe({
         next: (result) => {
+          if (requestToken !== this.loadRequestToken) {
+            return;
+          }
+
           this.leases.set(result.items);
           this.page.set(result.page);
           this.pageSize.set(result.pageSize);
@@ -116,10 +185,16 @@ export class LocacoesPage implements OnInit {
           this.totalPages.set(result.totalPages);
           this.activeMenuId.set(null);
           this.isLoading.set(false);
+          this.syncGuideTargets();
         },
         error: () => {
-          this.toast.error('Falha ao carregar locações.');
+          if (requestToken !== this.loadRequestToken) {
+            return;
+          }
+
+          this.toast.error('Falha ao carregar locacoes.');
           this.isLoading.set(false);
+          this.highlightedLeaseId.set(null);
         }
       });
   }
@@ -161,6 +236,12 @@ export class LocacoesPage implements OnInit {
     this.load(false);
   }
 
+  dismissGuide(): void {
+    this.guideDismissed.set(true);
+    this.guideFallbackMessage.set('');
+    this.highlightedLeaseId.set(null);
+  }
+
   toggleRowMenu(event: MouseEvent, id: string): void {
     if (this.activeMenuId() === id) {
       this.closeRowMenu();
@@ -190,6 +271,14 @@ export class LocacoesPage implements OnInit {
     this.closingLease.set(null);
   }
 
+  isLeaseHighlighted(leaseId: string): boolean {
+    return this.highlightedLeaseId() === leaseId && this.guideVisualsEnabled() && this.guideMode() === 'close-active-lease';
+  }
+
+  isLeaseActionHighlighted(leaseId: string): boolean {
+    return this.isLeaseHighlighted(leaseId);
+  }
+
   submitCloseLease(): void {
     const lease = this.closingLease();
     if (!lease || this.closeForm.invalid) {
@@ -199,12 +288,67 @@ export class LocacoesPage implements OnInit {
 
     this.leaseApi.close(lease.id, this.closeForm.controls.endDate.value).subscribe({
       next: () => {
-        this.toast.success('Locação encerrada.');
+        this.toast.success('Locacao encerrada.');
         this.closeCloseModal();
         this.load(false);
       },
-      error: () => this.toast.error('Falha ao encerrar locação.')
+      error: () => this.toast.error('Falha ao encerrar locacao.')
     });
+  }
+
+  private syncGuideTargets(): void {
+    if (!this.guideVisualsEnabled()) {
+      this.guideFallbackMessage.set('');
+      this.highlightedLeaseId.set(null);
+      return;
+    }
+
+    this.guideFallbackMessage.set('');
+
+    if (this.guideMode() === 'activate-lease') {
+      this.highlightedLeaseId.set(null);
+      this.queueGuideFocus('[data-guide-filters]');
+      return;
+    }
+
+    const propertyId = this.propertyId().trim();
+    const highlightedLease =
+      this.leases().find((item) => (!propertyId || item.propertyId === propertyId) && this.normalizeStatus(item.status) === 'ACTIVE') ?? null;
+
+    if (!highlightedLease) {
+      this.highlightedLeaseId.set(null);
+      this.guideFallbackMessage.set(
+        'Nenhuma locacao ativa desse imovel apareceu na lista atual. Confira os filtros ou cadastre o contrato correto antes de tentar alterar o status do imovel.'
+      );
+      this.queueGuideFocus('[data-guide-filters]');
+      return;
+    }
+
+    this.highlightedLeaseId.set(highlightedLease.id);
+    this.queueGuideFocus(`[data-guide-lease-row="${highlightedLease.id}"]`);
+  }
+
+  private buildReturnToUrl(): string {
+    const params = new URLSearchParams();
+
+    if (this.propertyId().trim()) {
+      params.set('propertyId', this.propertyId().trim());
+    }
+
+    if (this.tenantId().trim()) {
+      params.set('tenantId', this.tenantId().trim());
+    }
+
+    if (this.status().trim()) {
+      params.set('status', this.status().trim());
+    }
+
+    if (this.guideMode()) {
+      params.set('guideMode', this.guideMode()!);
+    }
+
+    const query = params.toString();
+    return query ? `/app/locacoes?${query}` : '/app/locacoes';
   }
 
   private mapOptionsResult<T>(result: PagedResult<T>, mapper: (item: T) => SelectOption): PagedResult<SelectOption> {
@@ -212,5 +356,30 @@ export class LocacoesPage implements OnInit {
       ...result,
       items: result.items.map((item) => mapper(item))
     };
+  }
+
+  private parseGuideMode(value: string | null): LeaseGuideMode | null {
+    return value === 'activate-lease' || value === 'close-active-lease' ? value : null;
+  }
+
+  private queueGuideFocus(selector: string): void {
+    if (typeof document === 'undefined') {
+      return;
+    }
+
+    window.setTimeout(() => {
+      const target = document.querySelector<HTMLElement>(selector);
+      target?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 80);
+  }
+
+  private normalizeStatus(value?: string | null): string {
+    return String(value ?? '')
+      .trim()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/\s+/g, '_')
+      .replace(/-/g, '_')
+      .toUpperCase();
   }
 }

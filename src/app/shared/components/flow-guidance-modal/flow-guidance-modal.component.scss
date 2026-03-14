@@ -1,0 +1,43 @@
+.flow-guidance-modal__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 110;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(15, 23, 42, 0.42);
+}
+
+.flow-guidance-modal {
+  width: min(540px, 100%);
+  display: grid;
+  gap: 1rem;
+}
+
+.flow-guidance-modal__head {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.flow-guidance-modal__head h3 {
+  margin: 0;
+  font-size: 1.08rem;
+}
+
+.flow-guidance-modal__head p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.flow-guidance-modal__actions {
+  display: flex;
+  justify-content: end;
+  gap: 0.6rem;
+}
+
+@media (max-width: 760px) {
+  .flow-guidance-modal__actions {
+    flex-direction: column-reverse;
+  }
+}

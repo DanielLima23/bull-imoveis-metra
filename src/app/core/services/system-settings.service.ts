@@ -276,6 +276,7 @@ const DEFAULT_SETTINGS: SystemSettingsDto = {
   secondaryColor: '#0A58BA',
   accentColor: '#06B6D4',
   enableAnimations: true,
+  enableGuidedFlows: false,
   updatedAtUtc: new Date(0).toISOString()
 };
 
@@ -289,6 +290,7 @@ export class SystemSettingsService {
   readonly settings = computed(() => this.settingsState());
   readonly brandName = computed(() => this.settingsState().brandName || DEFAULT_SETTINGS.brandName);
   readonly brandShortName = computed(() => this.settingsState().brandShortName || DEFAULT_SETTINGS.brandShortName);
+  readonly guidedFlowsEnabled = computed(() => !!this.settingsState().enableGuidedFlows);
   readonly themePresets = THEME_PRESETS;
 
   constructor() {
@@ -297,20 +299,20 @@ export class SystemSettingsService {
 
   loadPublic(): Observable<SystemSettingsDto> {
     return this.api.get<SystemSettingsDto>('/configuracoes/publico', undefined, { silent: true }).pipe(
-      tap((settings) => this.setSettings(settings)),
+      tap((settings) => this.setSettings({ ...this.settingsState(), ...settings })),
       catchError(() => of(this.settingsState()))
     );
   }
 
   loadPrivate(): Observable<SystemSettingsDto> {
     return this.api.get<SystemSettingsDto>('/configuracoes', undefined, { silent: true }).pipe(
-      tap((settings) => this.setSettings(settings))
+      tap((settings) => this.setSettings({ ...this.settingsState(), ...settings }))
     );
   }
 
   update(payload: SystemSettingsUpdateRequest): Observable<SystemSettingsDto> {
     return this.api.put<SystemSettingsDto>('/configuracoes', payload).pipe(
-      map((settings) => this.normalizeSettings(settings)),
+      map((settings) => this.normalizeSettings({ ...this.settingsState(), ...settings, ...payload })),
       tap((settings) => this.setSettings(settings))
     );
   }
@@ -345,7 +347,9 @@ export class SystemSettingsService {
       themePreset: preset.key,
       primaryColor: this.normalizeHex(settings.primaryColor, preset.swatches[0]),
       secondaryColor: this.normalizeHex(settings.secondaryColor, preset.swatches[1]),
-      accentColor: this.normalizeHex(settings.accentColor, preset.swatches[2])
+      accentColor: this.normalizeHex(settings.accentColor, preset.swatches[2]),
+      enableAnimations: !!settings.enableAnimations,
+      enableGuidedFlows: !!settings.enableGuidedFlows
     };
   }
 

@@ -188,6 +188,16 @@
   </div>
 }
 
+@if (flowGuidanceModal(); as modal) {
+  <app-flow-guidance-modal
+    [title]="modal.title"
+    [message]="modal.message"
+    primaryActionLabel="Ver locações do imóvel"
+    (closed)="closeFlowGuidanceModal()"
+    (primaryAction)="navigateFromFlowGuidanceModal()"
+  />
+}
+
 @if (activeMenuItem(); as item) {
   <button class="menu-overlay" type="button" (click)="closeRowMenu()" aria-label="Fechar menu de ações"></button>
   <div class="menu-popover menu-popover--floating menu-popover--rich" [style.left.px]="menuPosition().x" [style.top.px]="menuPosition().y">

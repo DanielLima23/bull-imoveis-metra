@@ -349,6 +349,7 @@ export interface SystemSettingsDto {
   secondaryColor: string;
   accentColor: string;
   enableAnimations: boolean;
+  enableGuidedFlows?: boolean;
   updatedAtUtc: string;
 }
 
@@ -359,6 +360,7 @@ export interface SystemSettingsUpdateRequest {
   brandShortName: string;
   themePreset: ThemePresetKey;
   enableAnimations: boolean;
+  enableGuidedFlows: boolean;
 }
 
 export interface ReportCatalogItemDto {

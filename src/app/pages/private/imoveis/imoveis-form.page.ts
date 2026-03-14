@@ -1,10 +1,15 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Params, Router } from '@angular/router';
 import { debounceTime, distinctUntilChanged, finalize, map } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { LeaseDto, PartyDto } from '../../../core/models/domain.model';
+import {
+  PropertyStatusTransitionResult,
+  PropertyStatusTransitionService
+} from '../../../core/services/property-status-transition.service';
 import { AsyncSearchSelectComponent } from '../../../shared/components/async-search-select/async-search-select.component';
+import { FlowGuidanceModalComponent } from '../../../shared/components/flow-guidance-modal/flow-guidance-modal.component';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { PartyPickerFieldComponent } from '../../../shared/components/party-picker-field/party-picker-field.component';
 import { CepService } from '../../../core/services/cep.service';
@@ -25,7 +30,16 @@ import {
 @Component({
   selector: 'app-imoveis-form-page',
   standalone: true,
-  imports: [ReactiveFormsModule, PageHeaderComponent, AsyncSearchSelectComponent, PartyPickerFieldComponent, DateBrInputDirective, BrlCurrencyInputDirective],
+  imports: [
+    ReactiveFormsModule,
+    PageHeaderComponent,
+    AsyncSearchSelectComponent,
+    PartyPickerFieldComponent,
+    DateBrInputDirective,
+    BrlCurrencyInputDirective,
+    FlowGuidanceModalComponent
+  ],
+  providers: [PropertyStatusTransitionService],
   templateUrl: './imoveis-form.page.html',
   styleUrl: './imoveis-form.page.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -35,9 +49,14 @@ export class ImoveisFormPage implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly api = inject(PropertyApiService);
+  private readonly propertyStatusTransition = inject(PropertyStatusTransitionService);
   private readonly cepService = inject(CepService);
   private readonly toast = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
+  private statusValidationToken = 0;
+  private restoringIdentityStatus = false;
+  private identityStatusGuardReady = false;
+  private identityStableSelection = { status: 'AVAILABLE', idleReason: '' };
 
   readonly id = signal<string | null>(null);
   readonly isEdit = computed(() => !!this.id());
@@ -51,6 +70,7 @@ export class ImoveisFormPage implements OnInit {
   readonly propertyStatusOptions: SelectOption[] = getPropertyStatusOptions();
   readonly propertyIdleReasonOptions: SelectOption[] = getPropertyIdleReasonOptions(true);
   readonly lastLeaseEndDate = signal('');
+  readonly flowGuidanceModal = signal<{ title: string; message: string; queryParams: Params } | null>(null);
 
   readonly isCepLoading = signal(false);
   readonly cepStatus = signal<'idle' | 'loading' | 'success' | 'error'>('idle');
@@ -165,6 +185,11 @@ export class ImoveisFormPage implements OnInit {
         this.lastLookupCep.set(this.onlyDigits(item.zipCode));
         this.syncIdleReasonValidator(this.form.controls.identity.controls.status.value);
         this.syncUnoccupiedSinceField(this.form.controls.identity.controls.status.value);
+        this.identityStableSelection = {
+          status: this.form.controls.identity.controls.status.value,
+          idleReason: this.form.controls.identity.controls.idleReason.value
+        };
+        this.identityStatusGuardReady = true;
 
         if (!this.isLeasedStatus(inferPropertyStatus(item))) {
           this.loadLastLeaseEndDate(id);
@@ -261,6 +286,20 @@ export class ImoveisFormPage implements OnInit {
     void this.router.navigate(['/app/imoveis']);
   }
 
+  closeFlowGuidanceModal(): void {
+    this.flowGuidanceModal.set(null);
+  }
+
+  navigateFromFlowGuidanceModal(): void {
+    const modal = this.flowGuidanceModal();
+    if (!modal) {
+      return;
+    }
+
+    this.flowGuidanceModal.set(null);
+    void this.router.navigate(['/app/locacoes'], { queryParams: modal.queryParams });
+  }
+
   shouldShowIdleReason(value?: string | null): boolean {
     return requiresPropertyIdleReason(value);
   }
@@ -306,8 +345,33 @@ export class ImoveisFormPage implements OnInit {
 
   private watchStatus(): void {
     this.form.controls.identity.controls.status.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((status) => {
+      if (this.restoringIdentityStatus) {
+        return;
+      }
+
       this.syncIdleReasonValidator(status);
       this.syncUnoccupiedSinceField(status);
+
+      if (!this.isEdit() || !this.identityStatusGuardReady) {
+        return;
+      }
+
+      this.handleIdentityStatusSelectionChange(status);
+    });
+
+    this.form.controls.identity.controls.idleReason.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((idleReason) => {
+      if (this.restoringIdentityStatus || !this.identityStatusGuardReady) {
+        return;
+      }
+
+      if (this.normalizeStatus(this.form.controls.identity.controls.status.value) !== this.normalizeStatus(this.identityStableSelection.status)) {
+        return;
+      }
+
+      this.identityStableSelection = {
+        ...this.identityStableSelection,
+        idleReason
+      };
     });
 
     this.syncIdleReasonValidator(this.form.controls.identity.controls.status.value);
@@ -446,6 +510,75 @@ export class ImoveisFormPage implements OnInit {
     this.toast.error(message);
   }
 
+  private handleIdentityStatusSelectionChange(nextStatus: string): void {
+    const propertyId = this.id();
+    if (!propertyId) {
+      return;
+    }
+
+    const currentSelection = { ...this.identityStableSelection };
+    if (this.normalizeStatus(nextStatus) === this.normalizeStatus(currentSelection.status)) {
+      return;
+    }
+
+    const token = ++this.statusValidationToken;
+    this.propertyStatusTransition.validateTransition(propertyId, currentSelection.status, nextStatus).subscribe((result) => {
+      if (token !== this.statusValidationToken) {
+        return;
+      }
+
+      if (result === 'allowed') {
+        this.identityStableSelection = {
+          status: nextStatus,
+          idleReason: this.form.controls.identity.controls.idleReason.value
+        };
+        return;
+      }
+
+      this.restoreIdentityStatusSelection(currentSelection);
+      this.openBlockedStatusModal(propertyId, result);
+    });
+  }
+
+  private restoreIdentityStatusSelection(selection: { status: string; idleReason: string }): void {
+    this.restoringIdentityStatus = true;
+    this.form.controls.identity.patchValue(
+      {
+        status: selection.status,
+        idleReason: selection.idleReason
+      },
+      { emitEvent: false }
+    );
+    this.restoringIdentityStatus = false;
+    this.syncIdleReasonValidator(selection.status);
+    this.syncUnoccupiedSinceField(selection.status);
+    this.identityStableSelection = selection;
+  }
+
+  private openBlockedStatusModal(propertyId: string, result: PropertyStatusTransitionResult): void {
+    if (result === 'blocked_requires_active_lease') {
+      this.flowGuidanceModal.set({
+        title: 'Para marcar este imovel como alugado',
+        message: 'E necessario existir uma locacao ativa vinculada a este imovel antes de definir o status como alugado.',
+        queryParams: {
+          propertyId,
+          guideMode: 'activate-lease'
+        }
+      });
+      return;
+    }
+
+    this.flowGuidanceModal.set({
+      title: 'Para alterar o status deste imovel',
+      message: 'Existe uma locacao ativa vinculada a este imovel. Encerre o contrato antes de alterar o status manualmente.',
+      queryParams: {
+        propertyId,
+        status: 'ACTIVE',
+        guideMode: 'close-active-lease'
+      }
+    });
+  }
+
   private isLeasedStatus(status?: string | null): boolean {
     return String(status ?? '').trim().toUpperCase() === 'LEASED';
   }
@@ -454,5 +587,15 @@ export class ImoveisFormPage implements OnInit {
     return [...leases]
       .filter((lease) => !!lease.endDate)
       .sort((left, right) => String(right.endDate).localeCompare(String(left.endDate)))[0] ?? null;
+  }
+
+  private normalizeStatus(value?: string | null): string {
+    return String(value ?? '')
+      .trim()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/\s+/g, '_')
+      .replace(/-/g, '_')
+      .toUpperCase();
   }
 }

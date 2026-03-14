@@ -255,3 +255,13 @@
     </div>
   </form>
 </section>
+
+@if (flowGuidanceModal(); as modal) {
+  <app-flow-guidance-modal
+    [title]="modal.title"
+    [message]="modal.message"
+    primaryActionLabel="Ver locaÃ§Ãµes do imÃ³vel"
+    (closed)="closeFlowGuidanceModal()"
+    (primaryAction)="navigateFromFlowGuidanceModal()"
+  />
+}

@@ -85,6 +85,17 @@
             <span class="toggle__track"></span>
           </span>
         </label>
+
+        <label class="toggle-row" for="enableGuidedFlows">
+          <span class="toggle-text">
+            <strong>Modo guia nos fluxos</strong>
+            <small>Destaca filtros, ações e registros importantes nos fluxos assistidos do sistema.</small>
+          </span>
+          <span class="toggle">
+            <input id="enableGuidedFlows" type="checkbox" formControlName="enableGuidedFlows" />
+            <span class="toggle__track"></span>
+          </span>
+        </label>
       </article>
 
       <article class="settings-section">
@@ -107,7 +118,7 @@
       <footer class="actions">
         <button type="button" class="btn btn-secondary" (click)="restoreSaved()" [disabled]="loading() || saving()">Reverter</button>
         <button type="button" class="btn btn-secondary" (click)="applyDefaults()" [disabled]="loading() || saving()">Restaurar padrão</button>
-        <button type="submit" class="btn btn-primary" [disabled]="saving() || loading() || !canEdit()">{{ saving() ? 'Salvando...' : 'Salvar tema' }}</button>
+        <button type="submit" class="btn btn-primary" [disabled]="saving() || loading() || !canEdit()">{{ saving() ? 'Salvando...' : 'Salvar configurações' }}</button>
       </footer>
     </form>
   }

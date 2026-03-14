@@ -1,17 +1,31 @@
 <app-page-header
-  title="Locações"
-  subtitle="Controle de contratos com filtros por imóvel, locatário e status"
-  [breadcrumbs]="[{ label: 'Painel', route: '/app/dashboard' }, { label: 'Locações' }]"
+  title="Locacoes"
+  subtitle="Controle de contratos com filtros por imovel, locatario e status"
+  [breadcrumbs]="[{ label: 'Painel', route: '/app/dashboard' }, { label: 'Locacoes' }]"
   actionLabel="Adicionar nova"
   actionRoute="/app/locacoes/new"
+  [actionQueryParams]="createLeaseQueryParams()"
+  [actionClass]="guideVisualsEnabled() && guideMode() === 'activate-lease' ? 'page-header__action--guided' : ''"
 />
 
-<section class="card-panel">
+@if (guideBanner(); as guide) {
+  <section class="card-panel guide-banner">
+    <div class="guide-banner__content">
+      <span class="guide-banner__eyebrow">Modo guiado</span>
+      <h2>{{ guide.title }}</h2>
+      <p>{{ guide.message }}</p>
+    </div>
+
+    <button class="btn btn-secondary guide-banner__dismiss" type="button" (click)="dismissGuide()">Dispensar</button>
+  </section>
+}
+
+<section class="card-panel" data-guide-filters [class.guide-target]="guideVisualsEnabled()">
   <div class="list-toolbar list-toolbar--stack">
     <h2>Filtros</h2>
     <div class="filters">
       <label class="toolbar-field">
-        <span class="toolbar-label">Imóvel</span>
+        <span class="toolbar-label">Imovel</span>
         <app-async-search-select
           [value]="propertyId()"
           [fetchPage]="propertySelectFetchPage"
@@ -23,7 +37,7 @@
       </label>
 
       <label class="toolbar-field">
-        <span class="toolbar-label">Locatário</span>
+        <span class="toolbar-label">Locatario</span>
         <app-async-search-select
           [value]="tenantId()"
           [fetchPage]="tenantSelectFetchPage"
@@ -51,13 +65,13 @@
     <table class="table">
       <thead>
         <tr>
-          <th>Imóvel</th>
-          <th>Locatário</th>
-          <th>Período</th>
+          <th>Imovel</th>
+          <th>Locatario</th>
+          <th>Periodo</th>
           <th>Aluguel</th>
           <th>Status</th>
           <th>Dia pagamento</th>
-          <th>Ações</th>
+          <th>Acoes</th>
         </tr>
       </thead>
       <tbody>
@@ -67,7 +81,7 @@
           }
         } @else {
           @for (item of leases(); track item.id) {
-            <tr>
+            <tr [class.guide-row]="isLeaseHighlighted(item.id)" [attr.data-guide-lease-row]="item.id">
               <td>{{ item.propertyTitle }}</td>
               <td>{{ item.tenantName }}</td>
               <td>{{ item.startDate | dateOnlyBr }} - {{ item.endDate ? (item.endDate | dateOnlyBr) : 'Em aberto' }}</td>
@@ -75,7 +89,15 @@
               <td>{{ item.status | domainLabel:'leaseStatus' }}</td>
               <td>{{ item.paymentDay ?? '-' }}</td>
               <td class="actions-col">
-                <button class="btn btn-secondary" type="button" (click)="toggleRowMenu($event, item.id)">...</button>
+                <button
+                  class="btn btn-secondary"
+                  type="button"
+                  [class.guide-row__action]="isLeaseActionHighlighted(item.id)"
+                  [attr.data-guide-lease-action]="item.id"
+                  (click)="toggleRowMenu($event, item.id)"
+                >
+                  ...
+                </button>
               </td>
             </tr>
           }
@@ -96,11 +118,11 @@
 </section>
 
 @if (activeMenuItem(); as item) {
-  <button class="menu-overlay" type="button" (click)="closeRowMenu()" aria-label="Fechar menu de ações"></button>
+  <button class="menu-overlay" type="button" (click)="closeRowMenu()" aria-label="Fechar menu de acoes"></button>
   <div class="menu-popover menu-popover--floating" [style.left.px]="menuPosition().x" [style.top.px]="menuPosition().y">
     <a [routerLink]="['/app/locacoes', item.id, 'edit']" (click)="closeRowMenu()">Editar contrato</a>
     @if (item.status === 'ACTIVE') {
-      <button type="button" (click)="openCloseModal(item)">Encerrar locação</button>
+      <button type="button" (click)="openCloseModal(item)">Encerrar locacao</button>
     }
   </div>
 }
@@ -109,7 +131,7 @@
   <div class="modal-backdrop" (click)="closeCloseModal()">
     <section class="card-panel close-modal" (click)="$event.stopPropagation()">
       <header>
-        <h3>Encerrar locação</h3>
+        <h3>Encerrar locacao</h3>
         <p>{{ lease.propertyTitle }} · {{ lease.tenantName }}</p>
       </header>
 

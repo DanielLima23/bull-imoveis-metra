@@ -21,4 +21,5 @@ export class PageHeaderComponent {
   readonly actionLabel = input<string>('');
   readonly actionRoute = input<string>('');
   readonly actionQueryParams = input<Params | null>(null);
+  readonly actionClass = input<string>('');
 }
