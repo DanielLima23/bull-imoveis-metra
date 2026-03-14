@@ -1,0 +1,292 @@
+<app-page-header
+  [title]="isEdit() ? 'Editar Locação' : 'Nova Locação'"
+  subtitle="Cadastro completo com vínculo, condições financeiras, garantias e observações"
+  [breadcrumbs]="[{ label: 'Painel', route: '/app/dashboard' }, { label: 'Locações', route: '/app/locacoes' }, { label: isEdit() ? 'Editar' : 'Novo' }]"
+/>
+
+<section class="lease-form-shell">
+  <form class="lease-form" [formGroup]="form" (ngSubmit)="submit()">
+    @if (selectedLease(); as lease) {
+      <article class="card-panel section-card contract-card">
+        <header class="section-card__head">
+          <div>
+            <span class="section-card__eyebrow">Contrato atual</span>
+            <h2>Resumo da locação</h2>
+          </div>
+          <p>Visualize os dados principais antes de atualizar o contrato.</p>
+        </header>
+
+        <div class="contract-info">
+          <div>
+            <span>Imóvel</span>
+            <strong>{{ lease.propertyTitle }}</strong>
+          </div>
+
+          <div>
+            <span>Locatário</span>
+            <strong>{{ lease.tenantName }}</strong>
+          </div>
+
+          <div>
+            <span>Status</span>
+            <strong>{{ lease.status | domainLabel:'leaseStatus' }}</strong>
+          </div>
+
+          <div>
+            <span>Aluguel mensal</span>
+            <strong>{{ lease.monthlyRent | brlCurrency }}</strong>
+          </div>
+
+          <div>
+            <span>Início</span>
+            <strong>{{ lease.startDate | dateOnlyBr }}</strong>
+          </div>
+
+          <div>
+            <span>Encerramento</span>
+            <strong>{{ lease.endDate | dateOnlyBr:'Em aberto' }}</strong>
+          </div>
+
+          <div>
+            <span>Dia de pagamento</span>
+            <strong>{{ lease.paymentDay ?? '-' }}</strong>
+          </div>
+
+          <div>
+            <span>Criado em</span>
+            <strong>{{ lease.createdAtUtc | dateOnlyBr }}</strong>
+          </div>
+        </div>
+      </article>
+    }
+
+    <article class="card-panel section-card">
+      <header class="section-card__head">
+        <div>
+          <span class="section-card__eyebrow">Vínculo</span>
+          <h2>Partes principais</h2>
+        </div>
+        <p>Associe o imóvel e o locatário e defina as condições centrais do contrato.</p>
+      </header>
+
+      <div class="grid-form section-grid">
+        <div class="field field--span-2">
+          <label class="field__label">Imóvel</label>
+          <app-async-search-select
+            formControlName="propertyId"
+            placeholder="Selecione o imóvel"
+            searchPlaceholder="Buscar imóvel..."
+            [fetchPage]="propertySelectFetchPage"
+            [fetchById]="propertySelectFetchById"
+            [allowClear]="false"
+            [useFloatingPanel]="true"
+          />
+        </div>
+
+        <div class="field field--span-2">
+          <label class="field__label">Locatário</label>
+          <div class="tenant-field">
+            <app-async-search-select
+              formControlName="tenantId"
+              placeholder="Selecione o locatário"
+              searchPlaceholder="Buscar locatário..."
+              [fetchPage]="tenantSelectFetchPage"
+              [fetchById]="tenantSelectFetchById"
+              [allowClear]="false"
+              [useFloatingPanel]="true"
+            />
+
+            @if (!isEdit()) {
+              <button class="btn btn-secondary tenant-field__button" type="button" (click)="goToCreateTenant()">Cadastrar locatário</button>
+            }
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="field__label">Início</label>
+          <input class="input" formControlName="startDate" appDateBrInput placeholder="dd/mm/aaaa" />
+        </div>
+
+        <div class="field">
+          <label class="field__label">Fim</label>
+          <input class="input" formControlName="endDate" appDateBrInput placeholder="dd/mm/aaaa" />
+        </div>
+
+        <div class="field">
+          <label class="field__label">Aluguel mensal</label>
+          <input class="input" formControlName="monthlyRent" appBrlCurrencyInput placeholder="R$ 0,00" />
+        </div>
+
+        <div class="field">
+          <label class="field__label">Caução</label>
+          <input class="input" formControlName="depositAmount" appBrlCurrencyInput placeholder="R$ 0,00" />
+        </div>
+
+        <div class="field field--span-2">
+          <label class="field__label">Contrato com</label>
+          <input class="input" formControlName="contractWith" placeholder="Informe com quem o contrato foi firmado" />
+        </div>
+
+        <div class="field">
+          <label class="field__label">Dia do pagamento</label>
+          <input class="input" type="number" min="1" max="31" formControlName="paymentDay" placeholder="Dia do vencimento" />
+        </div>
+
+        @if (isEdit()) {
+          <div class="field">
+            <label class="field__label">Status</label>
+            <app-async-search-select
+              formControlName="status"
+              [staticOptions]="leaseStatusOptions"
+              [searchable]="false"
+              [allowClear]="false"
+            />
+          </div>
+        }
+      </div>
+    </article>
+
+    <article class="card-panel section-card">
+      <header class="section-card__head">
+        <div>
+          <span class="section-card__eyebrow">Cobrança</span>
+          <h2>Financeiro e formalização</h2>
+        </div>
+        <p>Concentre aqui os dados de pagamento, reajuste e formalização do contrato.</p>
+      </header>
+
+      <div class="grid-form section-grid">
+        <div class="field field--span-2">
+          <label class="field__label">Local do pagamento</label>
+          <input class="input" formControlName="paymentLocation" placeholder="Informe o local de pagamento" />
+        </div>
+
+        <div class="field">
+          <label class="field__label">Índice de reajuste</label>
+          <input class="input" formControlName="readjustmentIndex" placeholder="Ex.: IGPM, IPCA" />
+        </div>
+
+        <div class="field">
+          <label class="field__label">Registro do contrato</label>
+          <input class="input" formControlName="contractRegistration" placeholder="Informe o registro do contrato" />
+        </div>
+
+        <div class="field field--span-2">
+          <label class="field__label">Seguro</label>
+          <input class="input" formControlName="insurance" placeholder="Informe o seguro, se houver" />
+        </div>
+
+        <div class="field field--span-2">
+          <label class="field__label">Reconhecimento de firma</label>
+          <input class="input" formControlName="signatureRecognition" placeholder="Informe o reconhecimento de firma" />
+        </div>
+      </div>
+    </article>
+
+    <article class="card-panel section-card">
+      <header class="section-card__head">
+        <div>
+          <span class="section-card__eyebrow">Garantias</span>
+          <h2>Contato adicional e fiador</h2>
+        </div>
+        <p>Vincule pessoas de apoio e complemente os dados de contato e garantia.</p>
+      </header>
+
+      <div class="grid-form section-grid">
+        <div class="field field--span-2">
+          <label class="field__label">Pessoa do contato adicional</label>
+          <app-party-picker-field
+            formControlName="optionalContactPartyId"
+            [allowedKinds]="['PERSON', 'COMPANY', 'OUTRO', 'REPRESENTANTE_LEGAL']"
+            defaultKind="PERSON"
+            placeholder="Selecione o contato"
+            (partyChange)="onOptionalContactPartyChange($event)"
+          />
+        </div>
+
+        <div class="field">
+          <label class="field__label">Nome do contato</label>
+          <input
+            class="input"
+            [class.input--locked]="isOptionalContactLocked()"
+            formControlName="optionalContactName"
+            [readOnly]="isOptionalContactLocked()"
+            placeholder="Informe o nome do contato"
+          />
+        </div>
+
+        <div class="field">
+          <label class="field__label">Telefone do contato</label>
+          <input
+            class="input"
+            [class.input--locked]="isOptionalContactLocked()"
+            formControlName="optionalContactPhone"
+            [readOnly]="isOptionalContactLocked()"
+            appPhoneBrInput
+            placeholder="(00) 00000-0000"
+          />
+        </div>
+
+        @if (isOptionalContactLocked()) {
+          <p class="support-note">Os dados do contato adicional foram preenchidos automaticamente a partir da pessoa vinculada.</p>
+        }
+
+        <div class="field field--span-2">
+          <label class="field__label">Pessoa do fiador</label>
+          <app-party-picker-field
+            formControlName="guarantorPartyId"
+            [allowedKinds]="['FIADOR', 'PERSON', 'COMPANY', 'OUTRO']"
+            defaultKind="FIADOR"
+            placeholder="Selecione o fiador"
+            (partyChange)="onGuarantorPartyChange($event)"
+          />
+        </div>
+
+        <div class="field">
+          <label class="field__label">Nome do fiador</label>
+          <input class="input" formControlName="guarantorName" placeholder="Informe o nome do fiador" />
+        </div>
+
+        <div class="field">
+          <label class="field__label">Documento do fiador</label>
+          <input class="input" formControlName="guarantorDocument" appCpfCnpjInput placeholder="CPF ou CNPJ do fiador" />
+        </div>
+
+        <div class="field field--span-2">
+          <label class="field__label">Telefone do fiador</label>
+          <input class="input" formControlName="guarantorPhone" appPhoneBrInput placeholder="(00) 00000-0000" />
+        </div>
+
+        @if (guarantorSnapshotSummary(); as guarantorSummary) {
+          <p class="support-note">Resumo atual do fiador: {{ guarantorSummary }}</p>
+        }
+      </div>
+    </article>
+
+    <article class="card-panel section-card">
+      <header class="section-card__head">
+        <div>
+          <span class="section-card__eyebrow">Registro</span>
+          <h2>Observações</h2>
+        </div>
+        <p>Use este espaço para detalhes complementares do contrato.</p>
+      </header>
+
+      <div class="grid-form section-grid">
+        <div class="field field--full">
+          <label class="field__label">Observações</label>
+          <textarea class="textarea" rows="5" formControlName="notes" placeholder="Adicione observações da locação"></textarea>
+        </div>
+      </div>
+    </article>
+
+    <div class="card-panel lease-form__actions">
+      <div class="actions">
+        <button class="btn btn-secondary" type="button" (click)="back()">Cancelar</button>
+        <button class="btn btn-primary" type="submit" [disabled]="submitting()">
+          @if (submitting()) { Salvando... } @else { Salvar contrato }
+        </button>
+      </div>
+    </div>
+  </form>
+</section>

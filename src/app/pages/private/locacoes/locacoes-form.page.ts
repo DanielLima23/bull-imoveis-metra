@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Observable, catchError, map, of } from 'rxjs';
+import { catchError, map, of } from 'rxjs';
 import { LeaseDto, PartyDto, PagedResult } from '../../../core/models/domain.model';
 import {
   AsyncSearchSelectComponent,
@@ -14,9 +14,13 @@ import { LeaseApiService } from '../../../core/services/lease-api.service';
 import { PropertyApiService } from '../../../core/services/property-api.service';
 import { TenantApiService } from '../../../core/services/tenant-api.service';
 import { BrlCurrencyInputDirective } from '../../../shared/directives/brl-currency-input.directive';
+import { CpfCnpjInputDirective } from '../../../shared/directives/cpf-cnpj-input.directive';
 import { DateBrInputDirective } from '../../../shared/directives/date-br-input.directive';
 import { PhoneBrInputDirective } from '../../../shared/directives/phone-br-input.directive';
 import { SelectOption } from '../../../shared/models/select-option.model';
+import { BrlCurrencyPipe } from '../../../shared/pipes/brl-currency.pipe';
+import { DateOnlyBrPipe } from '../../../shared/pipes/date-only-br.pipe';
+import { DomainLabelPipe } from '../../../shared/pipes/domain-label.pipe';
 import { ToastService } from '../../../shared/services/toast.service';
 import { getDomainOptions } from '../../../shared/utils/domain-label.util';
 import { formatCpfCnpj, formatPhoneBr, normalizeDocument, normalizePhone } from '../../../shared/utils/format.util';
@@ -32,6 +36,10 @@ import { toPropertySelectOption, toTenantSelectOption } from '../../../shared/ut
     DateBrInputDirective,
     AsyncSearchSelectComponent,
     PartyPickerFieldComponent,
+    CpfCnpjInputDirective,
+    BrlCurrencyPipe,
+    DateOnlyBrPipe,
+    DomainLabelPipe,
     PhoneBrInputDirective
   ],
   templateUrl: './locacoes-form.page.html',
