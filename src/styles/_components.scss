@@ -167,15 +167,24 @@ textarea:disabled {
   justify-content: space-between;
   gap: 0.82rem;
   margin-bottom: 0.85rem;
+  flex-wrap: wrap;
 }
 
 .list-toolbar h2 {
   font-size: 1rem;
 }
 
-.toolbar-field {
-  width: min(440px, 100%);
+.filters {
+  display: flex;
+  align-items: end;
+  gap: 0.72rem;
+  flex-wrap: wrap;
   margin-left: auto;
+}
+
+.toolbar-field {
+  width: min(260px, 100%);
+  margin-left: 0;
   display: grid;
   gap: 0.3rem;
 }
@@ -297,4 +306,14 @@ textarea:disabled {
   background: linear-gradient(90deg, #efe5d7, #faf5ed, #efe5d7);
   background-size: 200% 100%;
   animation: pulse 1.1s infinite;
+}
+
+@media (max-width: 720px) {
+  .filters {
+    margin-left: 0;
+  }
+
+  .toolbar-field {
+    width: 100%;
+  }
 }
