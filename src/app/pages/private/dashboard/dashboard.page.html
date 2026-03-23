@@ -1,84 +1,231 @@
-﻿<app-page-header
+<app-page-header
   title="Painel"
-  subtitle="Visão financeira e operacional dos imóveis"
+  subtitle="Entrada operacional com todos os imoveis cadastrados, filtros rapidos e acoes imediatas."
   [breadcrumbs]="[{ label: 'Painel' }]"
+  actionLabel="Abrir central avancada"
+  actionRoute="/app/imoveis"
 />
 
-@if (isLoading()) {
-  <section class="cards-grid">
-    @for (i of [1,2,3,4,5,6]; track i) {
-      <article class="card-panel stat-card">
-        <div class="skeleton-row"></div>
-      </article>
-    }
-  </section>
+<section class="card-panel panel-hero">
+  <div>
+    <p class="panel-hero__eyebrow">Bull Imoveis</p>
+    <h2>Operacao central dos imoveis</h2>
+    <p class="panel-hero__description">
+      Veja a carteira inteira na entrada do sistema, troque status e abra pendencias sem sair da tela.
+    </p>
+  </div>
+
+  <div class="panel-hero__meta">
+    <span>{{ totalItems() }} imoveis no cadastro</span>
+    <button class="btn btn-secondary" type="button" (click)="openAdvancedProperties()">Filtros avancados</button>
+  </div>
+</section>
+
+<section class="card-panel">
+  <div class="list-toolbar list-toolbar--stack">
+    <div>
+      <h2>Carteira de imoveis</h2>
+      <p class="list-toolbar__subtitle">Tabela principal com 15 itens por pagina e acoes operacionais.</p>
+    </div>
+
+    <div class="filters">
+      <label class="toolbar-field">
+        <span class="toolbar-label">Buscar</span>
+        <input class="input search" [value]="search()" (input)="onSearchInput(($any($event.target)).value)" placeholder="Titulo, endereco ou cidade" />
+      </label>
+
+      <label class="toolbar-field">
+        <span class="toolbar-label">Cidade</span>
+        <input class="input" [value]="city()" (input)="onCityInput(($any($event.target)).value)" placeholder="Filtrar por cidade" />
+      </label>
+
+      <label class="toolbar-field">
+        <span class="toolbar-label">Status</span>
+        <app-async-search-select
+          [value]="status()"
+          [staticOptions]="propertyStatusFilterOptions"
+          [searchable]="false"
+          [useFloatingPanel]="true"
+          placeholder="Todos"
+          (valueChange)="onStatusChange($event)"
+        />
+      </label>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table class="table dashboard-table">
+      <thead>
+        <tr>
+          <th>Imovel</th>
+          <th>Cidade</th>
+          <th>Tipo</th>
+          <th>Status</th>
+          <th>Valor base</th>
+          <th>Acoes</th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (isLoading()) {
+          @for (i of [1,2,3,4,5,6,7,8]; track i) {
+            <tr>
+              <td colspan="6"><div class="skeleton-row"></div></td>
+            </tr>
+          }
+        } @else if (items().length === 0) {
+          <tr>
+            <td colspan="6" class="dashboard-table__empty">Nenhum imovel encontrado com os filtros atuais.</td>
+          </tr>
+        } @else {
+          @for (item of items(); track item.id) {
+            <tr>
+              <td>
+                <div class="property-cell">
+                  <strong>{{ item.title }}</strong>
+                  <span>{{ item.addressLine1 }}</span>
+                </div>
+              </td>
+              <td>{{ item.city }}/{{ item.state }}</td>
+              <td>{{ item.propertyType | domainLabel:'propertyType' }}</td>
+              <td>
+                <div class="status-cell">
+                  <span [attr.class]="'status-tag ' + getStatusTagClass(item)">{{ getPropertyStatusLabel(item) }}</span>
+                  @if (getPropertyIdleReasonLabel(item); as idleReasonLabel) {
+                    @if (idleReasonLabel) {
+                      <small class="status-reason">{{ idleReasonLabel }}</small>
+                    }
+                  }
+                </div>
+              </td>
+              <td>
+                @if (item.currentBaseRent !== null && item.currentBaseRent !== undefined) {
+                  <strong>{{ item.currentBaseRent | brlCurrency }}</strong>
+                } @else {
+                  <span class="muted-value">Nao informado</span>
+                }
+              </td>
+              <td class="dashboard-table__actions">
+                <button class="btn btn-secondary btn-sm" type="button" (click)="openPropertyDetail(item.id)">Ver</button>
+                <button class="btn btn-secondary btn-sm" type="button" (click)="openStatusModal(item)">Status</button>
+                <button class="btn btn-primary btn-sm" type="button" (click)="openPendencyModal(item)">Pendencia</button>
+              </td>
+            </tr>
+          }
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <app-table-pagination
+    [page]="page()"
+    [pageSize]="pageSize()"
+    [totalItems]="totalItems()"
+    [totalPages]="totalPages()"
+    [pageSizeOptions]="[15, 30, 50]"
+    [loading]="isLoading()"
+    (pageChange)="onPageChange($event)"
+    (pageSizeChange)="onPageSizeChange($event)"
+  />
+</section>
+
+@if (editingStatusProperty(); as property) {
+  <div class="modal-backdrop" (click)="closeStatusModal()">
+    <section class="card-panel quick-modal quick-modal--status" (click)="$event.stopPropagation()" role="dialog" aria-modal="true">
+      <header class="quick-modal__head">
+        <div>
+          <h3>Alterar status</h3>
+          <p>{{ property.title }}</p>
+        </div>
+        <button class="quick-modal__close" type="button" (click)="closeStatusModal()" aria-label="Fechar modal">x</button>
+      </header>
+
+      <form class="grid-form" [formGroup]="statusEditorForm" (ngSubmit)="submitStatusEditor()">
+        <div class="field field--full">
+          <label class="field__label">Status</label>
+          <app-async-search-select
+            formControlName="status"
+            [staticOptions]="propertyStatusEditOptions"
+            [searchable]="false"
+            [allowClear]="false"
+          />
+        </div>
+
+        @if (shouldShowIdleReason(statusEditorForm.controls.status.value)) {
+          <div class="field field--full">
+            <label class="field__label">Motivo da ociosidade</label>
+            <app-async-search-select
+              formControlName="idleReason"
+              [staticOptions]="propertyIdleReasonOptions"
+              [searchable]="false"
+              [allowClear]="false"
+            />
+          </div>
+        }
+
+        <div class="modal-actions">
+          <button class="btn btn-secondary" type="button" (click)="closeStatusModal()">Cancelar</button>
+          <button class="btn btn-primary" type="submit">Salvar status</button>
+        </div>
+      </form>
+    </section>
+  </div>
 }
 
-@if (data(); as dashboard) {
-  <section class="cards-grid stats">
-    <article class="card-panel"><h3>Recebido</h3><p>{{ dashboard.overview.receivedAmount | brlCurrency }}</p></article>
-    <article class="card-panel"><h3>Previsto</h3><p>{{ dashboard.overview.expectedAmount | brlCurrency }}</p></article>
-    <article class="card-panel"><h3>Pendente</h3><p>{{ dashboard.overview.pendingAmount | brlCurrency }}</p></article>
-    <article class="card-panel"><h3>Atrasado</h3><p>{{ dashboard.overview.overdueAmount | brlCurrency }}</p></article>
-    <article class="card-panel"><h3>Imóveis parados</h3><p>{{ dashboard.overview.vacantPropertiesCount }}</p></article>
-    <article class="card-panel"><h3>Perda por vacância</h3><p>{{ dashboard.overview.vacancyLossAmount | brlCurrency }}</p></article>
-  </section>
+@if (editingPendencyProperty(); as property) {
+  <div class="modal-backdrop" (click)="closePendencyModal()">
+    <section class="card-panel quick-modal" (click)="$event.stopPropagation()" role="dialog" aria-modal="true">
+      <header class="quick-modal__head">
+        <div>
+          <h3>Nova pendencia</h3>
+          <p>{{ property.title }}</p>
+        </div>
+        <button class="quick-modal__close" type="button" (click)="closePendencyModal()" aria-label="Fechar modal">x</button>
+      </header>
 
-  <section class="grid two-col">
-    <article class="card-panel">
-      <h2>Contas atrasadas</h2>
-      <div class="table-wrap">
-        <table class="table">
-          <thead>
-            <tr>
-              <th>Imóvel</th>
-              <th>Conta</th>
-              <th>Venc.</th>
-              <th>Valor</th>
-              <th>Dias</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (row of dashboard.overdueExpenses; track row.expenseId) {
-              <tr>
-                <td>{{ row.propertyTitle }}</td>
-                <td>{{ row.expenseTypeName }}</td>
-                <td>{{ row.dueDate | dateOnlyBr }}</td>
-                <td>{{ row.amount | brlCurrency }}</td>
-                <td>{{ row.overdueDays }}</td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      </div>
-    </article>
+      <form class="grid-form" [formGroup]="pendencyForm" (ngSubmit)="submitPendency()">
+        <div class="field">
+          <label class="field__label">Tipo</label>
+          <app-async-search-select
+            formControlName="pendencyTypeId"
+            [staticOptions]="pendencyTypeOptions()"
+            [searchable]="false"
+            [allowClear]="false"
+            placeholder="Selecione"
+          />
+        </div>
 
-    <article class="card-panel">
-      <h2>Pendências urgentes</h2>
-      <div class="table-wrap">
-        <table class="table">
-          <thead>
-            <tr>
-              <th>Imóvel</th>
-              <th>Título</th>
-              <th>Severidade</th>
-              <th>SLA</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (row of dashboard.pendencyAlerts; track row.pendencyId) {
-              <tr>
-                <td>{{ row.propertyTitle }}</td>
-                <td>{{ row.title }}</td>
-                <td>{{ row.severity }}</td>
-                <td>{{ row.elapsedDays }}/{{ row.slaDays }}</td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      </div>
-    </article>
-  </section>
+        <div class="field">
+          <label class="field__label">Vencimento</label>
+          <input class="input" type="text" inputmode="numeric" formControlName="dueAtUtc" placeholder="dd/mm/aaaa hh:mm" appDateTimeBrInput />
+        </div>
+
+        <div class="field field--full">
+          <label class="field__label">Titulo</label>
+          <input class="input" formControlName="title" placeholder="Resumo da pendencia" />
+        </div>
+
+        <div class="field field--full">
+          <label class="field__label">Descricao</label>
+          <textarea class="textarea" rows="4" formControlName="description" placeholder="Descreva o que precisa ser feito"></textarea>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn btn-secondary" type="button" (click)="closePendencyModal()">Cancelar</button>
+          <button class="btn btn-primary" type="submit" [disabled]="isSubmittingPendency()">
+            @if (isSubmittingPendency()) { Salvando... } @else { Criar pendencia }
+          </button>
+        </div>
+      </form>
+    </section>
+  </div>
 }
 
-
+@if (flowGuidanceModal(); as modal) {
+  <app-flow-guidance-modal
+    [title]="modal.title"
+    [message]="modal.message"
+    primaryActionLabel="Ver locacoes do imovel"
+    (closed)="closeFlowGuidanceModal()"
+    (primaryAction)="navigateFromFlowGuidanceModal()"
+  />
+}

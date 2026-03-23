@@ -1,25 +1,19 @@
-﻿import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { SystemSettingsService } from '../../core/services/system-settings.service';
 
-type MenuIcon =
-  | 'dashboard'
-  | 'imoveis'
-  | 'locatarios'
-  | 'pessoas'
-  | 'locacoes'
-  | 'despesas'
-  | 'pendencias'
-  | 'visitas'
-  | 'manutencoes'
-  | 'relatorios'
-  | 'configuracoes';
+type MenuIcon = 'painel' | 'cadastros' | 'operacoes' | 'relatorios' | 'configuracoes';
 
 interface MenuItem {
   label: string;
   route: string;
+}
+
+interface MenuGroup {
+  label: string;
   icon: MenuIcon;
+  items: MenuItem[];
 }
 
 @Component({
@@ -36,23 +30,46 @@ export class PrivateLayoutComponent {
   private readonly router = inject(Router);
 
   readonly isMobileOpen = signal(false);
-  readonly isCollapsed = signal(false);
   readonly user = this.authService.currentUser;
   readonly brandName = this.systemSettings.brandName;
   readonly brandShortName = this.systemSettings.brandShortName;
 
-  readonly menuItems = computed<MenuItem[]>(() => [
-    { label: 'Painel', route: '/app/dashboard', icon: 'dashboard' },
-    { label: 'Imóveis', route: '/app/imoveis', icon: 'imoveis' },
-    { label: 'Locatários', route: '/app/locatarios', icon: 'locatarios' },
-    { label: 'Pessoas', route: '/app/pessoas', icon: 'pessoas' },
-    { label: 'Locações', route: '/app/locacoes', icon: 'locacoes' },
-    { label: 'Contas', route: '/app/despesas', icon: 'despesas' },
-    { label: 'Pendências', route: '/app/pendencias', icon: 'pendencias' },
-    { label: 'Visitas', route: '/app/visitas', icon: 'visitas' },
-    { label: 'Manutenções', route: '/app/manutencoes', icon: 'manutencoes' },
-    { label: 'Relatórios', route: '/app/relatorios', icon: 'relatorios' },
-    { label: 'Configurações', route: '/app/configuracoes', icon: 'configuracoes' }
+  readonly menuGroups = computed<MenuGroup[]>(() => [
+    {
+      label: 'Painel',
+      icon: 'painel',
+      items: [{ label: 'Visao geral', route: '/app/dashboard' }]
+    },
+    {
+      label: 'Cadastros',
+      icon: 'cadastros',
+      items: [
+        { label: 'Imoveis', route: '/app/imoveis' },
+        { label: 'Locatarios', route: '/app/locatarios' },
+        { label: 'Pessoas', route: '/app/pessoas' }
+      ]
+    },
+    {
+      label: 'Operacoes',
+      icon: 'operacoes',
+      items: [
+        { label: 'Locacoes', route: '/app/locacoes' },
+        { label: 'Contas', route: '/app/despesas' },
+        { label: 'Pendencias', route: '/app/pendencias' },
+        { label: 'Visitas', route: '/app/visitas' },
+        { label: 'Manutencoes', route: '/app/manutencoes' }
+      ]
+    },
+    {
+      label: 'Relatorios',
+      icon: 'relatorios',
+      items: [{ label: 'Paineis e exportacoes', route: '/app/relatorios' }]
+    },
+    {
+      label: 'Configuracoes',
+      icon: 'configuracoes',
+      items: [{ label: 'Preferencias do sistema', route: '/app/configuracoes' }]
+    }
   ]);
 
   logout(): void {
@@ -67,28 +84,11 @@ export class PrivateLayoutComponent {
     this.isMobileOpen.update((value) => !value);
   }
 
-  toggleCollapse(): void {
-    this.isCollapsed.update((value) => !value);
-  }
-
   onBrandClick(): void {
-    if (this.isCollapsed()) {
-      this.isCollapsed.set(false);
-      return;
-    }
-
     void this.router.navigate(['/app/dashboard']);
   }
 
-  onMenuItemClick(event: MouseEvent): void {
-    if (this.isCollapsed()) {
-      event.preventDefault();
-      this.isCollapsed.set(false);
-      return;
-    }
-
+  onMenuItemClick(): void {
     this.closeMobileMenu();
   }
 }
-
-
