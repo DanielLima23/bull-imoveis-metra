@@ -1,21 +1,29 @@
-﻿<form class="login-form" [formGroup]="form" (ngSubmit)="submit()">
-  <label class="field">
-    <span class="field__label">E-mail</span>
-    <input class="input" type="email" formControlName="email" placeholder="admin@imoveis.dev" />
-  </label>
+<section class="login-shell">
+  <div class="login-shell__header">
+    <p class="login-shell__eyebrow">Acesso seguro</p>
+    <h3>Entrar no painel</h3>
+    <p class="login-shell__subtitle">Use seu e-mail e senha para acessar a operação do sistema.</p>
+  </div>
 
-  <label class="field">
-    <span class="field__label">Senha</span>
-    <input class="input" type="password" formControlName="password" placeholder="123456" />
-  </label>
+  <form class="login-form" [formGroup]="form" (ngSubmit)="submit()">
+    <label class="field">
+      <span class="field__label">E-mail</span>
+      <input class="input" type="email" formControlName="email" placeholder="admin@imoveis.dev" />
+    </label>
 
-  <button class="btn btn-primary" type="submit" [disabled]="isSubmitting()">
-    @if (isSubmitting()) {
-      Entrando...
-    } @else {
-      Entrar
-    }
-  </button>
+    <label class="field">
+      <span class="field__label">Senha</span>
+      <input class="input" type="password" formControlName="password" placeholder="123456" />
+    </label>
+
+    <button class="btn btn-primary login-form__submit" type="submit" [disabled]="isSubmitting()">
+      @if (isSubmitting()) {
+        Entrando...
+      } @else {
+        Entrar no sistema
+      }
+    </button>
+  </form>
 
   <small class="hint">Credenciais padrão: admin@imoveis.dev / 123456</small>
-</form>
+</section>

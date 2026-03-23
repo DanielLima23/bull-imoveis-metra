@@ -38,37 +38,37 @@ export class PrivateLayoutComponent {
     {
       label: 'Painel',
       icon: 'painel',
-      items: [{ label: 'Visao geral', route: '/app/dashboard' }]
+      items: [{ label: 'Visão geral', route: '/app/dashboard' }]
     },
     {
       label: 'Cadastros',
       icon: 'cadastros',
       items: [
-        { label: 'Imoveis', route: '/app/imoveis' },
-        { label: 'Locatarios', route: '/app/locatarios' },
+        { label: 'Imóveis', route: '/app/imoveis' },
+        { label: 'Locatários', route: '/app/locatarios' },
         { label: 'Pessoas', route: '/app/pessoas' }
       ]
     },
     {
-      label: 'Operacoes',
+      label: 'Operações',
       icon: 'operacoes',
       items: [
-        { label: 'Locacoes', route: '/app/locacoes' },
+        { label: 'Locações', route: '/app/locacoes' },
         { label: 'Contas', route: '/app/despesas' },
-        { label: 'Pendencias', route: '/app/pendencias' },
+        { label: 'Pendências', route: '/app/pendencias' },
         { label: 'Visitas', route: '/app/visitas' },
-        { label: 'Manutencoes', route: '/app/manutencoes' }
+        { label: 'Manutenções', route: '/app/manutencoes' }
       ]
     },
     {
-      label: 'Relatorios',
+      label: 'Relatórios',
       icon: 'relatorios',
-      items: [{ label: 'Paineis e exportacoes', route: '/app/relatorios' }]
+      items: [{ label: 'Painéis e exportações', route: '/app/relatorios' }]
     },
     {
-      label: 'Configuracoes',
+      label: 'Configurações',
       icon: 'configuracoes',
-      items: [{ label: 'Preferencias do sistema', route: '/app/configuracoes' }]
+      items: [{ label: 'Preferências do sistema', route: '/app/configuracoes' }]
     }
   ]);
 

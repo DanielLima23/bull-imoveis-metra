@@ -1,6 +1,6 @@
 <app-page-header
   title="Pessoas"
-  subtitle="Cadastro generico para proprietarios, administradores, fiadores e demais partes"
+  subtitle="Cadastro genérico para proprietários, administradores, fiadores e demais partes"
   [breadcrumbs]="[{ label: 'Painel', route: '/app/dashboard' }, { label: 'Pessoas' }]"
   actionLabel="Adicionar nova"
   actionRoute="/app/pessoas/new"
@@ -35,7 +35,7 @@
         <tr>
           <th>Nome</th>
           <th>Tipo</th>
-          <th>Acoes</th>
+          <th>Ações</th>
         </tr>
       </thead>
       <tbody>
@@ -114,13 +114,13 @@
       </header>
 
       <p class="confirm-modal__text">
-        Esta acao vai excluir a pessoa permanentemente do sistema e remover os vinculos de cadastro associados a ela.
+        Esta ação vai excluir a pessoa permanentemente do sistema e remover os vínculos de cadastro associados a ela.
       </p>
 
       <div class="modal-actions">
         <button class="btn btn-secondary" type="button" (click)="closeDeleteDialog()" [disabled]="isDeleting()">Cancelar</button>
         <button class="btn btn-danger" type="button" (click)="confirmDelete()" [disabled]="isDeleting()">
-          @if (isDeleting()) { Excluindo... } @else { Confirmar exclusao }
+          @if (isDeleting()) { Excluindo... } @else { Confirmar exclusão }
         </button>
       </div>
     </section>

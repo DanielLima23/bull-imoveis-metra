@@ -7,7 +7,7 @@
         <span class="brand__mark">{{ brandShortName() }}</span>
         <span class="brand__copy">
           <strong>{{ brandName() }}</strong>
-          <small>Painel de gestao imobiliaria</small>
+          <small>Painel de gestão imobiliária</small>
         </span>
       </button>
     </div>
@@ -65,12 +65,12 @@
 
   <section class="workspace">
     <header class="topbar">
-      <div class="topbar__identity">
+      <div class="topbar__left">
         <button type="button" class="menu-btn btn btn-secondary" (click)="toggleMobileMenu()">Menu</button>
-        <div class="topbar__brand">
-          <strong>{{ brandName() }}</strong>
-          <span>Operacao central de imoveis, contratos e pendencias</span>
-        </div>
+      </div>
+
+      <div class="topbar__center">
+        <strong>{{ brandName() }}</strong>
       </div>
 
       <div class="topbar__actions">

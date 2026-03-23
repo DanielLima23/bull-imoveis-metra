@@ -1,37 +1,22 @@
 <app-page-header
   title="Painel"
-  subtitle="Entrada operacional com todos os imoveis cadastrados, filtros rapidos e acoes imediatas."
+  subtitle="Entrada operacional com todos os imóveis cadastrados e ações rápidas."
   [breadcrumbs]="[{ label: 'Painel' }]"
-  actionLabel="Abrir central avancada"
+  actionLabel="Abrir central avançada"
   actionRoute="/app/imoveis"
 />
 
-<section class="card-panel panel-hero">
-  <div>
-    <p class="panel-hero__eyebrow">Bull Imoveis</p>
-    <h2>Operacao central dos imoveis</h2>
-    <p class="panel-hero__description">
-      Veja a carteira inteira na entrada do sistema, troque status e abra pendencias sem sair da tela.
-    </p>
-  </div>
-
-  <div class="panel-hero__meta">
-    <span>{{ totalItems() }} imoveis no cadastro</span>
-    <button class="btn btn-secondary" type="button" (click)="openAdvancedProperties()">Filtros avancados</button>
-  </div>
-</section>
-
 <section class="card-panel">
-  <div class="list-toolbar list-toolbar--stack">
-    <div>
-      <h2>Carteira de imoveis</h2>
-      <p class="list-toolbar__subtitle">Tabela principal com 15 itens por pagina e acoes operacionais.</p>
+  <div class="list-toolbar dashboard-toolbar">
+    <div class="dashboard-toolbar__title">
+      <h2>Carteira de imóveis</h2>
+      <p class="list-toolbar__subtitle">{{ totalItems() }} imóveis no cadastro</p>
     </div>
 
     <div class="filters">
       <label class="toolbar-field">
         <span class="toolbar-label">Buscar</span>
-        <input class="input search" [value]="search()" (input)="onSearchInput(($any($event.target)).value)" placeholder="Titulo, endereco ou cidade" />
+        <input class="input search" [value]="search()" (input)="onSearchInput(($any($event.target)).value)" placeholder="Título, endereço ou cidade" />
       </label>
 
       <label class="toolbar-field">
@@ -50,6 +35,8 @@
           (valueChange)="onStatusChange($event)"
         />
       </label>
+
+      <button class="btn btn-secondary dashboard-toolbar__action" type="button" (click)="openAdvancedProperties()">Filtros avançados</button>
     </div>
   </div>
 
@@ -57,12 +44,12 @@
     <table class="table dashboard-table">
       <thead>
         <tr>
-          <th>Imovel</th>
+          <th>Imóvel</th>
           <th>Cidade</th>
           <th>Tipo</th>
           <th>Status</th>
           <th>Valor base</th>
-          <th>Acoes</th>
+          <th>Ações</th>
         </tr>
       </thead>
       <tbody>
@@ -74,7 +61,7 @@
           }
         } @else if (items().length === 0) {
           <tr>
-            <td colspan="6" class="dashboard-table__empty">Nenhum imovel encontrado com os filtros atuais.</td>
+            <td colspan="6" class="dashboard-table__empty">Nenhum imóvel encontrado com os filtros atuais.</td>
           </tr>
         } @else {
           @for (item of items(); track item.id) {
@@ -101,13 +88,13 @@
                 @if (item.currentBaseRent !== null && item.currentBaseRent !== undefined) {
                   <strong>{{ item.currentBaseRent | brlCurrency }}</strong>
                 } @else {
-                  <span class="muted-value">Nao informado</span>
+                  <span class="muted-value">Não informado</span>
                 }
               </td>
               <td class="dashboard-table__actions">
                 <button class="btn btn-secondary btn-sm" type="button" (click)="openPropertyDetail(item.id)">Ver</button>
                 <button class="btn btn-secondary btn-sm" type="button" (click)="openStatusModal(item)">Status</button>
-                <button class="btn btn-primary btn-sm" type="button" (click)="openPendencyModal(item)">Pendencia</button>
+                <button class="btn btn-primary btn-sm" type="button" (click)="openPendencyModal(item)">Pendência</button>
               </td>
             </tr>
           }
@@ -176,7 +163,7 @@
     <section class="card-panel quick-modal" (click)="$event.stopPropagation()" role="dialog" aria-modal="true">
       <header class="quick-modal__head">
         <div>
-          <h3>Nova pendencia</h3>
+          <h3>Nova pendência</h3>
           <p>{{ property.title }}</p>
         </div>
         <button class="quick-modal__close" type="button" (click)="closePendencyModal()" aria-label="Fechar modal">x</button>
@@ -200,19 +187,19 @@
         </div>
 
         <div class="field field--full">
-          <label class="field__label">Titulo</label>
-          <input class="input" formControlName="title" placeholder="Resumo da pendencia" />
+          <label class="field__label">Título</label>
+          <input class="input" formControlName="title" placeholder="Resumo da pendência" />
         </div>
 
         <div class="field field--full">
-          <label class="field__label">Descricao</label>
+          <label class="field__label">Descrição</label>
           <textarea class="textarea" rows="4" formControlName="description" placeholder="Descreva o que precisa ser feito"></textarea>
         </div>
 
         <div class="modal-actions">
           <button class="btn btn-secondary" type="button" (click)="closePendencyModal()">Cancelar</button>
           <button class="btn btn-primary" type="submit" [disabled]="isSubmittingPendency()">
-            @if (isSubmittingPendency()) { Salvando... } @else { Criar pendencia }
+            @if (isSubmittingPendency()) { Salvando... } @else { Criar pendência }
           </button>
         </div>
       </form>
@@ -224,7 +211,7 @@
   <app-flow-guidance-modal
     [title]="modal.title"
     [message]="modal.message"
-    primaryActionLabel="Ver locacoes do imovel"
+    primaryActionLabel="Ver locações do imóvel"
     (closed)="closeFlowGuidanceModal()"
     (primaryAction)="navigateFromFlowGuidanceModal()"
   />

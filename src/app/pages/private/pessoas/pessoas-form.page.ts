@@ -37,7 +37,7 @@ export class PessoasFormPage implements OnInit {
 
     this.api.getById(id).subscribe({
       next: (item) => patchPartyForm(this.form, item),
-      error: () => this.toast.error('Falha ao carregar pessoa para ediÃ§Ã£o.')
+      error: () => this.toast.error('Falha ao carregar pessoa para edição.')
     });
   }
 

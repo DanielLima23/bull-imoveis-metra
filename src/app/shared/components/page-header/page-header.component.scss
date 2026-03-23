@@ -17,13 +17,17 @@
   color: var(--muted);
 }
 
+.page-header__meta h1 {
+  color: var(--brand-2);
+}
+
 .page-header__action {
   text-decoration: none;
 }
 
 .page-header__action--guided {
   position: relative;
-  box-shadow: 0 0 0 4px rgba(17, 118, 238, 0.16), 0 16px 28px rgba(17, 118, 238, 0.22);
+  box-shadow: 0 0 0 4px rgba(198, 154, 93, 0.16), 0 16px 28px rgba(143, 106, 58, 0.18);
   animation: guided-pulse 1.8s ease-in-out infinite;
 }
 
@@ -61,11 +65,11 @@
   0%,
   100% {
     transform: translateY(0);
-    box-shadow: 0 0 0 4px rgba(17, 118, 238, 0.16), 0 16px 28px rgba(17, 118, 238, 0.22);
+    box-shadow: 0 0 0 4px rgba(198, 154, 93, 0.16), 0 16px 28px rgba(143, 106, 58, 0.18);
   }
 
   50% {
     transform: translateY(-1px);
-    box-shadow: 0 0 0 7px rgba(17, 118, 238, 0.09), 0 18px 30px rgba(17, 118, 238, 0.18);
+    box-shadow: 0 0 0 7px rgba(198, 154, 93, 0.09), 0 18px 30px rgba(143, 106, 58, 0.16);
   }
 }

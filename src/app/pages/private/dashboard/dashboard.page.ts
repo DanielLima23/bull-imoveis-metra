@@ -137,7 +137,7 @@ export class DashboardPage implements OnInit, OnDestroy {
           this.listRequestSub = null;
         },
         error: () => {
-          this.toast.error('Falha ao carregar o painel de imoveis.');
+          this.toast.error('Falha ao carregar o painel de imóveis.');
           this.isLoading.set(false);
           this.listRequestSub = null;
         }
@@ -290,13 +290,13 @@ export class DashboardPage implements OnInit, OnDestroy {
       })
       .subscribe({
         next: () => {
-          this.toast.success('Pendencia criada com sucesso.');
+          this.toast.success('Pendência criada com sucesso.');
           this.closePendencyModal();
           this.load(false);
         },
         error: () => {
           this.isSubmittingPendency.set(false);
-          this.toast.error('Falha ao criar pendencia.');
+          this.toast.error('Falha ao criar pendência.');
         }
       });
   }
@@ -333,7 +333,7 @@ export class DashboardPage implements OnInit, OnDestroy {
   private loadTypes(): void {
     this.pendencyApi.listTypes().subscribe({
       next: (items) => this.types.set(items),
-      error: () => this.toast.error('Falha ao carregar tipos de pendencia.')
+      error: () => this.toast.error('Falha ao carregar tipos de pendência.')
     });
   }
 
@@ -430,8 +430,8 @@ export class DashboardPage implements OnInit, OnDestroy {
 
     if (result === 'blocked_requires_active_lease') {
       this.flowGuidanceModal.set({
-        title: 'Para marcar este imovel como alugado',
-        message: 'E necessario existir uma locacao ativa vinculada a este imovel antes de definir o status como alugado.',
+        title: 'Para marcar este imóvel como alugado',
+        message: 'É necessário existir uma locação ativa vinculada a este imóvel antes de definir o status como alugado.',
         queryParams: {
           propertyId: property.id,
           guideMode: 'activate-lease'
@@ -441,8 +441,8 @@ export class DashboardPage implements OnInit, OnDestroy {
     }
 
     this.flowGuidanceModal.set({
-      title: 'Para alterar o status deste imovel',
-      message: 'Existe uma locacao ativa vinculada a este imovel. Encerre o contrato antes de alterar o status manualmente.',
+      title: 'Para alterar o status deste imóvel',
+      message: 'Existe uma locação ativa vinculada a este imóvel. Encerre o contrato antes de alterar o status manualmente.',
       queryParams: {
         propertyId: property.id,
         status: 'ACTIVE',

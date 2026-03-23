@@ -1,17 +1,17 @@
 <app-page-header
   [title]="isEdit() ? 'Editar Visita' : 'Nova Visita'"
-  subtitle="Tela Ãºnica de criaÃ§Ã£o e atualizaÃ§Ã£o de visitas"
+  subtitle="Tela única de criação e atualização de visitas"
   [breadcrumbs]="[{ label: 'Painel', route: '/app/dashboard' }, { label: 'Visitas', route: '/app/visitas' }, { label: isEdit() ? 'Editar' : 'Novo' }]"
 />
 
 <section class="card-panel">
   <form class="grid-form" [formGroup]="form" (ngSubmit)="submit()">
     <div class="field">
-      <label class="field__label">ImÃ³vel</label>
+      <label class="field__label">Imóvel</label>
       <app-async-search-select
         formControlName="propertyId"
         placeholder="Selecione"
-        searchPlaceholder="Buscar imÃ³vel..."
+        searchPlaceholder="Buscar imóvel..."
         [pageSize]="15"
         [fetchPage]="propertySelectFetchPage"
         [fetchById]="propertySelectFetchById"
@@ -45,19 +45,19 @@
     </div>
 
     <div class="field">
-      <label class="field__label">Pessoa responsÃ¡vel</label>
+      <label class="field__label">Pessoa responsável</label>
       <app-party-picker-field
         formControlName="responsiblePartyId"
         [allowedKinds]="['PERSON', 'COMPANY', 'OUTRO', 'CORRETOR', 'ADMINISTRADOR', 'PRESTADOR_DE_SERVICO']"
         defaultKind="PERSON"
-        placeholder="Selecione o responsÃ¡vel"
+        placeholder="Selecione o responsável"
         (partyChange)="onResponsiblePartyChange($event)"
       />
     </div>
 
     <div class="field">
-      <label class="field__label">ResponsÃ¡vel</label>
-      <input class="input" [class.input--locked]="isResponsibleLocked()" formControlName="responsibleName" [readOnly]="isResponsibleLocked()" placeholder="Informe o responsÃ¡vel pelo atendimento" />
+      <label class="field__label">Responsável</label>
+      <input class="input" [class.input--locked]="isResponsibleLocked()" formControlName="responsibleName" [readOnly]="isResponsibleLocked()" placeholder="Informe o responsável pelo atendimento" />
     </div>
 
     @if (isEdit()) {
@@ -73,8 +73,8 @@
     }
 
     <div class="field field--full">
-      <label class="field__label">ObservaÃ§Ãµes</label>
-      <textarea class="textarea" rows="4" formControlName="notes" placeholder="Adicione observaÃ§Ãµes sobre a visita"></textarea>
+      <label class="field__label">Observações</label>
+      <textarea class="textarea" rows="4" formControlName="notes" placeholder="Adicione observações sobre a visita"></textarea>
     </div>
 
     <div class="actions">

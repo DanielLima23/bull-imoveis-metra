@@ -157,31 +157,32 @@
     linear-gradient(135deg, rgba(255, 248, 235, 0.98), rgba(249, 241, 227, 0.92)),
     var(--topbar-bg);
   box-shadow: 0 20px 40px rgba(39, 31, 19, 0.08);
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  justify-content: space-between;
   gap: 1rem;
 }
 
-.topbar__identity,
+.topbar__left,
 .topbar__actions {
   display: flex;
   align-items: center;
 }
 
-.topbar__brand {
-  display: grid;
-  gap: 0.16rem;
+.topbar__left {
+  justify-content: flex-start;
 }
 
-.topbar__brand strong {
+.topbar__center {
+  justify-self: center;
+  text-align: center;
+}
+
+.topbar__center strong {
   font-family: 'Montserrat', 'Segoe UI', sans-serif;
-  font-size: 1.28rem;
+  font-size: 1.38rem;
   color: #231d15;
-}
-
-.topbar__brand span {
-  color: rgba(35, 29, 21, 0.66);
+  letter-spacing: 0.01em;
 }
 
 .menu-btn {
@@ -193,6 +194,11 @@
   align-items: center;
   gap: 0.58rem;
   text-align: right;
+}
+
+.topbar__actions {
+  justify-content: flex-end;
+  gap: 0.85rem;
 }
 
 .user strong {
@@ -271,13 +277,14 @@
   .topbar {
     top: 0.9rem;
     padding: 0.95rem;
-    flex-direction: column;
-    align-items: stretch;
+    grid-template-columns: 1fr;
   }
 
-  .topbar__identity,
+  .topbar__left,
+  .topbar__center,
   .topbar__actions {
     justify-content: space-between;
+    justify-self: stretch;
   }
 
   .menu-btn {
@@ -286,10 +293,14 @@
 }
 
 @media (max-width: 720px) {
-  .topbar__identity,
+  .topbar__left,
   .topbar__actions {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .topbar__center {
+    justify-self: stretch;
   }
 
   .user {
