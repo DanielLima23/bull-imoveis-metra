@@ -1,15 +1,17 @@
 .login-shell {
   display: grid;
-  gap: 1.1rem;
-  padding: 1.1rem;
+  gap: 1.35rem;
+  padding: clamp(1.1rem, 2.3vw, 1.55rem);
   border: 1px solid rgba(143, 106, 58, 0.14);
-  border-radius: 20px;
-  background: linear-gradient(180deg, rgba(255, 251, 245, 0.96), rgba(249, 240, 225, 0.88));
+  border-radius: 24px;
+  background:
+    linear-gradient(180deg, rgba(255, 252, 247, 0.96), rgba(250, 243, 233, 0.92)),
+    radial-gradient(circle at 100% 0%, rgba(198, 154, 93, 0.12), transparent 32%);
 }
 
 .login-shell__header {
   display: grid;
-  gap: 0.3rem;
+  gap: 0.45rem;
 }
 
 .login-shell__eyebrow {
@@ -23,35 +25,60 @@
 
 .login-shell__header h3 {
   margin: 0;
-  font-size: 1.4rem;
+  font-size: 1.55rem;
   color: var(--brand-2);
 }
 
 .login-shell__subtitle {
   margin: 0;
   color: var(--muted);
-  line-height: 1.5;
+  line-height: 1.6;
 }
 
 .login-form {
   display: grid;
-  gap: 1rem;
+  gap: 1.05rem;
 }
 
 .field {
   display: grid;
-  gap: 0.42rem;
+  gap: 0.48rem;
 }
 
-.field span {
+.field__label {
   font-size: 0.79rem;
   font-weight: 700;
   color: var(--brand-2);
 }
 
+.field .input {
+  min-height: 3rem;
+  border-radius: 16px;
+}
+
+.field .input:focus {
+  background: #fffdf9;
+}
+
+.field--invalid .input {
+  border-color: rgba(182, 73, 61, 0.42);
+  box-shadow: 0 0 0 4px rgba(182, 73, 61, 0.12);
+}
+
+.field__hint {
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.field__hint--error {
+  color: var(--danger);
+}
+
 .login-form__submit {
-  margin-top: 0.2rem;
+  margin-top: 0.35rem;
   width: 100%;
+  min-height: 3.15rem;
+  border-radius: 18px;
 }
 
 .hint {

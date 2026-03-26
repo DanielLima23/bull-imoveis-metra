@@ -6,14 +6,20 @@
   </div>
 
   <form class="login-form" [formGroup]="form" (ngSubmit)="submit()">
-    <label class="field">
+    <label class="field" [class.field--invalid]="form.controls.email.invalid && form.controls.email.touched">
       <span class="field__label">E-mail</span>
       <input class="input" type="email" formControlName="email" placeholder="admin@imoveis.dev" />
+      @if (form.controls.email.invalid && form.controls.email.touched) {
+        <small class="field__hint field__hint--error">Informe um e-mail válido para continuar.</small>
+      }
     </label>
 
-    <label class="field">
+    <label class="field" [class.field--invalid]="form.controls.password.invalid && form.controls.password.touched">
       <span class="field__label">Senha</span>
       <input class="input" type="password" formControlName="password" placeholder="123456" />
+      @if (form.controls.password.invalid && form.controls.password.touched) {
+        <small class="field__hint field__hint--error">A senha deve ter ao menos 6 caracteres.</small>
+      }
     </label>
 
     <button class="btn btn-primary login-form__submit" type="submit" [disabled]="isSubmitting()">

@@ -12,7 +12,7 @@ import { ToastService } from '../../../shared/services/toast.service';
 const DEFAULT_SETTINGS: SystemSettingsUpdateRequest = {
   brandName: 'Imóveis Hub',
   brandShortName: 'IH',
-  themePreset: 'AURORA_LIGHT',
+  themePreset: 'SAND_LIGHT',
   enableAnimations: true,
   enableGuidedFlows: false
 };
@@ -42,7 +42,7 @@ export class ConfiguracoesPage implements OnInit, OnDestroy {
   readonly form = this.fb.nonNullable.group({
     brandName: ['', [Validators.required, Validators.maxLength(120)]],
     brandShortName: ['', [Validators.required, Validators.maxLength(8)]],
-    themePreset: ['AURORA_LIGHT' as ThemePresetKey, [Validators.required]],
+    themePreset: ['SAND_LIGHT' as ThemePresetKey, [Validators.required]],
     enableAnimations: [true],
     enableGuidedFlows: [false]
   });

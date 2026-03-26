@@ -7,24 +7,26 @@
 />
 
 <section class="card-panel">
-  <div class="list-toolbar dashboard-toolbar">
-    <div class="dashboard-toolbar__title">
+  <div class="list-toolbar list-toolbar--stack">
+    <div class="list-toolbar__head">
+      <div class="list-toolbar__title">
       <h2>Carteira de imóveis</h2>
       <p class="list-toolbar__subtitle">{{ totalItems() }} imóveis no cadastro</p>
+      </div>
     </div>
 
-    <div class="filters">
-      <label class="toolbar-field">
+    <div class="filters filters--responsive">
+      <label class="toolbar-field toolbar-field--grow">
         <span class="toolbar-label">Buscar</span>
         <input class="input search" [value]="search()" (input)="onSearchInput(($any($event.target)).value)" placeholder="Título, endereço ou cidade" />
       </label>
 
-      <label class="toolbar-field">
+      <label class="toolbar-field toolbar-field--grow">
         <span class="toolbar-label">Cidade</span>
         <input class="input" [value]="city()" (input)="onCityInput(($any($event.target)).value)" placeholder="Filtrar por cidade" />
       </label>
 
-      <label class="toolbar-field">
+      <label class="toolbar-field toolbar-field--grow">
         <span class="toolbar-label">Status</span>
         <app-async-search-select
           [value]="status()"
@@ -36,7 +38,7 @@
         />
       </label>
 
-      <button class="btn btn-secondary dashboard-toolbar__action" type="button" (click)="openAdvancedProperties()">Filtros avançados</button>
+      <button class="btn btn-secondary toolbar-field--action" type="button" (click)="openAdvancedProperties()">Filtros avançados</button>
     </div>
   </div>
 
@@ -91,10 +93,12 @@
                   <span class="muted-value">Não informado</span>
                 }
               </td>
-              <td class="dashboard-table__actions">
-                <button class="btn btn-secondary btn-sm" type="button" (click)="openPropertyDetail(item.id)">Ver</button>
-                <button class="btn btn-secondary btn-sm" type="button" (click)="openStatusModal(item)">Status</button>
-                <button class="btn btn-primary btn-sm" type="button" (click)="openPendencyModal(item)">Pendência</button>
+              <td class="table-actions">
+                <div class="table-actions--buttons">
+                  <button class="btn btn-secondary btn-sm" type="button" (click)="openPropertyDetail(item.id)">Ver</button>
+                  <button class="btn btn-secondary btn-sm" type="button" (click)="openStatusModal(item)">Status</button>
+                  <button class="btn btn-primary btn-sm" type="button" (click)="openPendencyModal(item)">Pendência</button>
+                </div>
               </td>
             </tr>
           }

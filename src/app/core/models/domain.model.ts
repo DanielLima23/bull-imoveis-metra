@@ -353,7 +353,7 @@ export interface SystemSettingsDto {
   updatedAtUtc: string;
 }
 
-export type ThemePresetKey = 'AURORA_LIGHT' | 'EMERALD_LIGHT' | 'MIDNIGHT_DARK' | 'GRAPHITE_DARK';
+export type ThemePresetKey = 'SAND_LIGHT' | 'AURORA_LIGHT' | 'EMERALD_LIGHT' | 'MIDNIGHT_DARK' | 'GRAPHITE_DARK';
 
 export interface SystemSettingsUpdateRequest {
   brandName: string;

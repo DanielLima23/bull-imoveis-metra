@@ -8,19 +8,24 @@
 
 <section class="card-panel">
   <div class="list-toolbar list-toolbar--stack">
-    <h2>Listagem</h2>
-    <div class="filters">
-      <label class="toolbar-field">
+    <div class="list-toolbar__head">
+      <div class="list-toolbar__title">
+        <h2>Listagem</h2>
+        <p class="list-toolbar__subtitle">{{ totalItems() }} imóveis encontrados na carteira</p>
+      </div>
+    </div>
+    <div class="filters filters--responsive">
+      <label class="toolbar-field toolbar-field--grow">
         <span class="toolbar-label">Buscar</span>
         <input class="input search" [value]="search()" (input)="onSearchInput(($any($event.target)).value)" placeholder="Digite o título, endereço ou cidade" />
       </label>
 
-      <label class="toolbar-field">
+      <label class="toolbar-field toolbar-field--grow">
         <span class="toolbar-label">Cidade</span>
         <input class="input" [value]="city()" (input)="onCityInput(($any($event.target)).value)" placeholder="Digite a cidade" />
       </label>
 
-      <label class="toolbar-field">
+      <label class="toolbar-field toolbar-field--grow">
         <span class="toolbar-label">Status</span>
         <app-async-search-select
           [value]="status()"
@@ -32,7 +37,7 @@
         />
       </label>
 
-      <label class="toolbar-field">
+      <label class="toolbar-field toolbar-field--grow">
         <span class="toolbar-label">Tipo do imóvel</span>
         <app-async-search-select
           [value]="propertyType()"
@@ -82,8 +87,8 @@
                   }
                 </div>
               </td>
-              <td class="actions-col">
-                <div class="property-actions">
+              <td class="actions-col table-actions">
+                <div class="table-actions--stack">
                   <button
                     class="icon-action icon-action--view"
                     type="button"

@@ -1,10 +1,10 @@
 .public-layout {
   min-height: 100vh;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(360px, 430px);
-  gap: 1.2rem;
+  grid-template-columns: minmax(0, 1.08fr) minmax(360px, 440px);
+  gap: clamp(1rem, 2vw, 1.6rem);
   align-items: center;
-  padding: 1.25rem;
+  padding: clamp(1rem, 2vw, 1.5rem);
 }
 
 .story-panel {
@@ -16,12 +16,12 @@
     radial-gradient(circle at 2% 95%, var(--story-radial-b), transparent 42%),
     linear-gradient(145deg, var(--story-bg-a), var(--story-bg-b));
   border-radius: var(--radius-lg);
-  padding: clamp(1.2rem, 2.6vw, 2.2rem);
+  padding: clamp(1.5rem, 4vw, 3rem);
   box-shadow: var(--shadow-md);
-  min-height: 70vh;
+  min-height: min(76vh, 820px);
   display: grid;
   align-content: center;
-  gap: 0.95rem;
+  gap: 1.4rem;
 }
 
 .story-panel::before {
@@ -35,6 +35,19 @@
   mask-image: linear-gradient(180deg, transparent 0%, #000 20%, #000 100%);
 }
 
+.story-panel__backdrop {
+  position: absolute;
+  inset: auto -12% -18% auto;
+  width: 320px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 30% 30%, rgba(255, 248, 234, 0.88), transparent 48%),
+    radial-gradient(circle at 68% 60%, rgba(198, 154, 93, 0.26), transparent 58%);
+  filter: blur(8px);
+  opacity: 0.95;
+}
+
 .story-badge {
   justify-self: start;
   border: 1px solid color-mix(in srgb, var(--brand) 38%, transparent);
@@ -46,45 +59,69 @@
   text-transform: uppercase;
   background: color-mix(in srgb, var(--brand) 14%, transparent);
   color: var(--brand-2);
+  position: relative;
+  z-index: 1;
+}
+
+.story-copy {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 0.8rem;
+}
+
+.story-kicker {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--brand);
 }
 
 .story-panel h1 {
   margin: 0;
-  max-width: 17ch;
-  font-size: clamp(2rem, 3.6vw, 3.2rem);
+  max-width: 13ch;
+  font-size: clamp(2.3rem, 4vw, 4rem);
+  line-height: 0.96;
   color: var(--brand-2);
 }
 
-.story-panel p {
+.story-lead {
   margin: 0;
   color: var(--muted);
-  max-width: 58ch;
-  font-size: 1rem;
+  max-width: 54ch;
+  font-size: 1.02rem;
+  line-height: 1.7;
 }
 
 .story-list {
   margin: 0;
   padding-left: 1.05rem;
   display: grid;
-  gap: 0.45rem;
+  gap: 0.65rem;
   color: var(--story-list-text);
+  position: relative;
+  z-index: 1;
 }
 
 .story-list li {
-  line-height: 1.42;
+  line-height: 1.52;
 }
 
 .story-metrics {
-  margin-top: 0.35rem;
+  margin-top: 0.15rem;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.6rem;
+  gap: 0.75rem;
+  position: relative;
+  z-index: 1;
 }
 
 .story-metrics article {
   border: 1px solid var(--story-metric-border);
   border-radius: var(--radius-md);
-  padding: 0.7rem;
+  padding: 0.85rem;
   background: var(--story-metric-bg);
   backdrop-filter: blur(8px);
 }
@@ -105,27 +142,39 @@
 }
 
 .auth-panel {
-  padding: 1.8rem;
+  padding: clamp(1.5rem, 3vw, 2.4rem);
   border-color: var(--auth-panel-border);
   background: var(--auth-panel-bg);
   box-shadow: 0 24px 44px rgba(53, 40, 22, 0.12);
+  display: grid;
+  gap: 1.2rem;
 }
 
 .auth-panel h2 {
   margin: 0;
-  font-size: 1.45rem;
+  font-size: clamp(1.6rem, 2vw, 2rem);
   color: var(--brand-2);
 }
 
 .auth-panel header {
-  padding-bottom: 1rem;
-  margin-bottom: 1rem;
+  padding-bottom: 1.15rem;
   border-bottom: 1px solid rgba(143, 106, 58, 0.12);
+  display: grid;
+  gap: 0.45rem;
 }
 
 .auth-panel p {
-  margin: 0.35rem 0 1.1rem;
+  margin: 0;
   color: var(--muted);
+  line-height: 1.6;
+}
+
+.auth-panel__eyebrow {
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--brand);
 }
 
 @media (max-width: 1040px) {
@@ -140,6 +189,10 @@
 }
 
 @media (max-width: 640px) {
+  .public-layout {
+    padding: 0.8rem;
+  }
+
   .story-metrics {
     grid-template-columns: 1fr;
   }

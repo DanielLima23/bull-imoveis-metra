@@ -1,38 +1,42 @@
 ﻿<div class="public-layout">
   <section class="story-panel">
+    <div class="story-panel__backdrop" aria-hidden="true"></div>
     <span class="story-badge">{{ brandName() }}</span>
-    <h1>Gestão imobiliária centralizada com leitura rápida da operação.</h1>
-    <p>
-      Um ambiente único para acompanhar imóveis, contratos, contas e pendências com o
-      mesmo padrão visual do sistema administrativo.
-    </p>
+    <div class="story-copy">
+      <p class="story-kicker">Operação imobiliária em um só ambiente</p>
+      <h1>Entradas claras para uma rotina administrativa contínua.</h1>
+      <p class="story-lead">
+        Acompanhe carteira, contratos, contas e pendências com a mesma leitura visual do shell principal.
+      </p>
+    </div>
 
     <ul class="story-list">
-      <li>Carteira de imóveis com ações rápidas já na tela inicial</li>
-      <li>Fluxos de cadastro, locação e atendimento em um único lugar</li>
-      <li>Controles visuais consistentes entre telas públicas e privadas</li>
+      <li>Carteira e status com acesso rápido desde a primeira tela.</li>
+      <li>Fluxos de locação, contas e atendimento no mesmo contexto visual.</li>
+      <li>Ambiente público e administrativo com hierarquia limpa e consistente.</li>
     </ul>
 
     <div class="story-metrics" aria-hidden="true">
       <article>
+        <strong>1 painel</strong>
+        <span>Visão única da operação</span>
+      </article>
+      <article>
+        <strong>+10 módulos</strong>
+        <span>Rotinas conectadas</span>
+      </article>
+      <article>
         <strong>24/7</strong>
         <span>Acesso administrativo</span>
-      </article>
-      <article>
-        <strong>+10</strong>
-        <span>Módulos integrados</span>
-      </article>
-      <article>
-        <strong>100%</strong>
-        <span>Fluxo centralizado</span>
       </article>
     </div>
   </section>
 
   <section class="auth-panel page-surface">
     <header>
-      <h2>Acesso ao sistema</h2>
-      <p>Entre com suas credenciais para abrir o painel administrativo do {{ brandName() }}.</p>
+      <p class="auth-panel__eyebrow">Acesso administrativo</p>
+      <h2>Entrar no sistema</h2>
+      <p>Use suas credenciais para abrir o painel do {{ brandName() }} sem alterar o fluxo atual de autenticação.</p>
     </header>
     <router-outlet />
   </section>
