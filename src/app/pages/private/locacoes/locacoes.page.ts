@@ -121,9 +121,9 @@ export class LocacoesPage implements OnInit {
         return {
           index: 1,
           total: 2,
-          title: 'Confira as locacoes deste imovel',
-          message: 'Os filtros ja foram preparados para voce visualizar o imovel correto antes de cadastrar um contrato.',
-          hint: 'Quando estiver pronto, avance para o cadastro da nova locacao.',
+          title: 'Confira as locações deste imóvel',
+          message: 'Os filtros já foram preparados para você visualizar o imóvel correto antes de cadastrar um contrato.',
+          hint: 'Quando estiver pronto, avance para o cadastro da nova locação.',
           primaryActionLabel: 'Continuar',
           showBack: false
         };
@@ -132,9 +132,9 @@ export class LocacoesPage implements OnInit {
       return {
         index: 2,
         total: 2,
-        title: 'Cadastre a nova locacao',
-        message: 'Agora use o botao destacado "Adicionar nova" para abrir o cadastro com o imovel ja preenchido.',
-        hint: 'Voce pode clicar no destaque ou usar o atalho abaixo.',
+        title: 'Cadastre a nova locação',
+        message: 'Agora use o botão destacado "Adicionar nova" para abrir o cadastro com o imóvel já preenchido.',
+        hint: 'Você pode clicar no destaque ou usar o atalho abaixo.',
         primaryActionLabel: 'Abrir cadastro',
         showBack: true
       };
@@ -144,11 +144,11 @@ export class LocacoesPage implements OnInit {
       return {
         index: 1,
         total: 1,
-        title: 'Nao encontramos uma locacao ativa na lista',
+        title: 'Não encontramos uma locação ativa na lista',
         message:
           this.guideFallbackMessage() ||
-          'Confira se a locacao correta esta ativa ou cadastre um novo contrato antes de tentar alterar o status do imovel.',
-        hint: 'Voce pode fechar o guia e revisar a lista manualmente.',
+          'Confira se a locação correta está ativa ou cadastre um novo contrato antes de tentar alterar o status do imóvel.',
+        hint: 'Você pode fechar o guia e revisar a lista manualmente.',
         showBack: false
       };
     }
@@ -157,9 +157,9 @@ export class LocacoesPage implements OnInit {
       return {
         index: 1,
         total: 4,
-        title: 'A lista ja foi filtrada para voce',
-        message: 'Este passo mostra apenas as locacoes do imovel certo. Agora vamos abrir a locacao ativa.',
-        hint: 'Clique em continuar para focar na locacao que precisa ser encerrada.',
+        title: 'A lista já foi filtrada para você',
+        message: 'Este passo mostra apenas as locações do imóvel certo. Agora vamos abrir a locação ativa.',
+        hint: 'Clique em continuar para focar na locação que precisa ser encerrada.',
         primaryActionLabel: 'Continuar',
         showBack: false
       };
@@ -169,9 +169,9 @@ export class LocacoesPage implements OnInit {
       return {
         index: 2,
         total: 4,
-        title: 'Abra as acoes da locacao destacada',
-        message: 'Use o botao de acoes da linha destacada para encontrar a opcao de encerramento.',
-        hint: 'Voce pode clicar no destaque ou usar o atalho abaixo.',
+        title: 'Abra as ações da locação destacada',
+        message: 'Use o botão de ações da linha destacada para encontrar a opção de encerramento.',
+        hint: 'Você pode clicar no destaque ou usar o atalho abaixo.',
         primaryActionLabel: 'Abrir menu',
         showBack: true
       };
@@ -181,8 +181,8 @@ export class LocacoesPage implements OnInit {
       return {
         index: 3,
         total: 4,
-        title: 'Escolha encerrar locacao',
-        message: 'No menu aberto, clique em "Encerrar locacao" para seguir para o formulario final.',
+        title: 'Escolha encerrar locação',
+        message: 'No menu aberto, clique em "Encerrar locação" para seguir para o formulário final.',
         hint: 'Se preferir, use o atalho abaixo para abrir o encerramento.',
         primaryActionLabel: 'Abrir encerramento',
         showBack: true
@@ -193,8 +193,8 @@ export class LocacoesPage implements OnInit {
       index: 4,
       total: 4,
       title: 'Conclua o encerramento',
-      message: 'Preencha a data de encerramento no formulario destacado e confirme a operacao.',
-      hint: 'Depois disso, o status do imovel podera ser alterado.',
+      message: 'Preencha a data de encerramento no formulário destacado e confirme a operação.',
+      hint: 'Depois disso, o status do imóvel poderá ser alterado.',
       primaryActionLabel: 'Fechar guia',
       showBack: false
     };
@@ -303,7 +303,7 @@ export class LocacoesPage implements OnInit {
             return;
           }
 
-          this.toast.error('Falha ao carregar locacoes.');
+          this.toast.error('Falha ao carregar locações.');
           this.isLoading.set(false);
           this.highlightedLeaseId.set(null);
           this.guideSpotlight.set(null);
@@ -492,12 +492,12 @@ export class LocacoesPage implements OnInit {
 
     this.leaseApi.close(lease.id, this.closeForm.controls.endDate.value).subscribe({
       next: () => {
-        this.toast.success('Locacao encerrada.');
+        this.toast.success('Locação encerrada.');
         this.closeCloseModal();
         this.dismissGuide();
         this.load(false);
       },
-      error: () => this.toast.error('Falha ao encerrar locacao.')
+      error: () => this.toast.error('Falha ao encerrar locação.')
     });
   }
 
@@ -523,7 +523,7 @@ export class LocacoesPage implements OnInit {
     if (!highlightedLease) {
       this.highlightedLeaseId.set(null);
       this.guideFallbackMessage.set(
-        'Nenhuma locacao ativa desse imovel apareceu na lista atual. Confira os filtros ou cadastre o contrato correto antes de tentar alterar o status do imovel.'
+        'Nenhuma locação ativa desse imóvel apareceu na lista atual. Confira os filtros ou cadastre o contrato correto antes de tentar alterar o status do imóvel.'
       );
       if (this.guideStep() && this.guideStep() !== 'filters') {
         this.guideStep.set('filters');

@@ -66,7 +66,7 @@ export class PendenciasPage implements OnInit {
     this.isPropertyScoped() ? { propertyId: this.propertyId(), context: 'property-pendencies' } : null
   );
   readonly statusOptions = getDomainOptions('pendencyStatus', { includeEmptyOption: true, emptyLabel: 'Todos' });
-  readonly listColumnCount = computed(() => (this.isPropertyScoped() ? 6 : 7));
+  readonly listColumnCount = computed(() => (this.isPropertyScoped() ? 7 : 8));
   readonly showManagementPanels = computed(() => !this.isPropertyScoped());
 
   readonly typeForm = this.fb.nonNullable.group({
@@ -89,6 +89,7 @@ export class PendenciasPage implements OnInit {
         item.pendencyTypeName,
         item.status,
         item.severity,
+        String(item.residenceNumber ?? ''),
         getDomainLabel('pendencyStatus', item.status),
         getDomainLabel('pendencySeverity', item.severity)
       ].some((value) => value.toLowerCase().includes(term))

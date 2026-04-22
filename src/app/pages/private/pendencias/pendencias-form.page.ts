@@ -87,6 +87,7 @@ export class PendenciasFormPage implements OnInit {
     pendencyTypeId: ['', Validators.required],
     title: ['', Validators.required],
     description: [''],
+    residenceNumber: [''],
     dueAtUtc: [new Date().toISOString().slice(0, 16), Validators.required]
   });
 
@@ -112,6 +113,7 @@ export class PendenciasFormPage implements OnInit {
           pendencyTypeId: item.pendencyTypeId,
           title: item.title,
           description: item.description ?? '',
+          residenceNumber: item.residenceNumber ? String(item.residenceNumber) : '',
           dueAtUtc: item.dueAtUtc.slice(0, 16)
         });
 
@@ -131,6 +133,7 @@ export class PendenciasFormPage implements OnInit {
     this.submitting.set(true);
     const id = this.id();
     const payload = this.form.getRawValue();
+    const residenceNumber = payload.residenceNumber ? Number(payload.residenceNumber) : undefined;
 
     if (!id) {
       this.api
@@ -139,6 +142,7 @@ export class PendenciasFormPage implements OnInit {
           pendencyTypeId: payload.pendencyTypeId,
           title: payload.title,
           description: payload.description || undefined,
+          residenceNumber,
           dueAtUtc: payload.dueAtUtc
         })
         .subscribe({
@@ -152,6 +156,7 @@ export class PendenciasFormPage implements OnInit {
       .update(id, {
         title: payload.title,
         description: payload.description || undefined,
+        residenceNumber,
         dueAtUtc: payload.dueAtUtc
       })
       .subscribe({

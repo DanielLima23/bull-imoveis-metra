@@ -9,12 +9,14 @@ export interface PendencyPayload {
   title: string;
   description?: string;
   dueAtUtc: string;
+  residenceNumber?: number;
 }
 
 export interface PendencyUpdatePayload {
   title: string;
   description?: string;
   dueAtUtc: string;
+  residenceNumber?: number;
 }
 
 export interface PendencyTypePayload {

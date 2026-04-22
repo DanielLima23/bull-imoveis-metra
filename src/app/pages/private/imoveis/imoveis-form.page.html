@@ -154,6 +154,11 @@
           <input class="input" type="number" [formControl]="form.controls.characteristics.controls.numOfRooms" placeholder="Ex.: 3" />
         </div>
 
+        <div class="field">
+          <label class="field__label">Vagas de garagem</label>
+          <input class="input" type="number" [formControl]="form.controls.characteristics.controls.numOfGarage" placeholder="Ex.: 2" />
+        </div>
+
         @if (shouldShowUnoccupiedSince(form.controls.identity.controls.status.value)) {
           <div class="field">
             <label class="field__label">Desocupado desde</label>
@@ -221,6 +226,16 @@
         </div>
 
         <div class="field">
+          <label class="field__label">Telefone do administrador</label>
+          <input class="input" [formControl]="form.controls.administration.controls.administratorPhone" placeholder="Ex.: (11) 99999-0000" />
+        </div>
+
+        <div class="field">
+          <label class="field__label">E-mail do administrador</label>
+          <input class="input" [formControl]="form.controls.administration.controls.administratorEmail" placeholder="Ex.: administrador@empresa.com" />
+        </div>
+
+        <div class="field">
           <label class="field__label">Taxa administrativa</label>
           <input class="input" [formControl]="form.controls.administration.controls.administrateTax" placeholder="Ex.: 10%" />
         </div>
@@ -239,6 +254,11 @@
           @if (!form.controls.administration.controls.lawyerPartyId.value && form.controls.administration.controls.lawyer.value) {
             <p class="legacy-person-note">Cadastro legado atual: {{ form.controls.administration.controls.lawyer.value }}</p>
           }
+        </div>
+
+        <div class="field">
+          <label class="field__label">OAB / dados do advogado</label>
+          <input class="input" [formControl]="form.controls.administration.controls.lawyerData" placeholder="Ex.: OAB/SP 123456" />
         </div>
 
         <div class="field field--full">
@@ -287,7 +307,7 @@
   <app-flow-guidance-modal
     [title]="modal.title"
     [message]="modal.message"
-    primaryActionLabel="Ver locaÃ§Ãµes do imÃ³vel"
+    primaryActionLabel="Ver locações do imóvel"
     (closed)="closeFlowGuidanceModal()"
     (primaryAction)="navigateFromFlowGuidanceModal()"
   />

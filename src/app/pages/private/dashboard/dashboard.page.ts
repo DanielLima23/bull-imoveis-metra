@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, DestroyRef, OnDestroy, OnInit, comp
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Params, Router } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { Observable, Subscription, forkJoin } from 'rxjs';
 import { PendencyTypeDto, PropertyDto } from '../../../core/models/domain.model';
 import { PendencyApiService } from '../../../core/services/pendency-api.service';
 import { PropertyApiService } from '../../../core/services/property-api.service';
@@ -70,6 +70,7 @@ export class DashboardPage implements OnInit, OnDestroy {
   readonly pageSize = signal(15);
   readonly totalItems = signal(0);
   readonly totalPages = signal(1);
+  readonly openPendencyCounts = signal<Record<string, number>>({});
   readonly statusEditorPropertyId = signal<string | null>(null);
   readonly pendencyModalPropertyId = signal<string | null>(null);
   readonly isSubmittingPendency = signal(false);
@@ -133,6 +134,7 @@ export class DashboardPage implements OnInit, OnDestroy {
           this.pageSize.set(result.pageSize);
           this.totalItems.set(result.totalItems);
           this.totalPages.set(result.totalPages);
+          this.loadOpenPendencyCounts(result.items);
           this.isLoading.set(false);
           this.listRequestSub = null;
         },
@@ -181,12 +183,8 @@ export class DashboardPage implements OnInit, OnDestroy {
     this.load();
   }
 
-  openPropertyDetail(propertyId: string): void {
-    void this.router.navigate(['/app/imoveis', propertyId]);
-  }
-
-  openAdvancedProperties(): void {
-    void this.router.navigate(['/app/imoveis']);
+  openPendencies(propertyId: string): void {
+    void this.router.navigate(['/app/imoveis', propertyId, 'pendencias']);
   }
 
   openStatusModal(property: PropertyDto): void {
@@ -258,11 +256,11 @@ export class DashboardPage implements OnInit, OnDestroy {
     this.propertyApi.updateStatus(property.id, mapPropertyStatusToPayload(payload.status, payload.idleReason)).subscribe({
       next: () => {
         this.propertyStatusTransition.invalidate(property.id);
-        this.toast.success('Status do imovel atualizado.');
+        this.toast.success('Status do imóvel atualizado.');
         this.closeStatusModal();
         this.load(false);
       },
-      error: () => this.toast.error('Falha ao atualizar status do imovel.')
+      error: () => this.toast.error('Falha ao atualizar status do imóvel.')
     });
   }
 
@@ -328,6 +326,10 @@ export class DashboardPage implements OnInit, OnDestroy {
 
   shouldShowIdleReason(value?: string | null): boolean {
     return requiresPropertyIdleReason(value);
+  }
+
+  getOpenPendencyCount(propertyId: string): number {
+    return this.openPendencyCounts()[propertyId] ?? 0;
   }
 
   private loadTypes(): void {
@@ -456,6 +458,39 @@ export class DashboardPage implements OnInit, OnDestroy {
     now.setDate(now.getDate() + 3);
     now.setHours(18, 0, 0, 0);
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}T18:00`;
+  }
+
+  private loadOpenPendencyCounts(items: PropertyDto[]): void {
+    if (items.length === 0) {
+      this.openPendencyCounts.set({});
+      return;
+    }
+
+    const requests: Observable<{ propertyId: string; total: number }>[] = items.map((item) =>
+      new Observable<{ propertyId: string; total: number }>((subscriber) => {
+        const subscription = this.pendencyApi.list({ propertyId: item.id, status: 'OPEN', page: 1, pageSize: 1 }).subscribe({
+          next: (result) => {
+            subscriber.next({ propertyId: item.id, total: result.totalItems });
+            subscriber.complete();
+          },
+          error: () => {
+            subscriber.next({ propertyId: item.id, total: 0 });
+            subscriber.complete();
+          }
+        });
+
+        return () => subscription.unsubscribe();
+      })
+    );
+
+    forkJoin(requests).subscribe((results) => {
+      this.openPendencyCounts.set(
+        results.reduce<Record<string, number>>((acc, result) => {
+          acc[result.propertyId] = result.total;
+          return acc;
+        }, {})
+      );
+    });
   }
 
   private normalizeStatus(value?: string | null): string {

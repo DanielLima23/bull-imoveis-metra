@@ -17,18 +17,18 @@ const DEFAULT_PROPERTY_STATUS = 'AVAILABLE';
 const IDLE_PROPERTY_STATUS = 'IDLE';
 
 const PROPERTY_STATUS_OPTIONS: SelectOption[] = [
-  { id: 'AVAILABLE', label: 'Disponivel' },
+  { id: 'AVAILABLE', label: 'Disponível' },
   { id: 'LEASED', label: 'Alugado' },
   { id: 'INACTIVE', label: 'Inativo' },
-  { id: 'FOR_SALE', label: 'A venda' },
+  { id: 'FOR_SALE', label: 'À venda' },
   { id: 'DEMANDS', label: 'Demandas' },
   { id: 'IDLE', label: 'Ocioso' }
 ];
 
 const PROPERTY_IDLE_REASON_OPTIONS: SelectOption[] = [
   { id: 'RENOVATION', label: 'Reforma' },
-  { id: 'TERMINATION', label: 'Rescisao' },
-  { id: 'LEGAL_PENDING', label: 'Pendencia juridica' }
+  { id: 'TERMINATION', label: 'Rescisão' },
+  { id: 'LEGAL_PENDING', label: 'Pendência jurídica' }
 ];
 
 const STATUS_PT_BR_TO_LEGACY: Record<string, string> = {

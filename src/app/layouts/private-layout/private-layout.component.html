@@ -61,37 +61,23 @@
         </section>
       }
     </nav>
+
+    <div class="sidenav__footer">
+      @if (user(); as currentUser) {
+        <div class="sidenav-user">
+          <strong>{{ currentUser.name }}</strong>
+          <span>{{ currentUser.role }}</span>
+        </div>
+      }
+
+      <button type="button" class="btn btn-secondary sidenav__logout" (click)="logout()">Sair</button>
+    </div>
   </aside>
 
   <section class="workspace">
-    <header class="topbar">
-      <div class="topbar__left">
+    <div class="workspace__mobile-actions">
         <button type="button" class="menu-btn btn btn-secondary" (click)="toggleMobileMenu()">Menu</button>
-      </div>
-
-      <div class="topbar__center">
-        <strong>{{ brandName() }}</strong>
-      </div>
-
-      <div class="topbar__actions">
-        <div class="user">
-          <span class="user__avatar" aria-hidden="true">
-            <svg viewBox="0 0 24 24">
-              <circle cx="12" cy="8" r="3.5"></circle>
-              <path d="M5.5 20a6.5 6.5 0 0 1 13 0"></path>
-            </svg>
-          </span>
-          @if (user(); as currentUser) {
-            <div class="user__meta">
-              <strong>{{ currentUser.name }}</strong>
-              <span>{{ currentUser.role }}</span>
-            </div>
-          }
-        </div>
-
-        <button type="button" class="btn btn-secondary" (click)="logout()">Sair</button>
-      </div>
-    </header>
+    </div>
 
     <main class="content">
       <router-outlet />

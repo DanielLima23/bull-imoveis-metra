@@ -1,5 +1,15 @@
+app-page-header {
+  display: none;
+}
+
 .dashboard-table {
   min-width: 980px;
+}
+
+.dashboard-table th:nth-child(6),
+.dashboard-table td:nth-child(6) {
+  width: 220px;
+  min-width: 220px;
 }
 
 .dashboard-table__empty {
@@ -20,6 +30,22 @@
 .property-cell span {
   color: var(--muted);
   font-size: 0.82rem;
+}
+
+.pendency-cell {
+  display: flex;
+  align-items: center;
+}
+
+.pendency-cell__actions,
+.status-action-cell {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.pendency-cell__actions {
+  flex-wrap: nowrap;
 }
 
 .modal-backdrop {

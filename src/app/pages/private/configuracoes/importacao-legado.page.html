@@ -1,6 +1,6 @@
 <app-page-header
   title="Importação do legado"
-  subtitle="Envio manual do conteúdo JSON para /api/legado/importacao"
+  subtitle="Conecte diretamente no PostgreSQL antigo e traga os cadastros para o sistema atual"
   [breadcrumbs]="[
     { label: 'Painel', route: '/app/dashboard' },
     { label: 'Configurações', route: '/app/configuracoes' },
@@ -8,21 +8,37 @@
   ]"
 />
 
-<section class="card-panel">
+<section class="card-panel import-shell">
+  <div class="import-intro">
+    <article class="hint-card">
+      <strong>O que será importado</strong>
+      <p>Imóveis, locatários, contratos, contas-modelo, despesas, históricos, pendências e observações operacionais do legado.</p>
+    </article>
+
+    <article class="hint-card hint-card--warning">
+      <strong>Formato esperado</strong>
+      <p>Use uma URL PostgreSQL completa, por exemplo: <code>postgresql://postgres:senha@host:5432/postgres</code>.</p>
+    </article>
+  </div>
+
   <form class="legacy-form" [formGroup]="form" (ngSubmit)="submit()">
     <div class="field field--full">
-      <label class="field__label">Payload JSON</label>
+      <label class="field__label" for="databaseUrl">URL do banco legado</label>
       <textarea
-        class="textarea"
-        formControlName="payload"
-        rows="18"
-        placeholder="Cole aqui o JSON de importação do legado"
+        id="databaseUrl"
+        class="textarea textarea--connection"
+        formControlName="databaseUrl"
+        rows="4"
+        placeholder="postgresql://postgres:senha@host:5432/postgres"
       ></textarea>
+      @if (form.controls.databaseUrl.touched && form.controls.databaseUrl.invalid) {
+        <small class="field-error">Informe uma URL PostgreSQL válida para executar a importação.</small>
+      }
     </div>
 
     <div class="actions">
       <button class="btn btn-primary" type="submit" [disabled]="submitting()">
-        @if (submitting()) { Importando... } @else { Importar dados }
+        @if (submitting()) { Importando... } @else { Importar do banco legado }
       </button>
     </div>
   </form>

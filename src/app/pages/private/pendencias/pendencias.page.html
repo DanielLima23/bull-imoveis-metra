@@ -84,6 +84,7 @@
           }
           <th>Tipo</th>
           <th>Título</th>
+          <th>Unidade</th>
           <th>Vencimento</th>
           <th>Severidade</th>
           <th>Status</th>
@@ -103,6 +104,7 @@
               }
               <td>{{ item.pendencyTypeName }}</td>
               <td>{{ item.title }}</td>
+              <td>{{ item.residenceNumber ?? '-' }}</td>
               <td>{{ item.dueAtUtc | date:'dd/MM/yyyy HH:mm' }}</td>
               <td>{{ item.severity | domainLabel:'pendencySeverity' }}</td>
               <td>{{ item.status | domainLabel:'pendencyStatus' }}</td>

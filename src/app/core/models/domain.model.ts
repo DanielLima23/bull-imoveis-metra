@@ -9,6 +9,7 @@ export interface PropertyCharacteristicsSectionDto {
   elevator?: boolean | null;
   garage?: boolean | null;
   unoccupiedSince?: string | null;
+  numOfGarage?: number | null;
 }
 
 export interface PropertyAdministrationSectionDto {
@@ -20,6 +21,9 @@ export interface PropertyAdministrationSectionDto {
   lawyer?: string | null;
   lawyerPartyId?: string | null;
   observation?: string | null;
+  administratorPhone?: string | null;
+  administratorEmail?: string | null;
+  lawyerData?: string | null;
 }
 
 export interface PropertyDto {
@@ -105,6 +109,7 @@ export interface PropertyOpenPendencyDto {
   dueAtUtc: string;
   severity?: string | null;
   status?: string | null;
+  residenceNumber?: number | null;
 }
 
 export interface PropertyUpcomingVisitDto {
@@ -258,6 +263,7 @@ export interface PendencyDto {
   severity: string;
   elapsedDays: number;
   slaDays: number;
+  residenceNumber?: number | null;
 }
 
 export interface VisitDto {
@@ -390,6 +396,11 @@ export interface LegacyImportRequest {
   histories: unknown[];
   pendencyAcronyms: unknown[];
   pendencyStates: unknown[];
+  pendencies?: unknown[];
+}
+
+export interface LegacyDatabaseImportRequest {
+  databaseUrl: string;
 }
 
 export interface LegacyImportResultDto {

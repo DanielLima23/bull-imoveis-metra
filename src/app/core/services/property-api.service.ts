@@ -35,6 +35,7 @@ export interface PropertyCharacteristicsSectionPayload {
   elevator?: boolean;
   garage?: boolean;
   unoccupiedSince?: string;
+  numOfGarage?: number;
 }
 
 export interface PropertyAdministrationSectionPayload {
@@ -46,6 +47,9 @@ export interface PropertyAdministrationSectionPayload {
   lawyer?: string;
   lawyerPartyId?: string | null;
   observation?: string;
+  administratorPhone?: string;
+  administratorEmail?: string;
+  lawyerData?: string;
 }
 
 export interface PropertyCreatePayload {

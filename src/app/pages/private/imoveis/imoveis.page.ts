@@ -463,8 +463,8 @@ export class ImoveisPage implements OnInit, OnDestroy {
 
     if (result === 'blocked_requires_active_lease') {
       this.flowGuidanceModal.set({
-        title: 'Para marcar este imovel como alugado',
-        message: 'E necessario existir uma locacao ativa vinculada a este imovel antes de definir o status como alugado.',
+        title: 'Para marcar este imóvel como alugado',
+        message: 'É necessário existir uma locação ativa vinculada a este imóvel antes de definir o status como alugado.',
         queryParams: {
           propertyId: property.id,
           guideMode: 'activate-lease'
@@ -474,8 +474,8 @@ export class ImoveisPage implements OnInit, OnDestroy {
     }
 
     this.flowGuidanceModal.set({
-      title: 'Para alterar o status deste imovel',
-      message: 'Existe uma locacao ativa vinculada a este imovel. Encerre o contrato antes de alterar o status manualmente.',
+      title: 'Para alterar o status deste imóvel',
+      message: 'Existe uma locação ativa vinculada a este imóvel. Encerre o contrato antes de alterar o status manualmente.',
       queryParams: {
         propertyId: property.id,
         status: 'ACTIVE',

@@ -1,7 +1,7 @@
 <app-page-header
-  title="Locacoes"
-  subtitle="Controle de contratos com filtros por imovel, locatario e status"
-  [breadcrumbs]="[{ label: 'Painel', route: '/app/dashboard' }, { label: 'Locacoes' }]"
+  title="Locações"
+  subtitle="Controle de contratos com filtros por imóvel, locatário e status"
+  [breadcrumbs]="[{ label: 'Painel', route: '/app/dashboard' }, { label: 'Locações' }]"
   actionLabel="Adicionar nova"
   actionRoute="/app/locacoes/new"
   [actionQueryParams]="createLeaseQueryParams()"
@@ -13,7 +13,7 @@
     <h2>Filtros</h2>
     <div class="filters">
       <label class="toolbar-field">
-        <span class="toolbar-label">Imovel</span>
+        <span class="toolbar-label">Imóvel</span>
         <app-async-search-select
           [value]="propertyId()"
           [fetchPage]="propertySelectFetchPage"
@@ -25,7 +25,7 @@
       </label>
 
       <label class="toolbar-field">
-        <span class="toolbar-label">Locatario</span>
+        <span class="toolbar-label">Locatário</span>
         <app-async-search-select
           [value]="tenantId()"
           [fetchPage]="tenantSelectFetchPage"
@@ -53,13 +53,13 @@
     <table class="table">
       <thead>
         <tr>
-          <th>Imovel</th>
-          <th>Locatario</th>
-          <th>Periodo</th>
+          <th>Imóvel</th>
+          <th>Locatário</th>
+          <th>Período</th>
           <th>Aluguel</th>
           <th>Status</th>
-          <th>Dia pagamento</th>
-          <th>Acoes</th>
+          <th>Dia de pagamento</th>
+          <th>Ações</th>
         </tr>
       </thead>
       <tbody>
@@ -106,12 +106,13 @@
 </section>
 
 @if (activeMenuItem(); as item) {
-  <button class="menu-overlay" type="button" (click)="closeRowMenu()" aria-label="Fechar menu de acoes"></button>
+  <button class="menu-overlay" type="button" (click)="closeRowMenu()" aria-label="Fechar menu de ações"></button>
   <div class="menu-popover menu-popover--floating" [style.left.px]="menuPosition().x" [style.top.px]="menuPosition().y">
+    <a [routerLink]="['/app/imoveis', item.propertyId]" (click)="closeRowMenu()">Ver imóvel</a>
     <a [routerLink]="['/app/locacoes', item.id, 'edit']" (click)="closeRowMenu()">Editar contrato</a>
     @if (item.status === 'ACTIVE') {
       <button type="button" [class.guide-menu-action]="shouldHighlightCloseLeaseAction(item.id)" [attr.data-guide-close-lease]="item.id" (click)="openCloseModal(item)">
-        Encerrar locacao
+        Encerrar locação
       </button>
     }
   </div>
@@ -121,7 +122,7 @@
   <div class="modal-backdrop" (click)="closeCloseModal()">
     <section class="card-panel close-modal" data-guide-close-modal (click)="$event.stopPropagation()">
       <header>
-        <h3>Encerrar locacao</h3>
+        <h3>Encerrar locação</h3>
         <p>{{ lease.propertyTitle }} - {{ lease.tenantName }}</p>
       </header>
 

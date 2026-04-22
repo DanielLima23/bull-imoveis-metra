@@ -69,14 +69,14 @@ export class ImoveisDetailPage implements OnInit {
   readonly tabs: { id: PropertyDetailTab; label: string }[] = [
     { id: 'resumo', label: 'Resumo' },
     { id: 'financeiro', label: 'Financeiro' },
-    { id: 'historico', label: 'Historico' },
-    { id: 'locacoes', label: 'Locacoes' }
+    { id: 'historico', label: 'Histórico' },
+    { id: 'locacoes', label: 'Locações' }
   ];
 
-  readonly title = computed(() => this.detail()?.property.title || 'Detalhe do imovel');
+  readonly title = computed(() => this.detail()?.property.title || 'Detalhe do imóvel');
   readonly subtitle = computed(() => {
     const property = this.detail()?.property;
-    return property ? `${property.city}/${property.state} - ${property.propertyType}` : 'Visao consolidada do imovel';
+    return property ? `${property.city}/${property.state} - ${property.propertyType}` : 'Visão consolidada do imóvel';
   });
 
   readonly rentForm = this.fb.nonNullable.group({
@@ -151,11 +151,11 @@ export class ImoveisDetailPage implements OnInit {
 
     forkJoin({
       detail: this.propertyApi.getDetail(id),
-      rentHistory: this.withFallback(this.propertyApi.getRentHistory(id), [], 'historico de alugueis', partialFailures),
+      rentHistory: this.withFallback(this.propertyApi.getRentHistory(id), [], 'histórico de aluguéis', partialFailures),
       attachments: this.withFallback(this.propertyApi.listAttachments(id), [], 'anexos', partialFailures),
-      historyEntries: this.withFallback(this.propertyApi.listHistory(id), [], 'historico livre', partialFailures),
+      historyEntries: this.withFallback(this.propertyApi.listHistory(id), [], 'histórico livre', partialFailures),
       chargeTemplates: this.withFallback(this.propertyApi.listChargeTemplates(id), [], 'contas-modelo', partialFailures),
-      leaseHistory: this.withFallback(this.propertyApi.getLeaseHistory(id), [], 'historico de locacoes', partialFailures)
+      leaseHistory: this.withFallback(this.propertyApi.getLeaseHistory(id), [], 'histórico de locações', partialFailures)
     }).subscribe({
       next: (result) => {
         this.detail.set(result.detail);
@@ -167,7 +167,7 @@ export class ImoveisDetailPage implements OnInit {
         this.loading.set(false);
 
         if (partialFailures.length) {
-          this.toast.warning(`Algumas secoes nao puderam ser carregadas: ${partialFailures.join(', ')}.`);
+          this.toast.warning(`Algumas seções não puderam ser carregadas: ${partialFailures.join(', ')}.`);
         }
 
         if (this.activeTab() === 'financeiro') {
@@ -176,7 +176,7 @@ export class ImoveisDetailPage implements OnInit {
       },
       error: () => {
         this.loading.set(false);
-        this.toast.error('Falha ao carregar detalhe do imovel.');
+        this.toast.error('Falha ao carregar detalhe do imóvel.');
       }
     });
   }
@@ -203,14 +203,14 @@ export class ImoveisDetailPage implements OnInit {
 
     this.propertyApi.addRentReference(this.propertyId(), this.rentForm.getRawValue()).subscribe({
       next: () => {
-        this.toast.success('Referencia locativa cadastrada.');
+        this.toast.success('Referência locativa cadastrada.');
         this.rentForm.reset({
           amount: 0,
           effectiveFrom: new Date().toISOString().slice(0, 10)
         });
         this.reloadAll();
       },
-      error: () => this.toast.error('Falha ao salvar referencia locativa.')
+      error: () => this.toast.error('Falha ao salvar referência locativa.')
     });
   }
 
@@ -223,14 +223,14 @@ export class ImoveisDetailPage implements OnInit {
     const payload = this.historyForm.getRawValue() as PropertyHistoryEntryPayload;
     this.propertyApi.createHistoryEntry(this.propertyId(), payload).subscribe({
       next: () => {
-        this.toast.success('Historico registrado.');
+        this.toast.success('Histórico registrado.');
         this.historyForm.reset({
           content: '',
           occurredAtUtc: new Date().toISOString().slice(0, 16)
         });
         this.reloadAll();
       },
-      error: () => this.toast.error('Falha ao registrar historico.')
+      error: () => this.toast.error('Falha ao registrar histórico.')
     });
   }
 
@@ -328,10 +328,10 @@ export class ImoveisDetailPage implements OnInit {
     const today = new Date().toISOString().slice(0, 10);
     this.leaseApi.close(leaseId, today).subscribe({
       next: () => {
-        this.toast.success('Locacao encerrada com a data atual.');
+        this.toast.success('Locação encerrada com a data atual.');
         this.reloadAll();
       },
-      error: () => this.toast.error('Falha ao encerrar locacao.')
+      error: () => this.toast.error('Falha ao encerrar locação.')
     });
   }
 

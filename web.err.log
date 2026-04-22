@@ -1,0 +1,104 @@
+[1m[33m
+Warning: This is a simple server for use in testing or debugging Angular applications
+locally. It hasn't been reviewed for security issues.
+
+Binding this server to an open connection can result in compromising your application or
+computer. Using a different host than the one passed to the "--host" flag might result in
+websocket connection issues.
+    [39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'loadOpenPendencyCounts' does not exist on type 'DashboardPage'. Did you mean 'openPendencyCounts'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/pages/private/dashboard/dashboard.page.ts:137:15:
+[37m      137 │           this.[32mloadOpenPendencyCounts[37m(result.items);
+          ╵                [32m~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  'openPendencyCounts' is declared here.
+
+    src/app/pages/private/dashboard/dashboard.page.ts:73:11:
+[37m      73 │   readonly [32mopenPendencyCounts[37m = signal<Record<string, number>>({});
+         ╵            [32m~~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'loadOpenPendencyCounts' does not exist on type 'DashboardPage'. Did you mean 'openPendencyCounts'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/pages/private/dashboard/dashboard.page.ts:137:15:
+[37m      137 │           this.[32mloadOpenPendencyCounts[37m(result.items);
+          ╵                [32m~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  'openPendencyCounts' is declared here.
+
+    src/app/pages/private/dashboard/dashboard.page.ts:73:11:
+[37m      73 │   readonly [32mopenPendencyCounts[37m = signal<Record<string, number>>({});
+         ╵            [32m~~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2307: Cannot find module './configuracoes/importacao-legado.page' or its corresponding type declarations.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/pages/private/private.routes.ts:66:36:
+[37m      66 │ ...) => import([32m'./configuracoes/importacao-legado.page'[37m).then((m) ...
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "./configuracoes/importacao-legado.page"[0m
+
+    src/app/pages/private/private.routes.ts:54:44:
+[37m      54 │ ...) => import([32m'./configuracoes/importacao-legado.page'[37m).then((m) ...
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2307: Cannot find module './configuracoes/importacao-legado.page' or its corresponding type declarations.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/pages/private/private.routes.ts:66:36:
+[37m      66 │ ...) => import([32m'./configuracoes/importacao-legado.page'[37m).then((m) ...
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "./configuracoes/importacao-legado.page"[0m
+
+    src/app/pages/private/private.routes.ts:54:44:
+[37m      54 │ ...) => import([32m'./configuracoes/importacao-legado.page'[37m).then((m) ...
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2307: Cannot find module './configuracoes/importacao-legado.page' or its corresponding type declarations.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/pages/private/private.routes.ts:66:36:
+[37m      66 │ ...) => import([32m'./configuracoes/importacao-legado.page'[37m).then((m) ...
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "./configuracoes/importacao-legado.page"[0m
+
+    src/app/pages/private/private.routes.ts:54:44:
+[37m      54 │ ...) => import([32m'./configuracoes/importacao-legado.page'[37m).then((m) ...
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2307: Cannot find module './configuracoes/importacao-legado.page' or its corresponding type declarations.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/pages/private/private.routes.ts:66:36:
+[37m      66 │ ...) => import([32m'./configuracoes/importacao-legado.page'[37m).then((m) ...
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "./configuracoes/importacao-legado.page"[0m
+
+    src/app/pages/private/private.routes.ts:54:44:
+[37m      54 │ ...) => import([32m'./configuracoes/importacao-legado.page'[37m).then((m) ...
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG2008: Could not find stylesheet file './importacao-legado.page.scss'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/pages/private/configuracoes/importacao-legado.page.ts:13:12:
+[37m      13 │   styleUrl: [32m'./importacao-legado.page.scss'[37m,
+         ╵             [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG2008: Could not find stylesheet file './importacao-legado.page.scss'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/pages/private/configuracoes/importacao-legado.page.ts:13:12:
+[37m      13 │   styleUrl: [32m'./importacao-legado.page.scss'[37m,
+         ╵             [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m

@@ -42,8 +42,11 @@
         <dl class="detail-grid">
           <div><dt>Proprietário</dt><dd>{{ data.property.administration?.proprietary || data.property.proprietary || '-' }}</dd></div>
           <div><dt>Administrador</dt><dd>{{ data.property.administration?.administrator || data.property.administrator || '-' }}</dd></div>
+          <div><dt>Telefone do administrador</dt><dd>{{ data.property.administration?.administratorPhone || '-' }}</dd></div>
+          <div><dt>E-mail do administrador</dt><dd>{{ data.property.administration?.administratorEmail || '-' }}</dd></div>
           <div><dt>Taxa adm.</dt><dd>{{ data.property.administration?.administrateTax || '-' }}</dd></div>
           <div><dt>Advogado</dt><dd>{{ data.property.administration?.lawyer || '-' }}</dd></div>
+          <div><dt>OAB / dados</dt><dd>{{ data.property.administration?.lawyerData || '-' }}</dd></div>
         </dl>
       </article>
 
@@ -55,6 +58,7 @@
           <div><dt>Certidão</dt><dd>{{ data.property.documentation?.registrationCertification || '-' }}</dd></div>
           <div><dt>Quartos</dt><dd>{{ data.property.characteristics?.numOfRooms ?? '-' }}</dd></div>
           <div><dt>Garagem</dt><dd>{{ data.property.characteristics?.garage ? 'Sim' : 'Não' }}</dd></div>
+          <div><dt>Vagas</dt><dd>{{ data.property.characteristics?.numOfGarage ?? '-' }}</dd></div>
           <div><dt>Elevador</dt><dd>{{ data.property.characteristics?.elevator ? 'Sim' : 'Não' }}</dd></div>
         </dl>
       </article>
@@ -83,7 +87,11 @@
           <header><strong>Pendências abertas</strong><span>{{ data.openPendencies.length }}</span></header>
           <ul class="simple-list">
             @for (item of data.openPendencies; track item.id) {
-              <li>{{ item.title }} · {{ item.dueAtUtc | dateOnlyBr }}</li>
+              <li>
+                {{ item.title }}
+                @if (item.residenceNumber) { · Unidade {{ item.residenceNumber }} }
+                · {{ item.dueAtUtc | dateOnlyBr }}
+              </li>
             } @empty {
               <li>Nenhuma pendência aberta.</li>
             }

@@ -10,8 +10,8 @@
   <div class="list-toolbar list-toolbar--stack">
     <div class="list-toolbar__head">
       <div class="list-toolbar__title">
-      <h2>Carteira de imóveis</h2>
-      <p class="list-toolbar__subtitle">{{ totalItems() }} imóveis no cadastro</p>
+        <h2>Carteira de imóveis</h2>
+        <p class="list-toolbar__subtitle">{{ totalItems() }} imóveis no cadastro</p>
       </div>
     </div>
 
@@ -37,8 +37,6 @@
           (valueChange)="onStatusChange($event)"
         />
       </label>
-
-      <button class="btn btn-secondary toolbar-field--action" type="button" (click)="openAdvancedProperties()">Filtros avançados</button>
     </div>
   </div>
 
@@ -49,8 +47,9 @@
           <th>Imóvel</th>
           <th>Cidade</th>
           <th>Tipo</th>
-          <th>Status</th>
+          <th>Status atual</th>
           <th>Valor base</th>
+          <th>Pendências</th>
           <th>Ações</th>
         </tr>
       </thead>
@@ -58,12 +57,12 @@
         @if (isLoading()) {
           @for (i of [1,2,3,4,5,6,7,8]; track i) {
             <tr>
-              <td colspan="6"><div class="skeleton-row"></div></td>
+              <td colspan="7"><div class="skeleton-row"></div></td>
             </tr>
           }
         } @else if (items().length === 0) {
           <tr>
-            <td colspan="6" class="dashboard-table__empty">Nenhum imóvel encontrado com os filtros atuais.</td>
+            <td colspan="7" class="dashboard-table__empty">Nenhum imóvel encontrado com os filtros atuais.</td>
           </tr>
         } @else {
           @for (item of items(); track item.id) {
@@ -93,11 +92,23 @@
                   <span class="muted-value">Não informado</span>
                 }
               </td>
-              <td class="table-actions">
-                <div class="table-actions--buttons">
-                  <button class="btn btn-secondary btn-sm" type="button" (click)="openPropertyDetail(item.id)">Ver</button>
-                  <button class="btn btn-secondary btn-sm" type="button" (click)="openStatusModal(item)">Status</button>
-                  <button class="btn btn-primary btn-sm" type="button" (click)="openPendencyModal(item)">Pendência</button>
+              <td>
+                <div class="pendency-cell">
+                  <div class="pendency-cell__actions">
+                    <button
+                      class="btn btn-secondary btn-sm"
+                      type="button"
+                      (click)="openPendencies(item.id)"
+                      [disabled]="getOpenPendencyCount(item.id) === 0">
+                      Ver
+                    </button>
+                    <button class="btn btn-primary btn-sm" type="button" (click)="openPendencyModal(item)">Nova</button>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div class="status-action-cell">
+                  <button class="btn btn-secondary btn-sm" type="button" (click)="openStatusModal(item)">Alterar status</button>
                 </div>
               </td>
             </tr>

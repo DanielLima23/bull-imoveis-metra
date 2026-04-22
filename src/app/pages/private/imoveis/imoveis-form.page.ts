@@ -114,6 +114,7 @@ export class ImoveisFormPage implements OnInit {
     }),
     characteristics: this.fb.nonNullable.group({
       numOfRooms: [0],
+      numOfGarage: [0],
       elevator: [false],
       garage: [false],
       unoccupiedSince: ['']
@@ -123,9 +124,12 @@ export class ImoveisFormPage implements OnInit {
       proprietaryPartyId: [''],
       administrator: [''],
       administratorPartyId: [''],
+      administratorPhone: [''],
+      administratorEmail: [''],
       administrateTax: [''],
       lawyer: [''],
       lawyerPartyId: [''],
+      lawyerData: [''],
       observation: ['']
     }),
     initialRentAmount: [0],
@@ -171,6 +175,7 @@ export class ImoveisFormPage implements OnInit {
           },
           characteristics: {
             numOfRooms: item.characteristics?.numOfRooms ?? 0,
+            numOfGarage: item.characteristics?.numOfGarage ?? 0,
             elevator: !!item.characteristics?.elevator,
             garage: !!item.characteristics?.garage,
             unoccupiedSince: item.characteristics?.unoccupiedSince ?? ''
@@ -180,9 +185,12 @@ export class ImoveisFormPage implements OnInit {
             proprietaryPartyId: item.administration?.proprietaryPartyId ?? item.proprietaryPartyId ?? '',
             administrator: item.administration?.administrator ?? item.administrator ?? '',
             administratorPartyId: item.administration?.administratorPartyId ?? item.administratorPartyId ?? '',
+            administratorPhone: item.administration?.administratorPhone ?? '',
+            administratorEmail: item.administration?.administratorEmail ?? '',
             administrateTax: item.administration?.administrateTax ?? '',
             lawyer: item.administration?.lawyer ?? item.lawyer ?? '',
             lawyerPartyId: item.administration?.lawyerPartyId ?? item.lawyerPartyId ?? '',
+            lawyerData: item.administration?.lawyerData ?? '',
             observation: item.administration?.observation ?? ''
           }
         });
@@ -240,6 +248,7 @@ export class ImoveisFormPage implements OnInit {
       },
       characteristics: {
         numOfRooms: raw.characteristics.numOfRooms || undefined,
+        numOfGarage: raw.characteristics.numOfGarage || undefined,
         elevator: raw.characteristics.elevator,
         garage: raw.characteristics.garage,
         unoccupiedSince: raw.characteristics.unoccupiedSince || undefined
@@ -249,9 +258,12 @@ export class ImoveisFormPage implements OnInit {
         proprietaryPartyId: raw.administration.proprietaryPartyId.trim() || undefined,
         administrator: raw.administration.administrator.trim() || undefined,
         administratorPartyId: raw.administration.administratorPartyId.trim() || undefined,
+        administratorPhone: raw.administration.administratorPhone.trim() || undefined,
+        administratorEmail: raw.administration.administratorEmail.trim() || undefined,
         administrateTax: raw.administration.administrateTax.trim() || undefined,
         lawyer: raw.administration.lawyer.trim() || undefined,
         lawyerPartyId: raw.administration.lawyerPartyId.trim() || undefined,
+        lawyerData: raw.administration.lawyerData.trim() || undefined,
         observation: raw.administration.observation.trim() || undefined
       }
     };
@@ -360,11 +372,18 @@ export class ImoveisFormPage implements OnInit {
   }
 
   onAdministratorPartyChange(party: PartyDto | null): void {
-    this.form.controls.administration.controls.administrator.setValue(party?.name ?? '');
+    this.form.controls.administration.patchValue({
+      administrator: party?.name ?? '',
+      administratorPhone: party?.phone ?? '',
+      administratorEmail: party?.email ?? ''
+    });
   }
 
   onLawyerPartyChange(party: PartyDto | null): void {
-    this.form.controls.administration.controls.lawyer.setValue(party?.name ?? '');
+    this.form.controls.administration.patchValue({
+      lawyer: party?.name ?? '',
+      lawyerData: party?.oab ?? ''
+    });
   }
 
   private watchZipCode(): void {
@@ -605,8 +624,8 @@ export class ImoveisFormPage implements OnInit {
   private openBlockedStatusModal(propertyId: string, result: PropertyStatusTransitionResult): void {
     if (result === 'blocked_requires_active_lease') {
       this.flowGuidanceModal.set({
-        title: 'Para marcar este imovel como alugado',
-        message: 'E necessario existir uma locacao ativa vinculada a este imovel antes de definir o status como alugado.',
+        title: 'Para marcar este imóvel como alugado',
+        message: 'É necessário existir uma locação ativa vinculada a este imóvel antes de definir o status como alugado.',
         queryParams: {
           propertyId,
           guideMode: 'activate-lease'
@@ -616,8 +635,8 @@ export class ImoveisFormPage implements OnInit {
     }
 
     this.flowGuidanceModal.set({
-      title: 'Para alterar o status deste imovel',
-      message: 'Existe uma locacao ativa vinculada a este imovel. Encerre o contrato antes de alterar o status manualmente.',
+      title: 'Para alterar o status deste imóvel',
+      message: 'Existe uma locação ativa vinculada a este imóvel. Encerre o contrato antes de alterar o status manualmente.',
       queryParams: {
         propertyId,
         status: 'ACTIVE',
