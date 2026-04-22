@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
+import { SlicePipe } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Params, Router, RouterLink } from '@angular/router';
@@ -41,7 +42,8 @@ import {
     DateBrInputDirective,
     AsyncSearchSelectComponent,
     DomainLabelPipe,
-    FlowGuidanceModalComponent
+    FlowGuidanceModalComponent,
+    SlicePipe
   ],
   providers: [PropertyStatusTransitionService],
   templateUrl: './imoveis.page.html',
