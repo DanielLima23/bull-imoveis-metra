@@ -74,7 +74,13 @@
                 </div>
               </td>
               <td>{{ item.city }}/{{ item.state }}</td>
-              <td>{{ item.propertyType | domainLabel:'propertyType' }}</td>
+              <td>
+                <span [title]="item.propertyType | domainLabel:'propertyType'">
+                  {{ ((item.propertyType | domainLabel:'propertyType').length > 20)
+                    ? ((item.propertyType | domainLabel:'propertyType') | slice:0:20) + '...'
+                    : (item.propertyType | domainLabel:'propertyType') }}
+                </span>
+              </td>
               <td>
                 <div class="status-cell">
                   <span [attr.class]="'status-tag ' + getStatusTagClass(item)">{{ getPropertyStatusLabel(item) }}</span>
