@@ -1,4 +1,4 @@
-<div class="private-layout" [class.nav-open]="isMobileOpen()">
+<div class="private-layout" [class.nav-open]="isMobileOpen()" [class.collapsed]="isCollapsed()">
   <button class="overlay" type="button" (click)="closeMobileMenu()" aria-label="Fechar menu"></button>
 
   <aside class="sidenav">
@@ -12,11 +12,21 @@
       </button>
     </div>
 
+    <button class="sidenav__toggle"
+            type="button"
+            (click)="toggleSidebar()"
+            [attr.aria-label]="isCollapsed() ? 'Expandir menu' : 'Colapsar menu'"
+            [attr.aria-expanded]="!isCollapsed()">
+      <svg viewBox="0 0 24 24" class="icon-svg toggle-icon">
+        <path d="M15 18l-6-6 6-6"/>
+      </svg>
+    </button>
+
     <nav class="nav" aria-label="Menu principal">
       @for (group of menuGroups(); track group.label) {
         <section class="nav-group">
           <div class="nav-group__title">
-            <span class="nav-group__icon" aria-hidden="true">
+            <span class="nav-group__icon" aria-hidden="true" [attr.title]="isCollapsed() ? group.label : null">
               <svg viewBox="0 0 24 24" class="icon-svg">
                 @switch (group.icon) {
                   @case ('painel') {
@@ -70,7 +80,14 @@
         </div>
       }
 
-      <button type="button" class="btn btn-secondary sidenav__logout" (click)="logout()">Sair</button>
+      <button type="button" class="btn btn-secondary sidenav__logout" (click)="logout()">
+        <svg viewBox="0 0 24 24" class="icon-svg logout-icon" aria-hidden="true">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+          <polyline points="16 17 21 12 16 7"/>
+          <line x1="21" y1="12" x2="9" y2="12"/>
+        </svg>
+        <span class="logout-label">Sair</span>
+      </button>
     </div>
   </aside>
 

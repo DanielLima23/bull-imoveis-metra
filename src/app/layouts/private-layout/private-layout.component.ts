@@ -29,10 +29,17 @@ export class PrivateLayoutComponent {
   private readonly systemSettings = inject(SystemSettingsService);
   private readonly router = inject(Router);
 
+  private readonly STORAGE_KEY = 'sidebar-collapsed';
+  readonly isCollapsed = signal<boolean>(false);
+
   readonly isMobileOpen = signal(false);
   readonly user = this.authService.currentUser;
   readonly brandName = this.systemSettings.brandName;
   readonly brandShortName = this.systemSettings.brandShortName;
+
+  constructor() {
+    this.isCollapsed.set(this.readStoredState());
+  }
 
   readonly menuGroups = computed<MenuGroup[]>(() => [
     {
@@ -90,5 +97,26 @@ export class PrivateLayoutComponent {
 
   onMenuItemClick(): void {
     this.closeMobileMenu();
+  }
+
+  toggleSidebar(): void {
+    this.isCollapsed.update(v => !v);
+    this.persistState(this.isCollapsed());
+  }
+
+  private readStoredState(): boolean {
+    try {
+      return localStorage.getItem(this.STORAGE_KEY) === 'true';
+    } catch {
+      return false; // default: expanded
+    }
+  }
+
+  private persistState(collapsed: boolean): void {
+    try {
+      localStorage.setItem(this.STORAGE_KEY, String(collapsed));
+    } catch {
+      // Silently fail - sidebar still works, just won't persist
+    }
   }
 }
