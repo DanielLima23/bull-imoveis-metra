@@ -26,8 +26,9 @@ import { BrlCurrencyPipe } from '../../../shared/pipes/brl-currency.pipe';
 import { DateOnlyBrPipe } from '../../../shared/pipes/date-only-br.pipe';
 import { DomainLabelPipe } from '../../../shared/pipes/domain-label.pipe';
 import { ToastService } from '../../../shared/services/toast.service';
+import { PropertyPaymentCalendarComponent } from '../../../shared/components/property-payment-calendar/property-payment-calendar.component';
 
-type PropertyDetailTab = 'resumo' | 'financeiro' | 'historico' | 'locacoes';
+type PropertyDetailTab = 'resumo' | 'financeiro' | 'historico' | 'locacoes' | 'calendario';
 
 @Component({
   selector: 'app-imoveis-detail-page',
@@ -40,7 +41,8 @@ type PropertyDetailTab = 'resumo' | 'financeiro' | 'historico' | 'locacoes';
     DateTimeBrInputDirective,
     BrlCurrencyPipe,
     DateOnlyBrPipe,
-    DomainLabelPipe
+    DomainLabelPipe,
+    PropertyPaymentCalendarComponent
   ],
   templateUrl: './imoveis-detail.page.html',
   styleUrl: './imoveis-detail.page.scss',
@@ -69,6 +71,7 @@ export class ImoveisDetailPage implements OnInit {
   readonly tabs: { id: PropertyDetailTab; label: string }[] = [
     { id: 'resumo', label: 'Resumo' },
     { id: 'financeiro', label: 'Financeiro' },
+    { id: 'calendario', label: 'Calendário' },
     { id: 'historico', label: 'Histórico' },
     { id: 'locacoes', label: 'Locações' }
   ];

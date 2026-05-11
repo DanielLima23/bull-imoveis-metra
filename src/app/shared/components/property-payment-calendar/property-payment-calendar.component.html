@@ -1,0 +1,78 @@
+<div class="calendar-wrapper">
+
+  <!-- Year Navigator -->
+  <div class="calendar-nav" role="navigation" aria-label="Navegação por ano">
+    <button
+      class="btn btn-secondary calendar-nav__btn"
+      type="button"
+      (click)="previousYear()"
+      aria-label="Ano anterior"
+    >←</button>
+    <span class="calendar-nav__year" aria-live="polite" aria-atomic="true">{{ calendarYear() }}</span>
+    <button
+      class="btn btn-secondary calendar-nav__btn"
+      type="button"
+      (click)="nextYear()"
+      aria-label="Próximo ano"
+    >→</button>
+  </div>
+
+  <!-- Loading state: skeleton rows -->
+  @if (loading()) {
+    <div class="calendar-skeleton" aria-busy="true" aria-label="Carregando calendário de pagamentos">
+      <div class="calendar-skeleton__header"></div>
+      @for (row of skeletonRows; track $index) {
+        <div class="skeleton-row calendar-skeleton__row"></div>
+      }
+    </div>
+  }
+
+  <!-- Error state -->
+  @if (error()) {
+    <div class="calendar-error" role="alert">
+      <p class="calendar-error__message">Falha ao carregar o calendário de pagamentos.</p>
+      <button class="btn btn-secondary" type="button" (click)="loadCalendar()">Tentar novamente</button>
+    </div>
+  }
+
+  <!-- Calendar grid -->
+  @if (!loading() && !error()) {
+    <div class="calendar-table-wrap">
+      <table class="calendar-table" role="grid" aria-label="Calendário anual de pagamentos">
+        <thead>
+          <tr>
+            <th class="calendar-table__month-col" scope="col">Mês</th>
+            @for (col of columns; track col.key) {
+              <th scope="col">{{ col.label }}</th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of rows(); track row.month) {
+            <tr>
+              <td class="calendar-table__month-col calendar-table__month-label" scope="row">
+                {{ row.monthLabel }}
+              </td>
+              @for (col of columns; track col.key) {
+                <td
+                  [class]="'cell cell--' + row[col.key].state"
+                  [attr.aria-label]="getCellAriaLabel(row[col.key], col.label, row.monthLabel)"
+                >
+                  @if (row[col.key].state === 'paid') {
+                    <span class="cell__date">{{ row[col.key].paidDate | dateOnlyBr }}</span>
+                    <span class="cell__amount">{{ row[col.key].amount | brlCurrency }}</span>
+                  } @else if (row[col.key].state === 'pending' || row[col.key].state === 'overdue') {
+                    <span class="cell__amount">{{ row[col.key].amount | brlCurrency }}</span>
+                  } @else {
+                    <span class="cell__empty" aria-hidden="true">—</span>
+                  }
+                </td>
+              }
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+</div>
