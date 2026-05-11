@@ -3,13 +3,19 @@ app-page-header {
 }
 
 .dashboard-table {
-  min-width: 980px;
+  min-width: 820px;
+  font-size: 0.88rem;
+}
+
+.dashboard-table th,
+.dashboard-table td {
+  padding: 0.55rem 0.6rem;
 }
 
 .dashboard-table th:nth-child(6),
 .dashboard-table td:nth-child(6) {
-  width: 220px;
-  min-width: 220px;
+  width: 180px;
+  min-width: 180px;
 }
 
 .dashboard-table__empty {
@@ -24,12 +30,12 @@ app-page-header {
 }
 
 .property-cell strong {
-  font-size: 0.95rem;
+  font-size: 0.9rem;
 }
 
 .property-cell span {
   color: var(--muted);
-  font-size: 0.82rem;
+  font-size: 0.78rem;
 }
 
 .pendency-cell {
@@ -41,11 +47,17 @@ app-page-header {
 .status-action-cell {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  align-items: center;
+  gap: 0.4rem;
 }
 
 .pendency-cell__actions {
   flex-wrap: nowrap;
+}
+
+.status-action-cell .icon-action {
+  width: 32px;
+  height: 32px;
 }
 
 .modal-backdrop {

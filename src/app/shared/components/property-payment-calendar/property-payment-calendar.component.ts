@@ -99,10 +99,13 @@ export function buildCalendarRows(
   }));
 
   for (const line of lines) {
-    // Derive the month index (1-based) from competenceDate (ISO date string)
-    const competenceDate = line.competenceDate ?? '';
-    const monthNumber = competenceDate ? new Date(competenceDate + 'T00:00:00').getMonth() + 1 : null;
-    if (!monthNumber || monthNumber < 1 || monthNumber > 12) continue;
+    // Derive the month index (1-based) from competenceDate. Accepts either
+    // 'YYYY-MM-DD' or full ISO strings ('YYYY-MM-DDTHH:mm:ss...'); we parse
+    // the first 10 chars to avoid timezone surprises.
+    const competenceDate = (line.competenceDate ?? '').toString().slice(0, 10);
+    const parts = competenceDate.split('-');
+    const monthNumber = parts.length === 3 ? Number(parts[1]) : NaN;
+    if (!Number.isFinite(monthNumber) || monthNumber < 1 || monthNumber > 12) continue;
 
     const rowIndex = monthNumber - 1;
     const kindUpper = (line.kind ?? '').toUpperCase();

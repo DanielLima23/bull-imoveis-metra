@@ -121,6 +121,10 @@
         </article>
       </div>
     </section>
+    <section class="card-panel">
+      <h2>Calendário anual de pagamentos</h2>
+      <app-property-payment-calendar [propertyId]="propertyId()" />
+    </section>
   }
 
   @if (activeTab() === 'financeiro') {
@@ -419,9 +423,5 @@
         </table>
       </div>
     </section>
-  }
-
-  @if (activeTab() === 'calendario') {
-    <app-property-payment-calendar [propertyId]="propertyId()" />
   }
 }

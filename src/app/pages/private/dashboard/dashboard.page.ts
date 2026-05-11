@@ -189,6 +189,10 @@ export class DashboardPage implements OnInit, OnDestroy {
     void this.router.navigate(['/app/imoveis', propertyId, 'pendencias']);
   }
 
+  openPropertyDetail(propertyId: string): void {
+    void this.router.navigate(['/app/imoveis', propertyId]);
+  }
+
   openStatusModal(property: PropertyDto): void {
     const status = inferPropertyStatus(property);
     const idleReason = inferPropertyIdleReason(property);

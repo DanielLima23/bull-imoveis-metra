@@ -28,7 +28,7 @@ import { DomainLabelPipe } from '../../../shared/pipes/domain-label.pipe';
 import { ToastService } from '../../../shared/services/toast.service';
 import { PropertyPaymentCalendarComponent } from '../../../shared/components/property-payment-calendar/property-payment-calendar.component';
 
-type PropertyDetailTab = 'resumo' | 'financeiro' | 'historico' | 'locacoes' | 'calendario';
+type PropertyDetailTab = 'resumo' | 'financeiro' | 'historico' | 'locacoes';
 
 @Component({
   selector: 'app-imoveis-detail-page',
@@ -71,7 +71,6 @@ export class ImoveisDetailPage implements OnInit {
   readonly tabs: { id: PropertyDetailTab; label: string }[] = [
     { id: 'resumo', label: 'Resumo' },
     { id: 'financeiro', label: 'Financeiro' },
-    { id: 'calendario', label: 'Calendário' },
     { id: 'historico', label: 'Histórico' },
     { id: 'locacoes', label: 'Locações' }
   ];
