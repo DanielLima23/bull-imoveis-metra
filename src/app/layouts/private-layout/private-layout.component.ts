@@ -4,10 +4,12 @@ import { AuthService } from '../../core/services/auth.service';
 import { SystemSettingsService } from '../../core/services/system-settings.service';
 
 type MenuIcon = 'painel' | 'cadastros' | 'operacoes' | 'relatorios' | 'configuracoes';
+type ItemIcon = 'dashboard' | 'building' | 'user-check' | 'users' | 'key' | 'wallet' | 'alert-circle' | 'calendar' | 'wrench' | 'bar-chart' | 'sliders';
 
 interface MenuItem {
   label: string;
   route: string;
+  icon: ItemIcon;
 }
 
 interface MenuGroup {
@@ -30,7 +32,7 @@ export class PrivateLayoutComponent {
   private readonly router = inject(Router);
 
   private readonly STORAGE_KEY = 'sidebar-collapsed';
-  readonly isCollapsed = signal<boolean>(false);
+  readonly isCollapsed = signal<boolean>(true);
 
   readonly isMobileOpen = signal(false);
   readonly user = this.authService.currentUser;
@@ -45,37 +47,37 @@ export class PrivateLayoutComponent {
     {
       label: 'Painel',
       icon: 'painel',
-      items: [{ label: 'Visão geral', route: '/app/dashboard' }]
+      items: [{ label: 'Visão geral', route: '/app/dashboard', icon: 'dashboard' }]
     },
     {
       label: 'Cadastros',
       icon: 'cadastros',
       items: [
-        { label: 'Imóveis', route: '/app/imoveis' },
-        { label: 'Locatários', route: '/app/locatarios' },
-        { label: 'Pessoas', route: '/app/pessoas' }
+        { label: 'Imóveis', route: '/app/imoveis', icon: 'building' },
+        { label: 'Locatários', route: '/app/locatarios', icon: 'user-check' },
+        { label: 'Pessoas', route: '/app/pessoas', icon: 'users' }
       ]
     },
     {
       label: 'Operações',
       icon: 'operacoes',
       items: [
-        { label: 'Locações', route: '/app/locacoes' },
-        { label: 'Contas', route: '/app/despesas' },
-        { label: 'Pendências', route: '/app/pendencias' },
-        { label: 'Visitas', route: '/app/visitas' },
-        { label: 'Manutenções', route: '/app/manutencoes' }
+        { label: 'Locações', route: '/app/locacoes', icon: 'key' },
+        { label: 'Contas', route: '/app/despesas', icon: 'wallet' },
+        { label: 'Pendências', route: '/app/pendencias', icon: 'alert-circle' },
+        { label: 'Visitas', route: '/app/visitas', icon: 'calendar' },
+        { label: 'Manutenções', route: '/app/manutencoes', icon: 'wrench' }
       ]
     },
     {
       label: 'Relatórios',
       icon: 'relatorios',
-      items: [{ label: 'Painéis e exportações', route: '/app/relatorios' }]
+      items: [{ label: 'Painéis e exportações', route: '/app/relatorios', icon: 'bar-chart' }]
     },
     {
       label: 'Configurações',
       icon: 'configuracoes',
-      items: [{ label: 'Preferências do sistema', route: '/app/configuracoes' }]
+      items: [{ label: 'Preferências do sistema', route: '/app/configuracoes', icon: 'sliders' }]
     }
   ]);
 
@@ -106,9 +108,10 @@ export class PrivateLayoutComponent {
 
   private readStoredState(): boolean {
     try {
-      return localStorage.getItem(this.STORAGE_KEY) === 'true';
+      const stored = localStorage.getItem(this.STORAGE_KEY);
+      return stored === null ? true : stored === 'true'; // default: collapsed
     } catch {
-      return false; // default: expanded
+      return true; // default: collapsed
     }
   }
 
